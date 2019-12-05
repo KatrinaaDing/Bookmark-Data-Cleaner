@@ -1,0 +1,56 @@
+:root {
+	--font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+header {
+	display: flex;
+	justify-content: center;
+	font-family: var(--font-family);
+	color: rgba(255, 190, 190);
+	font-size: 50px;
+	padding: 20px;
+
+}
+
+#container {
+	border: 1px solid grey;
+	display: flex;
+	flex-direction: column;
+	justify-content: start;
+	width: 80%;
+	margin: auto;
+	border-radius: 25px;
+	padding: 10px;
+	background-color: white;
+}
+
+.item {
+	display: flex;
+	justify-content: start;
+	width: 100%;
+	padding: 10px;
+	font-family: var(--font-family);
+	font-size: 15px;
+	
+}
+
+.item:hover, .item:focus{
+	color: rgba(143, 143, 143, 0.794);
+}
+
+.folder {
+	display: flex;
+	flex-direction: column;
+	justify-content: start;
+	width: inherit;
+	padding: 10px;
+	font-family: var(--font-family);
+	font-size: 15px;
+	color: gray;
+}
+
+.folder:hover, .folder:focus {
+	color: rgba(143, 143, 143, 0.794);
+	font-weight: bold;
+	cursor: pointer;
+}
