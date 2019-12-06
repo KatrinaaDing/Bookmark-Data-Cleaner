@@ -1,5 +1,5 @@
 // global variable
-let container = document.getElementById('container');
+var container = document.getElementById('container');
 
 
 /**
@@ -16,15 +16,18 @@ function wrapListItem(url, title, id) {
     let item = document.createElement('div');
     let checkbox = document.createElement('input');
     let href = document.createElement('a');
-    
+    let detail = document.createElement('div');
+
     item.id = id;
     item.classList.add('item');
     checkbox.type = 'checkbox';
     checkbox.value = id;
     href.innerText = validateTitle(title);
     href.setAttribute('href',url);
+    detail.innerText = 'View Data';
+    detail.classList.add('detail');
     
-    [checkbox, href].forEach(e => {item.appendChild(e)});
+    [checkbox, href, detail].forEach(e => {item.appendChild(e)});
     return item;
 }
 
@@ -45,9 +48,9 @@ function wrapListFolder(title, id){
     checkbox.type = 'checkbox';
     checkbox.value = id;
     titleText.innerText = validateTitle("> (id: " + id + ") " + title);
-    titleElement.classList.add('folder');
-    titleText.classList.add('title');
-    
+    item.classList.add('folder');
+    titleElement.classList.add('title');
+
     checkbox.addEventListener('change', () => {selectAll(id, checkbox.checked)});
     titleText.addEventListener('click', () => { reverseFolderStatus(item) });
     
@@ -124,7 +127,7 @@ function reverseFolderStatus(node){
 function toggleFolder(parent,value){
     let children = parent.children;
     for (let i = 1; i < children.length; i++) {
-        children[i].style.display = (value)? 'block' : 'none';
+        children[i].style.display = (value)? 'flex' : 'none';
     };
 }
 
