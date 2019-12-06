@@ -46,9 +46,10 @@ function wrapListFolder(title, id){
     checkbox.value = id;
     titleText.innerText = validateTitle("> (id: " + id + ") " + title);
     titleElement.classList.add('folder');
-
+    titleText.classList.add('title');
+    
     checkbox.addEventListener('change', () => {selectAll(id, checkbox.checked)});
-    titleText.addEventListener('click', () => { parseFolder(id) });
+    titleText.addEventListener('click', () => { reverseFolderStatus(item) });
     
     [checkbox, titleText].forEach(e => {titleElement.appendChild(e)});
     item.appendChild(titleElement);
@@ -105,12 +106,26 @@ function reverseFolderStatus(node){
     if (node.getAttribute("open") == "true") {
         titleNode.innerText = title.replace('v', '>');
         node.setAttribute("open", "false");
+        toggleFolder(node, false);
         return false;
     } else {
         titleNode.innerText = title.replace('>', 'v');
         node.setAttribute("open", "true");
+        toggleFolder(node, true);
         return true;
     }
+}
+
+/**
+ * display and hide elements in folder
+ * @param {html element} parent the folder element
+ * @param {booelan} value true means "display" and false means "hide"
+ */
+function toggleFolder(parent,value){
+    let children = parent.children;
+    for (let i = 1; i < children.length; i++) {
+        children[i].style.display = (value)? 'block' : 'none';
+    };
 }
 
 /**
@@ -118,13 +133,7 @@ function reverseFolderStatus(node){
  * @param {string} id the id of the bookmark folder 
  */
 async function parseFolder(id){
-    let parent = document.getElementById(id);
-    // remove all the children first, then reverse the status of this folder node
-    await removeChildren(parent);
-    if(reverseFolderStatus(parent) === false) 
-        return;
-    
-    // if the folder is opened, append all the children to this folder element
+    // append all the children to this folder element
     chrome.bookmarks.getChildren(id, (children) => {
         children.forEach((child) => {
             if (child != undefined) {
@@ -133,11 +142,13 @@ async function parseFolder(id){
                     element = wrapListItem(child.url, child.title, child.id);
                 } catch (err) {
                     element = wrapListFolder(child.title, child.id);
+                    parseFolder(child.id);
                     console.log(err);
                 } finally {
-                    // increment indent level
-                    element.style.marginLeft = incrementCSSValue(parent, 'margin-left');
-                    parent.appendChild(element);
+                    // increment indent level, hide all children by default
+                    element.style.marginLeft = incrementCSSValue(document.getElementById(id), 'margin-left');
+                    element.style.display = 'none';
+                    document.getElementById(id).appendChild(element);
                 }
 
             }  else {
@@ -147,15 +158,21 @@ async function parseFolder(id){
     });
 }
 
-function selectAll(id, value){
-   let children = document.getElementById(id).children;
-   for (let i = 1; i < children.length; i++) {
-       console.log(children[i].classList.contains('item'))
-        if(children[i].classList.contains('item'))
-            children[i].firstChild.checked = value;
-        else
-            children[i].firstChild.firstChild.checked = value;
-    };
+/**
+ * select or deselect all the elements in a folder.
+ * @param {string} id the id of the folder element
+ * @param {boolean} value the value that wants to set in the checkbox
+ */
+function selectAll(id, value) {
+    document.getElementById(id).firstChild.firstChild.checked = value;
+    let children = document.getElementById(id).children;
+    for (let i = 1; i < children.length; i++) {
+            if(children[i].classList.contains('item'))
+                children[i].firstChild.checked = value;
+            else
+                // children[i].firstChild.firstChild.checked = value;
+                selectAll(children[i].id, value);
+        };
 }
 
 function details(id){
@@ -171,6 +188,7 @@ function getRoot() {
         chrome.bookmarks.getChildren(root[0].id, (nodes) => {
             nodes.forEach((node) => {
                 container.appendChild(wrapListFolder(node.title, node.id));
+                parseFolder(node.id);
             });
         });
     });

@@ -62,8 +62,16 @@ input[type=checkbox]{
 	color: gray;
 }
 
-.folder:hover, .folder:focus {
+/* .folder:hover, .folder:focus {
 	color: rgba(143, 143, 143, 0.794);
+	background-color: rgba(232, 232, 232, 0.475);
+	font-weight: bold;
+	cursor: pointer;
+} */
+
+.folder .title:hover {
+	/* color: rgba(143, 143, 143, 0.794); */
+	/* background-color: rgba(232, 232, 232, 0.475); */
 	font-weight: bold;
 	cursor: pointer;
 }
