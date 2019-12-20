@@ -1,5 +1,7 @@
 // global variable
 var container = document.getElementById('container');
+var detail = document.getElementById('detail');
+
 
 
 /**
@@ -15,8 +17,7 @@ function wrapListItem(url, title, id) {
     
     let item = document.createElement('div');
     let checkbox = document.createElement('input');
-    let href = document.createElement('a');
-    let detail = document.createElement('div');
+    let href = document.createElement('div');
 
     item.id = id;
     item.classList.add('item');
@@ -24,10 +25,10 @@ function wrapListItem(url, title, id) {
     checkbox.value = id;
     href.innerText = validateTitle(title);
     href.setAttribute('href',url);
-    detail.innerText = 'View Data';
-    detail.classList.add('detail');
+    href.classList.add('link');
+    href.addEventListener('click', () => {popUpDetail(id, url, validateTitle(title))});
     
-    [checkbox, href, detail].forEach(e => {item.appendChild(e)});
+    [checkbox, href].forEach(e => {item.appendChild(e)});
     return item;
 }
 
@@ -50,6 +51,7 @@ function wrapListFolder(title, id){
     titleText.innerText = validateTitle("> (id: " + id + ") " + title);
     item.classList.add('folder');
     titleElement.classList.add('title');
+    titleText.classList.add('text');
 
     checkbox.addEventListener('change', () => {selectAll(id, checkbox.checked)});
     titleText.addEventListener('click', () => { reverseFolderStatus(item) });
@@ -57,6 +59,60 @@ function wrapListFolder(title, id){
     [checkbox, titleText].forEach(e => {titleElement.appendChild(e)});
     item.appendChild(titleElement);
     return item;
+}
+
+
+async function popUpDetail(id, url, title){
+    await removeChildren(detail, 0);
+
+    let topBanner = document.createElement('div'); 
+    let bannerTitle = document.createElement('div');
+    bannerTitle.innerText = title;
+    bannerTitle.classList.add('title')
+    let closeBtn = document.createElement('div');
+    closeBtn.innerText = 'X';
+    closeBtn.classList.add('close-btn');
+    
+    topBanner.classList.add('top-banner');
+    [bannerTitle, closeBtn].forEach(e => {topBanner.appendChild(e)});
+    detail.appendChild(topBanner);
+
+    let detailTable = document.createElement('table');
+
+    // get visit and display last visit time
+    let visit = document.createElement('tr');
+    let visitTitle = document.createElement('td');
+    visitTitle.innerText = 'last visit: ';
+    visit.appendChild(visitTitle);
+    chrome.history.getVisits({ "url": url }, res => {
+        let data = document.createElement('td');
+        if (res.length > 0) {
+            let item = res.slice(-1)[0];
+            let time = new Date(item.visitTime);
+            data.innerText = time.toString().split(' ', 5).join(' ');
+        } else {
+            data.innerText = '<no history found>';
+        }
+        visit.appendChild(data);
+    });
+    detailTable.appendChild(visit);
+
+    
+    detail.appendChild(detailTable);
+    detail.style.display = 'flex';
+}
+
+function getCookies(urlObj){
+    chrome.cookies.getAll(urlObj, res => {
+        console.log(res);
+        return Promise.resolve(res);
+    });
+}
+
+async function getVisits(urlObj) {
+    chrome.history.getVisits({"url":url}, res => {
+        return Promes.resolve(res);
+    })
 }
 
 /**
@@ -74,10 +130,11 @@ function validateTitle(text) {
 /**
  * remove all the children nodes of a parent except the first child (title node)
  * @param {html element} parent the parent node that to be removed
+ * @param {int} index the index of html to remove from
  * @return Promise resolve
  */
-function removeChildren(parent){
-    while(parent.children.length > 1){
+function removeChildren(parent, index){
+    while(parent.children.length > index){
         parent.removeChild(parent.lastChild);
     }
     return Promise.resolve();
