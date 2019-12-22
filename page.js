@@ -1,8 +1,25 @@
 // global variable
 var container = document.getElementById('container');
 var detail = document.getElementById('detail');
-
-
+var topBanner = document.getElementById('top-banner');
+var bannerTitle = document.getElementById('banner-title')
+var closeBtn = document.getElementById('close-btn');
+var detailTable = document.getElementById('detail-table');
+var removeOptions = {
+    "cache": "Clears the browser's cache (including appcaches and cache storage)", 
+    "cookies": "Clears the browser's cookies and server-bound certificates modified within a particular timeframe.", 
+    "downloads": "Clears the browser's list of downloaded files (not the downloaded files themselves).", 
+    "fileSystems": "Clears websites' file system data.", 
+    "formData": "Clears the browser's stored form data (autofill).", 
+    "history": "Clears the browser's history.", 
+    "indexedDB": "Clears websites' IndexedDB (database) data.", 
+    "localStorage": "Clears websites' local storage data.",
+    "passwords": "Clears the browser's stored passwords.",
+    "pluginData": "Clears plugins' data.",
+    // "serviceWorkers": "Clears websites' service workers.",
+    "webSQL": "Clears websites' WebSQL data."
+}
+var removeCache = ["appcache", "cacheStorage"];
 
 /**
  * Wrap a url into html node.
@@ -51,10 +68,12 @@ function wrapListFolder(title, id){
     titleText.innerText = validateTitle("> (id: " + id + ") " + title);
     item.classList.add('folder');
     titleElement.classList.add('title');
+    checkbox.style.marginRight = '15px';
     titleText.classList.add('text');
 
-    checkbox.addEventListener('change', () => {selectAll(id, checkbox.checked)});
-    titleText.addEventListener('click', () => { reverseFolderStatus(item) });
+
+    checkbox.addEventListener('change', () => selectAll(id, checkbox.checked));
+    titleText.addEventListener('click', () => reverseFolderStatus(item));
     
     [checkbox, titleText].forEach(e => {titleElement.appendChild(e)});
     item.appendChild(titleElement);
@@ -63,21 +82,22 @@ function wrapListFolder(title, id){
 
 
 async function popUpDetail(id, url, title){
-    await removeChildren(detail, 0);
+    await emptyDetail();
 
-    let topBanner = document.createElement('div'); 
-    let bannerTitle = document.createElement('div');
+    // let topBanner = document.createElement('div'); 
+    // let bannerTitle = document.createElement('div');
     bannerTitle.innerText = title;
-    bannerTitle.classList.add('title')
-    let closeBtn = document.createElement('div');
-    closeBtn.innerText = 'X';
-    closeBtn.classList.add('close-btn');
-    
-    topBanner.classList.add('top-banner');
-    [bannerTitle, closeBtn].forEach(e => {topBanner.appendChild(e)});
-    detail.appendChild(topBanner);
+    // bannerTitle.classList.add('title')
+    // let closeBtn = document.createElement('div');
+    // closeBtn.innerText = 'X';
+    // closeBtn.classList.add('close-btn');
+    closeBtn.addEventListener('click', (e) => { detail.style.display = 'none' });
+    // topBanner.classList.add('top-banner');
+    // [bannerTitle, closeBtn].forEach(e => {topBanner.appendChild(e)});
+    // detail.appendChild(topBanner);
 
-    let detailTable = document.createElement('table');
+    // create table to display details
+    // let detailTable = document.createElement('table');
 
     // get visit and display last visit time
     let visit = document.createElement('tr');
@@ -95,10 +115,49 @@ async function popUpDetail(id, url, title){
         }
         visit.appendChild(data);
     });
+
+    // display url
+    // let link = document.createElement('tr');
+    // let linkTitle = document.createaElement('td');
+    // linkTitle = docume
     detailTable.appendChild(visit);
 
+    // // create delete action button
+    // let deleteBar = document.createElement('form');
     
-    detail.appendChild(detailTable);
+    // let deleteBtn = document.createElement('button');
+    // let deleteOpts = document.createElement('div');
+    // deleteOpts.classList.add('delete-options');
+    // deleteBtn.type = 'submit';
+    // deleteBtn.innerText = 'delete';
+    // for (let key in removeOptions) {
+    //     let block = document.createElement('div');
+    //     block.classList.add('delete-opt');
+    //     let opt = document.createElement('input');
+    //     opt.type = 'checkbox';
+    //     opt.name = key;
+    //     opt.id = key;
+    //     let label = document.createElement('label');
+    //     label.innerText = key;
+    //     label.setAttribute('for', key);
+    //     if (key == 'cache'){
+    //         removeCache.forEach(c => {
+    //             let opt = document.createElement('input');
+    //             opt.type = 'checkbox';
+    //             opt.name = c;
+    //             opt.style.display = 'none';
+    //             deleteOpts.appendChild(opt);
+    //         });
+    //     }
+    //     [opt, label].forEach(e => block.appendChild(e));
+    //     deleteOpts.appendChild(block);
+    //     console.log(`${key} --> ${removeOptions[key]}`);
+    // }
+
+    // [deleteBtn, deleteOpts].forEach(e => deleteBar.appendChild(e));
+    
+    // detail.appendChild(detailTable);
+    // detail.appendChild(deleteBar);
     detail.style.display = 'flex';
 }
 
@@ -127,16 +186,10 @@ function validateTitle(text) {
         return '<unnamed>';
 }
 
-/**
- * remove all the children nodes of a parent except the first child (title node)
- * @param {html element} parent the parent node that to be removed
- * @param {int} index the index of html to remove from
- * @return Promise resolve
- */
-function removeChildren(parent, index){
-    while(parent.children.length > index){
-        parent.removeChild(parent.lastChild);
-    }
+
+function emptyDetail(){
+    bannerTitle.innerText = '';
+    detailTable.innerText = '';
     return Promise.resolve();
 }
 

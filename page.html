@@ -8,7 +8,64 @@
 	</head>
 	<header>Bookmark Cleaner</header>
 	<body>
-		<div id='detail'></div>
+		<div id='detail'>
+			<div class="top-banner" id="top-banner">
+				<div class="title" id="banner-title"></div>
+				<div class="close-btn" id="close-btn">X</div>
+			</div>
+			<table id="detail-table"></table>
+			<form>
+				<button type="sumit">Delete</button>
+				<div class="delete-options">
+					<input type="checkbox" name="appcache" style="display: none;">
+					<input type="checkbox" name="cacheStorage" style="display: none;">
+					<div class="delete-opt">
+						<input type="checkbox" name="cache" id="cache">
+						<label for="cache">cache</label>
+					</div>
+					<div class="delete-opt">
+						<input type="checkbox" name="cookies" id="cookies">
+						<label for="cookies">cookies</label>
+					</div>
+					<div class="delete-opt">
+						<input type="checkbox" name="downloads" id="downloads">
+						<label for="downloads">downloads</label>
+					</div>
+					<div class="delete-opt">
+						<input type="checkbox" name="fileSystems" id="fileSystems">
+						<labelfor="fileSystems">fileSystems</label>'
+					</div>
+					<div class="delete-opt">
+						<input type="checkbox" name="formData" id="formData">
+						<label for="formData">formData</label>
+					</div>
+					<div class="delete-opt">
+						<input type="checkbox" name="history" id="history">
+						<label for="history">history</label>
+					</div>
+					<div class="delete-opt">
+						<input type="checkbox" name="indexedDB" id="indexedDB">
+						<label for="indexedDB">indexedDB</label>
+					</div>
+					<div class="delete-opt">
+						<input type="checkbox" name="localStorage" id="localStorage">
+						<label for="localStorage">localStorage</label>
+					</div>
+					<div class="delete-opt">
+						<input type="checkbox" name="passwords" id="passwords">
+						<label for="passwords">passwords</label>
+					</div>
+					<div class="delete-opt">
+						<input type="checkbox" name="pluginData" id="pluginData">\
+						<label for="pluginData">pluginData</label>
+					</div>
+					<div class="delete-opt">
+						<input type="checkbox" name="webSQL" id="webSQL">
+						<label for="webSQL">webSQL</label>
+					</div>
+				</div>
+			</form>
+		</div>
 		<div id='container'></div>
 		<script src="page.js"></script>
 	</body>
