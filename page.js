@@ -84,20 +84,8 @@ function wrapListFolder(title, id){
 async function popUpDetail(id, url, title){
     await emptyDetail();
 
-    // let topBanner = document.createElement('div'); 
-    // let bannerTitle = document.createElement('div');
     bannerTitle.innerText = title;
-    // bannerTitle.classList.add('title')
-    // let closeBtn = document.createElement('div');
-    // closeBtn.innerText = 'X';
-    // closeBtn.classList.add('close-btn');
     closeBtn.addEventListener('click', (e) => { detail.style.display = 'none' });
-    // topBanner.classList.add('top-banner');
-    // [bannerTitle, closeBtn].forEach(e => {topBanner.appendChild(e)});
-    // detail.appendChild(topBanner);
-
-    // create table to display details
-    // let detailTable = document.createElement('table');
 
     // get visit and display last visit time
     let visit = document.createElement('tr');
@@ -122,42 +110,6 @@ async function popUpDetail(id, url, title){
     // linkTitle = docume
     detailTable.appendChild(visit);
 
-    // // create delete action button
-    // let deleteBar = document.createElement('form');
-    
-    // let deleteBtn = document.createElement('button');
-    // let deleteOpts = document.createElement('div');
-    // deleteOpts.classList.add('delete-options');
-    // deleteBtn.type = 'submit';
-    // deleteBtn.innerText = 'delete';
-    // for (let key in removeOptions) {
-    //     let block = document.createElement('div');
-    //     block.classList.add('delete-opt');
-    //     let opt = document.createElement('input');
-    //     opt.type = 'checkbox';
-    //     opt.name = key;
-    //     opt.id = key;
-    //     let label = document.createElement('label');
-    //     label.innerText = key;
-    //     label.setAttribute('for', key);
-    //     if (key == 'cache'){
-    //         removeCache.forEach(c => {
-    //             let opt = document.createElement('input');
-    //             opt.type = 'checkbox';
-    //             opt.name = c;
-    //             opt.style.display = 'none';
-    //             deleteOpts.appendChild(opt);
-    //         });
-    //     }
-    //     [opt, label].forEach(e => block.appendChild(e));
-    //     deleteOpts.appendChild(block);
-    //     console.log(`${key} --> ${removeOptions[key]}`);
-    // }
-
-    // [deleteBtn, deleteOpts].forEach(e => deleteBar.appendChild(e));
-    
-    // detail.appendChild(detailTable);
-    // detail.appendChild(deleteBar);
     detail.style.display = 'flex';
 }
 
