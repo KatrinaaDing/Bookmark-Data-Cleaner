@@ -30,7 +30,16 @@ table {
 	padding: 10px;
 	margin: 10px;
 	font-family: var(--font-family);
-	border: 1px solid black; 
+	border: 1px solid grey; 
+}
+
+button {
+	margin: 10px;
+}
+
+a {
+	word-break: break-all;
+	
 }
 
 #container {
@@ -47,12 +56,10 @@ table {
 
 #detail {
 	display: none;
-	/* resize: both; */
-	/* overflow-y: scroll; */
 	flex-direction: column;
 	position: fixed;
 	top: auto;
-	left: auto;
+	left: 50%;
 	margin: auto;
 	width: 40%;
 	background-color: rgb(255, 234, 238);
@@ -67,7 +74,6 @@ table {
 .item {
 	flex-direction: row;
 	justify-content: start;
-	/* padding: 6px; */
 	font-family: var(--font-family);
 	color: lightslategray;
 	width: 800px;
@@ -88,7 +94,6 @@ table {
 }
 
 .link:hover, .link:focus{
-	/* font-weight: bold; */
 	cursor: pointer;
 	box-shadow: 3px 2px 7px rgba(205, 205, 205, 0.801);
 
@@ -116,8 +121,6 @@ table {
 }
 
 .folder .title .text:hover {
-	/* color: rgba(143, 143, 143, 0.794); */
-	/* background-color: rgba(232, 232, 232, 0.475); */
 	font-weight: bold;
 	cursor: pointer;
 }
@@ -149,7 +152,6 @@ table {
 .top-banner .close-btn:hover {
 	cursor: pointer;
 	border-radius: 10px;
-	/* background-color: rgb(161, 161, 161); */
 	box-shadow: 3px 2px 7px rgb(156, 156, 156);
 	transition: box-shadow 0.2s ease-in-out;
 
@@ -162,13 +164,15 @@ table {
 
 .delete-options {
 	font-family: var(--font-family);
-	display: flex;
 	flex-direction: row;
 	flex-wrap: wrap;
 }
 
 .delete-opt {
-	display: inherit;
 	flex-direction: row;
 	padding: 5px;
+}
+
+.detail-title {
+	width: 20%;
 }

@@ -4,7 +4,13 @@ var detail = document.getElementById('detail');
 var topBanner = document.getElementById('top-banner');
 var bannerTitle = document.getElementById('banner-title')
 var closeBtn = document.getElementById('close-btn');
-var detailTable = document.getElementById('detail-table');
+var detailTable = document.getElementById('detail-table'); 
+var visitTitle = document.getElementById('visit-title');
+var lastVisit = document.getElementById('last-visit');
+var linkTitle = document.getElementById('link-title');
+var link = document.getElementById('link');
+var removeForm = document.getElementById('remove-form');
+
 var removeOptions = {
     "cache": "Clears the browser's cache (including appcaches and cache storage)", 
     "cookies": "Clears the browser's cookies and server-bound certificates modified within a particular timeframe.", 
@@ -16,7 +22,6 @@ var removeOptions = {
     "localStorage": "Clears websites' local storage data.",
     "passwords": "Clears the browser's stored passwords.",
     "pluginData": "Clears plugins' data.",
-    // "serviceWorkers": "Clears websites' service workers.",
     "webSQL": "Clears websites' WebSQL data."
 }
 var removeCache = ["appcache", "cacheStorage"];
@@ -87,44 +92,43 @@ async function popUpDetail(id, url, title){
     bannerTitle.innerText = title;
     closeBtn.addEventListener('click', (e) => { detail.style.display = 'none' });
 
-    // get visit and display last visit time
-    let visit = document.createElement('tr');
-    let visitTitle = document.createElement('td');
-    visitTitle.innerText = 'last visit: ';
-    visit.appendChild(visitTitle);
+    // get and display last visit time
     chrome.history.getVisits({ "url": url }, res => {
-        let data = document.createElement('td');
         if (res.length > 0) {
             let item = res.slice(-1)[0];
             let time = new Date(item.visitTime);
-            data.innerText = time.toString().split(' ', 5).join(' ');
+            lastVisit.innerText = time.toString().split(' ', 5).join(' ');
         } else {
-            data.innerText = '<no history found>';
+            lastVisit.innerText = '<no history found>';
         }
-        visit.appendChild(data);
     });
 
     // display url
-    // let link = document.createElement('tr');
-    // let linkTitle = document.createaElement('td');
-    // linkTitle = docume
-    detailTable.appendChild(visit);
+    link.href = url;
+    link.innerText = url;
 
+    removeForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        let obj = {};
+        for (var el of removeForm.elements){
+            if (el.checked) {
+                obj[el.name] = true;
+            }
+        }
+        chrome.browsingData.remove({
+                "origins": [url]
+            }, 
+            obj, 
+            function() {
+                console.log("successfully cleaned " + url);
+            }
+        );
+    });
+
+   
     detail.style.display = 'flex';
 }
 
-function getCookies(urlObj){
-    chrome.cookies.getAll(urlObj, res => {
-        console.log(res);
-        return Promise.resolve(res);
-    });
-}
-
-async function getVisits(urlObj) {
-    chrome.history.getVisits({"url":url}, res => {
-        return Promes.resolve(res);
-    })
-}
 
 /**
  * validate title text to be non-empty string
@@ -141,7 +145,8 @@ function validateTitle(text) {
 
 function emptyDetail(){
     bannerTitle.innerText = '';
-    detailTable.innerText = '';
+    lastVisit.innerText = '';
+    link.innerText = '';
     return Promise.resolve();
 }
 
@@ -216,9 +221,7 @@ async function parseFolder(id){
                     document.getElementById(id).appendChild(element);
                 }
 
-            }  else {
-                console.log(child);
-            }
+            } 
         });
     });
 }

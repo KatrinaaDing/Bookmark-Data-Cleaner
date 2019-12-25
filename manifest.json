@@ -2,7 +2,7 @@
    "name" : "Bookmark Whatever Cleaner",
    "version" : "1.1",
    "description" : "blablablaclean whatever",
-   "permissions": [ "bookmarks", "history", "cookies", "tabs", "http://*/*", "https://*/*" ],
+   "permissions": [ "bookmarks", "history", "browsingData", "http://*/*", "https://*/*" ],
    "browser_action" : {
       "default_icon": "icon.png",
       "default_popup": "popup.html"
