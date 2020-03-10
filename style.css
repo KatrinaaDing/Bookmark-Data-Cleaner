@@ -1,6 +1,9 @@
 :root {
 	--font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
+html {
+	background-color: bisque;
+}
 
 header {
 	display: flex;
@@ -95,12 +98,12 @@ a {
 
 .link:hover, .link:focus{
 	cursor: pointer;
-	box-shadow: 3px 2px 7px rgba(205, 205, 205, 0.801);
+	box-shadow: 3px 2px 7px rgba(156, 156, 156);
 
 }
 
 .link:active {
-	box-shadow: inset 0px 2px 7px 0px rgba(198, 198, 198, 0.801);
+	box-shadow: inset 0px 2px 7px 0px rgba(198, 198, 198);
 	transition: box-shadow 0.2s ease-in-out;
 }
 

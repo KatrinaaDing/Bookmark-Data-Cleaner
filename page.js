@@ -14,13 +14,13 @@ var removeForm = document.getElementById('remove-form');
 var removeOptions = {
     "cache": "Clears the browser's cache (including appcaches and cache storage)", 
     "cookies": "Clears the browser's cookies and server-bound certificates modified within a particular timeframe.", 
-    "downloads": "Clears the browser's list of downloaded files (not the downloaded files themselves).", 
+    // "downloads": "Clears the browser's list of downloaded files (not the downloaded files themselves).", 
     "fileSystems": "Clears websites' file system data.", 
-    "formData": "Clears the browser's stored form data (autofill).", 
-    "history": "Clears the browser's history.", 
+    // "formData": "Clears the browser's stored form data (autofill).", 
+    // "history": "Clears the browser's history.", 
     "indexedDB": "Clears websites' IndexedDB (database) data.", 
     "localStorage": "Clears websites' local storage data.",
-    "passwords": "Clears the browser's stored passwords.",
+    // "passwords": "Clears the browser's stored passwords.",
     "pluginData": "Clears plugins' data.",
     "webSQL": "Clears websites' WebSQL data."
 }
@@ -115,13 +115,17 @@ async function popUpDetail(id, url, title){
                 obj[el.name] = true;
             }
         }
-        chrome.browsingData.remove({
+        console.log(obj);
+        chrome.browsingData.remove(
+            {
                 "origins": [url]
             }, 
             obj, 
-            function() {
+            function(res) {
+                console.log(res);
                 console.log("successfully cleaned " + url);
             }
+           
         );
     });
 
@@ -217,6 +221,7 @@ async function parseFolder(id){
                 } finally {
                     // increment indent level, hide all children by default
                     element.style.marginLeft = incrementCSSValue(document.getElementById(id), 'margin-left');
+                    element.style.maxWidth = 50; //TODO
                     element.style.display = 'none';
                     document.getElementById(id).appendChild(element);
                 }
