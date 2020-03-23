@@ -1,4 +1,5 @@
 // global variable
+var deleteAllBtn = document.getElementById('deleteAll')
 var container = document.getElementById('container');
 var detail = document.getElementById('detail');
 var topBanner = document.getElementById('top-banner');
@@ -107,31 +108,48 @@ async function popUpDetail(id, url, title){
     link.href = url;
     link.innerText = url;
 
-    removeForm.addEventListener("submit", (event) => {
+    // get https/http version of the url
+    var url2;
+    if (url.includes('https')){
+        url2 = url.replace(/https/, 'http');
+    } else if (url.includes('http')) {
+        url2 = url.replace(/http/, 'https');
+    }
+
+    let originList = [url];
+    if (url2)
+        originList.push(url2);
+
+    console.log(originList);
+    document.getElementById('submitBtn').onclick = ((event) => {
         event.preventDefault();
         let obj = {};
         for (var el of removeForm.elements){
             if (el.checked) {
                 obj[el.name] = true;
+                if(el.name === 'cache'){
+                    obj['appcache'] = true;
+                    obj['cacheStorage'] = true;
+                }
             }
         }
-        console.log(obj);
         chrome.browsingData.remove(
             {
-                "origins": [url]
+                "origins": originList
             }, 
             obj, 
             function(res) {
-                console.log(res);
-                console.log("successfully cleaned " + url);
+                alert("successfully cleaned"  + originList); //TODO: custom alert
+                detail.style.display = 'none';
             }
            
         );
     });
-
-   
+    // topBanner.addEventListener("mousedown", dragMouseDown); //TODO: drag evnet
     detail.style.display = 'flex';
 }
+
+
 
 
 /**
@@ -151,6 +169,7 @@ function emptyDetail(){
     bannerTitle.innerText = '';
     lastVisit.innerText = '';
     link.innerText = '';
+    // removeForm.reset();
     return Promise.resolve();
 }
 
@@ -221,7 +240,7 @@ async function parseFolder(id){
                 } finally {
                     // increment indent level, hide all children by default
                     element.style.marginLeft = incrementCSSValue(document.getElementById(id), 'margin-left');
-                    element.style.maxWidth = 50; //TODO
+                    element.style.maxWidth = 50; //TODO: change the length of shadow box
                     element.style.display = 'none';
                     document.getElementById(id).appendChild(element);
                 }
@@ -248,8 +267,38 @@ function selectAll(id, value) {
         };
 }
 
-function details(id){
+/**
+ * An event handler for dragging detail window
+ * @param {event} e the mouse down event
+ */
+function dragMouseDown(e){
+    e = e || window.event;
+    e.preventDefault();
+    // get the mouse position
+    mousePosX = e.clientX - detail.offsetLeft;
+    mousePosY= e.clientY - detail.offsetHeight;
+    topBanner.addEventListener("mousemove", dragElement(e, mousePosX, mousePosY));
 
+    topBanner.addEventListener("mouseup", (e) => {
+        topBanner.removeEventListener("mousemove", dragElement(e, mousePosX, mousePosY));
+    });
+}
+
+function dragElement(e, offsetX, offsetY) { //TODO: not working
+    e = e || window.event;
+    e.preventDefault();
+    console.log(offsetX, offsetY)
+    // calculate element position
+    // offsetX = mousePosX - e.clientX;
+    // offsetY = mousePosY - e.clientY;
+    // mousePosX = e.clientX;
+    // mousePosY = e.clientY;
+    console.log("left to", (detail.offsetLeft - offsetX), "right to", (detail.offsetTop - offsetY));
+    // detail.style.left =  (e.clientX - offsetX) + "px";
+    // detail.style.top = (e.clientY - offsetY) + "px";
+    
+    console.log("mouse Y:", e.clientY, "mouse X:", e.clientX);
+    console.log("Y:", detail.offsetHeight,", X:", detail.offsetLeft);
 }
 
 /**
@@ -269,3 +318,12 @@ function getRoot() {
 
 
 getRoot();
+deleteAllBtn.onclick = ((event) => {
+    event.preventDefault();
+    var selectedBanner = document.getElementById('delete-selected-banner');
+    console.log(selectedBanner);
+    for(var el of selectedBanner.elements){
+        console.log(el.id);
+    }
+});
+

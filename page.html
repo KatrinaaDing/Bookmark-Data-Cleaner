@@ -4,7 +4,6 @@
 	<head>
 		<title>Book mark cleaner</title>
 		<link rel="stylesheet" href="style.css">
-		<h1>Hello user</h1>
 	</head>
 	<header>Bookmark Cleaner</header>
 	<body>
@@ -21,18 +20,16 @@
 				<tr>
 					<td id="link-title" class="detail-title">URL: </td>
 					<td><a id="link"></a></td>
-
 				</tr>
 			</table>
 			<form id="remove-form">
-				<button type="sumit">Delete Selected</button>
+				<button id='submitBtn' type="button">Delete Selected</button>
+				<button type="reset">Reset</button>
 				<table class="delete-options" style="display: table">
-						<tr>
-							<td class="delete-opt">
-								<input type="checkbox" name="cache" id="cache">
-								<input type="checkbox" name="appcache" style="display: none;">
-								<input type="checkbox" name="cacheStorage" style="display: none;">
-							<label for="cache">cache</label>
+					<tr>
+						<td class="delete-opt">
+							<input type="checkbox" name="cache" id="cache">
+						<label for="cache">cache</label>
 						</td>
 						<td class="delete-opt">
 							<input type="checkbox" name="cookies" id="cookies">
@@ -40,17 +37,17 @@
 						</td>
 						<td class="delete-opt">
 							<input type="checkbox" name="fileSystems" id="fileSystems">
-							<labelfor="fileSystems">fileSystems</label>
+							<label for="fileSystems">fileSystems</label>
 						</td>
-						<!-- <td class="delete-opt">
-							<input type="checkbox" name="formData" id="formData">
-							<label for="formData">formData</label>
-						</td>
+					<!-- <td class="delete-opt">
+						<input type="checkbox" name="formData" id="formData">
+						<label for="formData">formData</label>
+					</td>
 
-						<td class="delete-opt">
-							<input type="checkbox" name="history" id="history">
-							<label for="history">history</label>
-						</td> -->
+					<td class="delete-opt">
+						<input type="checkbox" name="history" id="history">
+						<label for="history">history</label>
+					</td> -->
 					</tr>
 					<tr>
 						<td class="delete-opt">
@@ -75,11 +72,45 @@
 							<label for="webSQL">webSQL</label>
 						</td>
 					</tr>
-					<tr>
-					</tr>
 				</table>
 			</form>
 		</div>
+
+
+		<form id='delete-selected-banner'>
+			
+			<button id='deleteAll'>Delete Selected</button>
+			<button>Reset</button>
+			<div class='delete-all-opt'>
+				<input type='checkbox' id='cache-all'>
+				<label for='cache-all'>cache</label>
+			</div>
+			<div class='delete-all-opt'>
+				<input type='checkbox' id='cookies-all'>
+				<label for='cookies-all'>cookies</label>
+			</div>
+			<div class='delete-all-opt'>
+				<input type='checkbox' id='fileSystems-all'>
+				<label for='fileSystems-all'>fileSystems</label>
+			</div>
+			<div class='delete-all-opt'>
+				<input type='checkbox' id='indexedDB-all'>
+				<label for='indexedDB-all'>indexedDB</label>
+			</div>
+			<div class='delete-all-opt'>
+				<input type='checkbox' id='localStorage-all'>
+				<label for='localStorage-all'>localStorage</label>
+			</div>
+			<div class='delete-all-opt'>
+				<input type='checkbox' id='pluginData-all'>
+				<label for='pluginData-all'>pluginData</label>
+			</div>
+			<div class='delete-all-opt'>
+				<input type='checkbox' id='webSQL-all'>
+				<labe for='webSQL-all'>webSQL</label>
+			</div>
+			
+		</form>
 		<div id='container'></div>
 		<script src="page.js"></script>
 	</body>

@@ -26,6 +26,7 @@ input[type=checkbox]{
 
 label {
 	cursor: pointer;
+	margin: auto;
 	margin-right: 10px;
 }
 
@@ -60,7 +61,7 @@ a {
 #detail {
 	display: none;
 	flex-direction: column;
-	position: fixed;
+	position: absolute;
 	top: auto;
 	left: 50%;
 	margin: auto;
@@ -72,7 +73,19 @@ a {
 	box-shadow: 3px 2px 7px rgba(205, 205, 205, 0.801);
 }
 
+#delete-selected-banner {
+	display: flex;
+	justify-content: start;
+	
+	flex-direction: row;
+	width: 80%;
+	margin: auto;
+}
 
+.delete-all-opt {
+	margin-top: auto;
+	margin-bottom: auto;
+}
 
 .item {
 	flex-direction: row;
@@ -130,6 +143,7 @@ a {
 
 .top-banner {
 	display: flex;
+    justify-content: space-between;
 	flex-direction: row;
 	font-size: 15px;
 	font-family: var(--font-family);
@@ -137,7 +151,7 @@ a {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	padding: 10px;
-	width: 100%;
+	width: -webkit-fill-available;
 }
 
 .top-banner .title {
@@ -169,6 +183,7 @@ a {
 	font-family: var(--font-family);
 	flex-direction: row;
 	flex-wrap: wrap;
+	width: -webkit-fill-available;
 }
 
 .delete-opt {
