@@ -28,7 +28,7 @@ label {
 	cursor: pointer;
 	margin: auto;
 	margin-right: 10px;
-	font-size: 15px;
+	font-size: 12px;
 }
 
 table {
@@ -40,6 +40,7 @@ table {
 
 button {
 	margin: 10px;
+	font-size: 12px;
 }
 
 a {
@@ -62,7 +63,7 @@ a {
 #detail {
 	display: none;
 	flex-direction: column;
-	position: absolute;
+	position: fixed;
 	top: auto;
 	left: 50%;
 	margin: auto;
@@ -76,8 +77,8 @@ a {
 
 #delete-selected-banner {
 	display: flex;
-	justify-content: start;
-	
+	justify-content: center;
+	flex-wrap: wrap;
 	flex-direction: row;
 	width: 80%;
 	margin: auto;
@@ -94,7 +95,7 @@ a {
 	font-family: var(--font-family);
 	color: lightslategray;
 	width: 800px;
-	font-size: 15px;
+	font-size: 12px;
 	margin: auto;
 	
 }
@@ -135,14 +136,14 @@ a {
 	display: flex;
 	flex-direction: row;
 	justify-content: start;
-	font-size: 17px;
+	font-size: 14px;
 	font-weight: bold;
 	
 }
 
 .folder .title .text:hover {
 	color: darkolivegreen;
-	font-size: 18.5px;
+	font-size: 15.5px;
 	cursor: pointer;
 	transition: all 0.1s ease-in-out;
 }
