@@ -28,6 +28,7 @@ label {
 	cursor: pointer;
 	margin: auto;
 	margin-right: 10px;
+	font-size: 15px;
 }
 
 table {
@@ -124,9 +125,9 @@ a {
 	display: flex;
 	flex-direction: column;
 	width: inherit;
-	padding: 10px;
+	padding-top: 10px;
+	padding-bottom: 10px;
 	font-family: var(--font-family);
-	font-size: 15px;
 	color: gray;
 }
 
@@ -134,11 +135,16 @@ a {
 	display: flex;
 	flex-direction: row;
 	justify-content: start;
+	font-size: 17px;
+	font-weight: bold;
+	
 }
 
 .folder .title .text:hover {
-	font-weight: bold;
+	color: darkolivegreen;
+	font-size: 18.5px;
 	cursor: pointer;
+	transition: all 0.1s ease-in-out;
 }
 
 .top-banner {

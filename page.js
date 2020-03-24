@@ -1,4 +1,7 @@
 // global variable
+let selectedOrigins = [];
+
+//html element
 var deleteAllBtn = document.getElementById('deleteAll')
 var container = document.getElementById('container');
 var detail = document.getElementById('detail');
@@ -46,6 +49,7 @@ function wrapListItem(url, title, id) {
     item.classList.add('item');
     checkbox.type = 'checkbox';
     checkbox.value = id;
+    checkbox.addEventListener('click', checkBoxHandler);//TODO: updateOriginList()
     href.innerText = validateTitle(title);
     href.setAttribute('href',url);
     href.classList.add('link');
@@ -71,7 +75,7 @@ function wrapListFolder(title, id){
     item.setAttribute("open", "false");
     checkbox.type = 'checkbox';
     checkbox.value = id;
-    titleText.innerText = validateTitle("> (id: " + id + ") " + title);
+    titleText.innerText = validateTitle("> " + title);
     item.classList.add('folder');
     titleElement.classList.add('title');
     checkbox.style.marginRight = '15px';
@@ -148,8 +152,6 @@ async function popUpDetail(id, url, title){
     // topBanner.addEventListener("mousedown", dragMouseDown); //TODO: drag evnet
     detail.style.display = 'flex';
 }
-
-
 
 
 /**
@@ -239,7 +241,7 @@ async function parseFolder(id){
                     console.log(err);
                 } finally {
                     // increment indent level, hide all children by default
-                    element.style.marginLeft = incrementCSSValue(document.getElementById(id), 'margin-left');
+                    element.style.marginLeft = '30px';//incrementCSSValue(document.getElementById(id), 'margin-left');
                     element.style.maxWidth = 50; //TODO: change the length of shadow box
                     element.style.display = 'none';
                     document.getElementById(id).appendChild(element);
@@ -259,12 +261,32 @@ function selectAll(id, value) {
     document.getElementById(id).firstChild.firstChild.checked = value;
     let children = document.getElementById(id).children;
     for (let i = 1; i < children.length; i++) {
-            if(children[i].classList.contains('item'))
+            if(children[i].classList.contains('item')){
                 children[i].firstChild.checked = value;
+                updateOriginalList(children[i].firstChild);
+            }
+               
             else
                 // children[i].firstChild.firstChild.checked = value;
                 selectAll(children[i].id, value);
         };
+}
+
+function updateOriginalList(checkbox){
+    let href = checkbox.nextSibling.getAttribute('href');
+     // push the href into the list
+     if(checkbox.checked){
+        if (selectedOrigins.indexOf(href) < 0)
+            selectedOrigins.push(href);
+    
+    // remove the href from list
+    } else {
+        let i = selectedOrigins.indexOf(href);
+        if (i >= 0)
+            selectedOrigins.splice(i, 1);
+    }
+    console.log("add " + href);
+    console.log(selectedOrigins);
 }
 
 /**
@@ -316,14 +338,21 @@ function getRoot() {
     });
 }
 
+/* event handler */
+function checkBoxHandler(event){
+    updateOriginalList(event.target);
+}
 
-getRoot();
-deleteAllBtn.onclick = ((event) => {
+function deleteAll(event){
     event.preventDefault();
     var selectedBanner = document.getElementById('delete-selected-banner');
     console.log(selectedBanner);
     for(var el of selectedBanner.elements){
-        console.log(el.id);
+        console.log(el.checked); //TODO: check action
     }
-});
+}
+
+
+getRoot();
+deleteAllBtn.onclick = deleteAll();
 
