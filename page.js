@@ -271,17 +271,37 @@ function selectAll(id, value) {
 
 function updateOriginalList(checkbox){
     let href = checkbox.nextSibling.getAttribute('href');
-     // push the href into the list
-     if(checkbox.checked){
-        if (selectedOrigins.indexOf(href) < 0)
+
+    // get https/http version of the url
+    var href2;
+    if (href.includes('https')){
+        href2 = href.replace(/https/, 'http');
+    } else if (href.includes('http')) {
+        href2 = href.replace(/http/, 'https');
+    }
+
+    // push the href (both http and https ver) into the list
+    if(checkbox.checked){
+        if (selectedOrigins.indexOf(href) < 0){
             selectedOrigins.push(href);
+            if (href2)
+                selectedOrigins.push(href2);
+        }    
     
-    // remove the href from list
+    // remove the href (both http and https ver) from list
     } else {
         let i = selectedOrigins.indexOf(href);
         if (i >= 0)
             selectedOrigins.splice(i, 1);
+        
+        if (href2){
+            let i2 = selectedOrigins.indexOf(href2);
+            if (i >= 0)
+                selectedOrigins.splice(i2, 1);
+        }
+    
     }
+    
     console.log(selectedOrigins); 
 }
 
@@ -342,14 +362,29 @@ function checkBoxHandler(event){
 function deleteAll(event){
     event.preventDefault();
     var selectedBanner = document.getElementById('delete-selected-banner');
-    // console.log(selectedBanner);
     let obj = {};
     for(var el of selectedBanner.elements){
-        // console.log(el.checked); //TODO: check action
+        if (el.checked) {
+            obj[el.name] = true;
+                if(el.name === 'cache'){
+                    obj['appcache'] = true;
+                    obj['cacheStorage'] = true;
+                }
+        }
     }
+    chrome.browsingData.remove(
+        {
+            "origins": selectedOrigins
+        }, 
+        obj, 
+        function(res) {
+            alert(selectedOrigins); // TODO: remove bookmark and show alert window
+        }
+       
+    );
 }
 
 
 getRoot();
-deleteAllBtn.onclick = deleteAll();
+deleteAllBtn.addEventListener('click', deleteAll);
 
