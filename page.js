@@ -173,19 +173,6 @@ function emptyDetail(){
     return Promise.resolve();
 }
 
-// /**
-//  * increase the value of a css property
-//  * @param {HTML Element} value The element
-//  * @param {String} property The property that wants to increment 
-//  * @return the new string value with original unit
-//  */
-// function incrementCSSValue(element, property){
-//     // get the current value of that property
-//     const style = window.getComputedStyle(element).getPropertyValue(property);
-//     const num = style.match(/\d+/);
-//     const unit = style.match(/[a-zA-Z]+/);
-//     return `${parseInt(num) + 15}${unit}`;
-// }
 
 /**
  * Reverse the value of attribute to indicate if a folder is opened
