@@ -81,7 +81,6 @@ function wrapListFolder(title, id){
     checkbox.style.marginRight = '15px';
     titleText.classList.add('text');
 
-
     checkbox.addEventListener('change', () => selectAll(id, checkbox.checked));
     titleText.addEventListener('click', () => reverseFolderStatus(item));
     
@@ -124,7 +123,6 @@ async function popUpDetail(id, url, title){
     if (url2)
         originList.push(url2);
 
-    console.log(originList);
     document.getElementById('submitBtn').onclick = ((event) => {
         event.preventDefault();
         let obj = {};
@@ -175,19 +173,19 @@ function emptyDetail(){
     return Promise.resolve();
 }
 
-/**
- * increase the value of a css property
- * @param {HTML Element} value The element
- * @param {String} property The property that wants to increment 
- * @return the new string value with original unit
- */
-function incrementCSSValue(element, property){
-    // get the current value of that property
-    const style = window.getComputedStyle(element).getPropertyValue(property);
-    const num = style.match(/\d+/);
-    const unit = style.match(/[a-zA-Z]+/);
-    return `${parseInt(num) + 15}${unit}`;
-}
+// /**
+//  * increase the value of a css property
+//  * @param {HTML Element} value The element
+//  * @param {String} property The property that wants to increment 
+//  * @return the new string value with original unit
+//  */
+// function incrementCSSValue(element, property){
+//     // get the current value of that property
+//     const style = window.getComputedStyle(element).getPropertyValue(property);
+//     const num = style.match(/\d+/);
+//     const unit = style.match(/[a-zA-Z]+/);
+//     return `${parseInt(num) + 15}${unit}`;
+// }
 
 /**
  * Reverse the value of attribute to indicate if a folder is opened
@@ -231,6 +229,7 @@ async function parseFolder(id){
     // append all the children to this folder element
     chrome.bookmarks.getChildren(id, (children) => {
         children.forEach((child) => {
+            let parent = document.getElementById(id);
             if (child != undefined) {
                 let element = undefined;
                 try {
@@ -238,11 +237,9 @@ async function parseFolder(id){
                 } catch (err) {
                     element = wrapListFolder(child.title, child.id);
                     parseFolder(child.id);
-                    console.log(err);
                 } finally {
                     // increment indent level, hide all children by default
-                    element.style.marginLeft = '30px';//incrementCSSValue(document.getElementById(id), 'margin-left');
-                    element.style.maxWidth = 50; //TODO: change the length of shadow box
+                    element.style.marginLeft = '30px';
                     element.style.display = 'none';
                     document.getElementById(id).appendChild(element);
                 }
@@ -285,8 +282,7 @@ function updateOriginalList(checkbox){
         if (i >= 0)
             selectedOrigins.splice(i, 1);
     }
-    console.log("add " + href);
-    console.log(selectedOrigins);
+    console.log(selectedOrigins); 
 }
 
 /**
@@ -346,9 +342,10 @@ function checkBoxHandler(event){
 function deleteAll(event){
     event.preventDefault();
     var selectedBanner = document.getElementById('delete-selected-banner');
-    console.log(selectedBanner);
+    // console.log(selectedBanner);
+    let obj = {};
     for(var el of selectedBanner.elements){
-        console.log(el.checked); //TODO: check action
+        // console.log(el.checked); //TODO: check action
     }
 }
 

@@ -53,7 +53,7 @@ a {
 	display: flex;
 	flex-direction: column;
 	justify-content: start;
-	width: 80%;
+	width: 85%;
 	margin: auto;
 	border-radius: 25px;
 	padding: 10px;
@@ -94,10 +94,8 @@ a {
 	justify-content: start;
 	font-family: var(--font-family);
 	color: lightslategray;
-	width: 800px;
 	font-size: 12px;
 	margin: auto;
-	
 }
 
 .item .link {
@@ -125,7 +123,6 @@ a {
 .folder {
 	display: flex;
 	flex-direction: column;
-	width: inherit;
 	padding-top: 10px;
 	padding-bottom: 10px;
 	font-family: var(--font-family);
@@ -190,12 +187,13 @@ a {
 	font-family: var(--font-family);
 	flex-direction: row;
 	flex-wrap: wrap;
-	width: -webkit-fill-available;
+	/* width: -webkit-fill-available; */
 }
 
 .delete-opt {
 	flex-direction: row;
 	padding: 5px;
+	
 }
 
 .detail-title {
