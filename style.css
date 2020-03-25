@@ -48,15 +48,12 @@ button {
 	font-size: 12px;
 	border: 1px solid gray;
 	padding: 5px;
-	/* background-color: white; */
 	transition: box-shadow 0.2s ease-in-out;
 }
 
 button:hover {
 	cursor: pointer;
 	box-shadow: 2px 2px 7px rgba(163, 163, 163, 0.45);
-	
-	
 }
 
 a {
@@ -84,7 +81,6 @@ a {
 	left: 30%;
 	margin: auto;
 	width: 40%;
-	/* background-color: rgb(219, 238, 244); */
 	background-image:  radial-gradient(circle at 35% 30%, rgb(245, 222, 222), rgb(218, 206, 245));
 	background-attachment: fixed;
 	z-index: 999;
@@ -104,6 +100,35 @@ a {
 	margin: auto;
 	margin-bottom: 10px;
 	padding: 5px;
+}
+
+#waiting-window {
+	position: fixed;
+	top: 50%;
+	left: 30%;
+	margin: auto;
+	width: 40%;
+	z-index: 999;
+	padding: 10px;
+	border-radius: 5px;
+	border: 1px dashed rgb(108, 108, 92);
+	text-align: center;
+}
+
+.done-btn {
+	padding: 10px;
+	display: none;
+}
+
+.waiting-bg {
+	z-index: 999;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(44, 44, 44, 0.7);
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	transition: all linear 1s;
 }
 
 .delete-all-opt {
@@ -156,7 +181,7 @@ a {
 	flex-direction: row;
 	justify-content: start;
 	font-size: 14px;
-	font-weight: bold;
+	font-weight: 550;
 	color: rgb(133, 75, 109)
 	
 }
@@ -211,13 +236,11 @@ a {
 	font-family: var(--font-family);
 	flex-direction: row;
 	flex-wrap: wrap;
-	/* width: -webkit-fill-available; */
 }
 
 .delete-opt {
 	flex-direction: row;
 	padding: 5px;
-	
 }
 
 .detail-title {

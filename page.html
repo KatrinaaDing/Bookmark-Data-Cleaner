@@ -1,12 +1,25 @@
 <!DOCTYPE html>
 
 <html>
+	<div id='background'>
+	</div>
 	<head>
+		
 		<title>Book mark cleaner</title>
 		<link rel="stylesheet" href="style.css">
 	</head>
 	<header>Bookmark Cleaner</header>
 	<body>
+		<div id='waiting-window' style='background-color: azure; display: none; justify-content: center;' >
+			
+			<div style='padding: 10px;'>
+				Please be patient, this process usually takes less than 5 minutes...
+			</div>
+			<button class='done-btn'>
+				Done!
+			</button>
+		</div>
+		
 		<div id='detail'>
 			<div class="top-banner" id="top-banner">
 				<div class="title" id="banner-title"></div>
@@ -76,7 +89,7 @@
 		<form id='delete-selected-banner'>
 			
 			<button id='deleteAll'>Delete Selected</button>
-			<button>Reset</button>
+			<button type='reset'>Reset</button>
 			<div class='delete-all-opt'>
 				<input type='checkbox' name='cache' id='cache-all'>
 				<label for='cache-all'>cache</label>

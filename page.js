@@ -14,6 +14,10 @@ var lastVisit = document.getElementById('last-visit');
 var linkTitle = document.getElementById('link-title');
 var link = document.getElementById('link');
 var removeForm = document.getElementById('remove-form');
+var background = document.getElementById('background');
+var waitingWindow = document.getElementById('waiting-window');
+var waitingText =  document.getElementById('waiting-window').children[0];
+var doneBtn = document.getElementById('waiting-window').children[1];
 
 var removeOptions = {
     "cache": "Clears the browser's cache (including appcaches and cache storage)", 
@@ -135,14 +139,21 @@ async function popUpDetail(id, url, title){
                 }
             }
         }
+        
+        // show waiting status
+        background.classList.add('waiting-bg');
+        waitingWindow.style.display = 'flex';
+        detail.style.display = 'none';
         chrome.browsingData.remove(
             {
                 "origins": originList
             }, 
             obj, 
             function(res) {
-                alert("successfully cleaned"  + originList); //TODO: custom alert
-                detail.style.display = 'none';
+                // alert("successfully cleaned"  + originList); //TODO: custom alert
+                waitingText.style.display = 'none';
+                doneBtn.style.display = 'block';
+                
             }
            
         );
@@ -349,6 +360,7 @@ function checkBoxHandler(event){
 function deleteAll(event){
     event.preventDefault();
     var selectedBanner = document.getElementById('delete-selected-banner');
+   
     let obj = {};
     for(var el of selectedBanner.elements){
         if (el.checked) {
@@ -359,13 +371,16 @@ function deleteAll(event){
                 }
         }
     }
+    background.classList.add('waiting-bg');
+    waitingWindow.style.display = 'flex';
     chrome.browsingData.remove(
         {
             "origins": selectedOrigins
         }, 
         obj, 
         function(res) {
-            alert(selectedOrigins); // TODO: remove bookmark and show alert window
+            waitingText.style.display = 'none';
+            doneBtn.style.display = 'block';
             
             // empty all checkbox
             for(var el of selectedBanner.elements)
@@ -378,4 +393,10 @@ function deleteAll(event){
 
 getRoot();
 deleteAllBtn.addEventListener('click', deleteAll);
-
+doneBtn.onclick = (e) => {
+    waitingWindow.style.display = 'none';
+    waitingText.style.display = 'block';
+    doneBtn.style.display = 'none';
+    
+    background.classList.remove('waiting-bg');
+};
