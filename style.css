@@ -1,16 +1,21 @@
 :root {
 	--font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
+
+
 html {
-	background-color: bisque;
+	background-color: rgb(134, 142, 252);
+	background-image: linear-gradient(to bottom right,  rgb(221, 209, 189), rgb(125, 158, 205));
+	background-attachment: fixed;
 }
 
 header {
 	display: flex;
 	justify-content: center;
 	font-family: var(--font-family);
-	color: rgba(255, 190, 190);
+	color: rgb(133, 75, 109);
 	font-size: 50px;
+	font-weight: 100;
 	padding: 20px;
 
 }
@@ -35,12 +40,23 @@ table {
 	padding: 10px;
 	margin: 10px;
 	font-family: var(--font-family);
-	border: 1px solid grey; 
+	border: 1px solid rgb(133, 75, 109); 
 }
 
 button {
 	margin: 10px;
 	font-size: 12px;
+	border: 1px solid gray;
+	padding: 5px;
+	/* background-color: white; */
+	transition: box-shadow 0.2s ease-in-out;
+}
+
+button:hover {
+	cursor: pointer;
+	box-shadow: 2px 2px 7px rgba(163, 163, 163, 0.45);
+	
+	
 }
 
 a {
@@ -64,15 +80,18 @@ a {
 	display: none;
 	flex-direction: column;
 	position: fixed;
-	top: auto;
-	left: 50%;
+	top: 30%;
+	left: 30%;
 	margin: auto;
 	width: 40%;
-	background-color: rgb(255, 234, 238);
+	/* background-color: rgb(219, 238, 244); */
+	background-image:  radial-gradient(circle at 35% 30%, rgb(245, 222, 222), rgb(218, 206, 245));
+	background-attachment: fixed;
 	z-index: 999;
 	padding: 10px;
 	border-radius: 15px;
-	box-shadow: 3px 2px 7px rgba(205, 205, 205, 0.801);
+	border: 1px dashed rgb(233, 92, 174);
+	box-shadow: 1px 1px 20px  rgba(133, 75, 109, 0.4);
 }
 
 #delete-selected-banner {
@@ -80,8 +99,11 @@ a {
 	justify-content: center;
 	flex-wrap: wrap;
 	flex-direction: row;
-	width: 80%;
+	width: 85%;
+	border-radius: 25px;
 	margin: auto;
+	margin-bottom: 10px;
+	padding: 5px;
 }
 
 .delete-all-opt {
@@ -93,7 +115,7 @@ a {
 	flex-direction: row;
 	justify-content: start;
 	font-family: var(--font-family);
-	color: lightslategray;
+	color: rgb(108, 108, 92);
 	font-size: 12px;
 	margin: auto;
 }
@@ -126,7 +148,7 @@ a {
 	padding-top: 10px;
 	padding-bottom: 10px;
 	font-family: var(--font-family);
-	color: gray;
+	color: rgb(108, 108, 92);
 }
 
 .folder .title {
@@ -135,11 +157,11 @@ a {
 	justify-content: start;
 	font-size: 14px;
 	font-weight: bold;
+	color: rgb(133, 75, 109)
 	
 }
 
 .folder .title .text:hover {
-	color: darkolivegreen;
 	font-size: 15.5px;
 	cursor: pointer;
 	transition: all 0.1s ease-in-out;
@@ -161,26 +183,28 @@ a {
 .top-banner .title {
 	padding: 10px;
 	width: 80%;
+	font-weight: bold;
+	color: rgb(133, 75, 109);
 }
 
 .top-banner .close-btn {
 	padding: 10px;
 	width: 20px;
 	height: 20px;
+	font-size: 15px;
 	text-align: center;
 }
 
 .top-banner .close-btn:hover {
 	cursor: pointer;
-	border-radius: 10px;
-	box-shadow: 3px 2px 7px rgb(156, 156, 156);
-	transition: box-shadow 0.2s ease-in-out;
-
+	text-shadow: 2px 2px 3px rgb(133, 75, 109);
+	transition: text-shadow 0.1s ease-out;
 }
 
 
 .top-banner .close-btn:active {
-	box-shadow: inset 0px 2px 7px 0px rgb(156, 156, 156);
+	transform: translate(1px, 1px);
+	text-shadow: none;
 }
 
 .delete-options {

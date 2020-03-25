@@ -366,6 +366,10 @@ function deleteAll(event){
         obj, 
         function(res) {
             alert(selectedOrigins); // TODO: remove bookmark and show alert window
+            
+            // empty all checkbox
+            for(var el of selectedBanner.elements)
+                el.checked = false;
         }
        
     );
