@@ -112,10 +112,15 @@ a {
 	padding: 10px;
 	border-radius: 5px;
 	border: 1px dashed rgb(108, 108, 92);
+	color: rgb(133, 75, 109);
 	text-align: center;
 }
 
 .done-btn {
+	border-radius: 5px;
+	background-color: white;
+	color: rgba(133, 75, 109);
+	border: 1px solid rgba(133, 75, 109, 0);
 	padding: 10px;
 	display: none;
 }
@@ -153,7 +158,7 @@ a {
 	padding: 10px;
 	margin: auto;
 	border-radius: 12px;
-	transition: box-shadow 0.3s ease-in-out;
+	transition: box-shadow 0.3s ease-in;
 }
 
 .link:hover, .link:focus{
@@ -164,7 +169,7 @@ a {
 
 .link:active {
 	box-shadow: inset 0px 2px 7px 0px rgba(198, 198, 198);
-	transition: box-shadow 0.2s ease-in-out;
+	transition: box-shadow 0.2s ease-in;
 }
 
 .folder {
@@ -182,7 +187,7 @@ a {
 	justify-content: start;
 	font-size: 14px;
 	font-weight: 550;
-	color: rgb(133, 75, 109)
+	color: rgb(133, 75, 109);
 	
 }
 

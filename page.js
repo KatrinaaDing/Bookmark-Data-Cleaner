@@ -131,7 +131,7 @@ async function popUpDetail(id, url, title){
         event.preventDefault();
         let obj = {};
         for (var el of removeForm.elements){
-            if (el.checked) {
+            if (el.name && el.checked) {
                 obj[el.name] = true;
                 if(el.name === 'cache'){
                     obj['appcache'] = true;
@@ -150,7 +150,6 @@ async function popUpDetail(id, url, title){
             }, 
             obj, 
             function(res) {
-                // alert("successfully cleaned"  + originList); //TODO: custom alert
                 waitingText.style.display = 'none';
                 doneBtn.style.display = 'block';
                 
@@ -158,7 +157,6 @@ async function popUpDetail(id, url, title){
            
         );
     });
-    // topBanner.addEventListener("mousedown", dragMouseDown); //TODO: drag evnet
     detail.style.display = 'flex';
 }
 
@@ -397,6 +395,5 @@ doneBtn.onclick = (e) => {
     waitingWindow.style.display = 'none';
     waitingText.style.display = 'block';
     doneBtn.style.display = 'none';
-    
     background.classList.remove('waiting-bg');
 };
