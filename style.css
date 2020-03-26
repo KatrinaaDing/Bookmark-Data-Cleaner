@@ -34,6 +34,7 @@ label {
 	margin: auto;
 	margin-right: 10px;
 	font-size: 12px;
+	-webkit-text-stroke-width: thin;
 }
 
 table {
@@ -46,14 +47,17 @@ table {
 button {
 	margin: 10px;
 	font-size: 12px;
-	border: 1px solid gray;
+	background-color: white;
+	/* color: rgb(133, 75, 109); */
+	border: 1px solid rgba(131, 131, 131, 0.603);
 	padding: 5px;
-	transition: box-shadow 0.2s ease-in-out;
+	transition: all 0.2s ease-in-out;
 }
 
 button:hover {
 	cursor: pointer;
 	box-shadow: 2px 2px 7px rgba(163, 163, 163, 0.45);
+	transform: translate(-1px, -1px);
 }
 
 a {
@@ -71,6 +75,22 @@ a {
 	border-radius: 25px;
 	padding: 10px;
 	background-color: white;
+	
+}
+
+#help-window {
+	display: none;
+	z-index: 999;
+	position: absolute;
+	top: 23%;
+	left: 25%;
+	width: 50%;
+	font-size: 10px;
+	background-color: white;
+	border-radius: 15px;
+	color: rgb(107, 107, 107);
+	opacity: 90%;
+	box-shadow: 1px 1px 20px rgba(133, 75, 109, 0.4);
 }
 
 #detail {
@@ -83,18 +103,18 @@ a {
 	width: 40%;
 	background-image:  radial-gradient(circle at 35% 30%, rgb(245, 222, 222), rgb(218, 206, 245));
 	background-attachment: fixed;
-	z-index: 999;
+	z-index: 998;
 	padding: 10px;
 	border-radius: 15px;
-	border: 1px dashed rgb(233, 92, 174);
-	box-shadow: 1px 1px 20px  rgba(133, 75, 109, 0.4);
+	border: 1px dashed rgb(133, 75, 109);
+	box-shadow: 1px 1px 20px rgba(133, 75, 109, 0.4);
 }
 
 #delete-selected-banner {
 	display: flex;
 	justify-content: center;
 	flex-wrap: wrap;
-	flex-direction: row;
+	flex-direction: column;
 	width: 85%;
 	border-radius: 25px;
 	margin: auto;
@@ -116,6 +136,24 @@ a {
 	text-align: center;
 }
 
+
+.help {
+	width: 15px;
+	height: 14px;
+	font-size: 10.5px;
+	font-family: var(--font-family);
+	border-radius: 50%;
+	color: rgba(128, 128, 128, 0.7);
+	font-weight: bolder;
+	border: 1.3px solid rgba(128, 128, 128, 0.7);
+	margin: auto;
+	z-index: 999;
+}
+
+.help:hover {
+	cursor: pointer;
+}
+
 .done-btn {
 	border-radius: 5px;
 	background-color: white;
@@ -126,14 +164,14 @@ a {
 }
 
 .waiting-bg {
-	z-index: 999;
+	z-index: 99;
 	width: 100%;
 	height: 100%;
 	background-color: rgba(44, 44, 44, 0.7);
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	transition: all linear 1s;
+	transition: all linear 0.5s;
 }
 
 .delete-all-opt {
@@ -169,7 +207,7 @@ a {
 
 .link:active {
 	box-shadow: inset 0px 2px 7px 0px rgba(198, 198, 198);
-	transition: box-shadow 0.2s ease-in;
+	transform: translate(1px, 1px);
 }
 
 .folder {

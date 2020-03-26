@@ -11,7 +11,6 @@
 	<header>Bookmark Cleaner</header>
 	<body>
 		<div id='waiting-window' style='background-color: rgb(240, 240, 240); display: none; justify-content: center;' >
-			
 			<div style='padding: 10px;'>
 				Please be patient, this process usually takes less than 5 minutes...
 			</div>
@@ -20,6 +19,54 @@
 			</button>
 		</div>
 		
+		<table id='help-window'>
+
+			<tr>
+				<td><strong>delete selected:</strong> Remove selected browsing data with selected bookmarks.</td>
+			</tr>
+			<tr>
+				<td><strong>reset:</strong> Reset the checkboxes.</td>
+			</tr>
+			<tr>
+				<td><strong>remove bookmark:</strong> Remove the selected bookmark at the same time.</td>
+			</tr>
+			<tr style='text-align: center;'>
+				<td>
+					-----------
+				</td>
+			</tr>
+				<td><strong>cache:</strong> Clears the browser's cache (including appcaches and cache storage) </td>
+			</tr>
+			<tr>
+				<td><strong>cookies:</strong> Clears the browser's cookies and server-bound certificates modified within a particular timeframe.</td>
+			</tr>
+			<tr>
+				<td><strong>fileSystems:</strong> Clears websites' file system data.</td>
+			</tr>
+			<tr>
+				<td><strong>indexedDB:</strong> Clears websites' IndexedDB (database) data.</td>
+			</tr>
+			<tr>
+				<td><strong>localStorage:</strong> Clears websites' local storage data.</td>
+			</tr>
+			<tr>
+				<td><strong>pluginData:</strong> Clears plugins' data.</td>
+			</tr>
+			<tr>
+				<td><strong>webSQL:</strong> Clears websites' WebSQL data.</td>
+			</tr>
+			<tr style='text-align: center;'>
+				<td>
+					-----------
+				</td>
+			</tr>
+			<tr>
+				<td><strong>Note:</strong> Currently Chrome only supports removing those browsing data with specific origins.<td>
+			</tr>
+			
+			
+		</table>
+
 		<div id='detail'>
 			<div class="top-banner" id="top-banner">
 				<div class="title" id="banner-title"></div>
@@ -38,18 +85,17 @@
 			</table>
 
 			<form id="remove-form">
-				<div>
-					<button id='submitBtn' type="button">Delete Selected</button>
+				<div style='display: flex; justify-content: start;  text-align: center;'>
+					<button id='submit-btn' type="button" style='margin-left: 0px'>Delete Selected</button>
 					<button type="reset">Reset</button>
-				
-					<input type="checkbox" style="transform: scale(1); margin: auto;">
-					<text style="font-size: 10px; vertical-align: text-top;">Remove Bookmark</text>
+					<input type="checkbox" name='remove-bookmark' style="transform: scale(1); margin-left: 0px; margin-right: 0px;">
+					<text style="font-size: 10px; margin: auto; margin-left: 4px;">Remove Bookmark</text>
 				</div>
 				<div style='height: 10px'></div>
 				<div class="delete-options" style="display: flex">
 						<div class="delete-opt">
 							<input type="checkbox" name="cache" id="cache">
-							<label for="cache">cache</label>
+							<label for="cache" >cache</label>
 						</div>
 						<div class="delete-opt">
 							<input type="checkbox" name="cookies" id="cookies">
@@ -84,38 +130,43 @@
 
 
 		<form id='delete-selected-banner'>
-			
-			<button id='deleteAll'>Delete Selected</button>
-			<button type='reset'>Reset</button>
-			<div class='delete-all-opt'>
-				<input type='checkbox' name='cache' id='cache-all'>
-				<label for='cache-all'>cache</label>
+			<div style='display: flex; justify-content: center; margin: auto; text-align: center;'>
+				<div class='help' id='helpBtn'>?</div>
+				<button id='deleteAll'>Delete Selected</button>
+				<button type='reset'>Reset</button>
+				<input type="checkbox" name='remove-bookmark' style="transform: scale(1);" >
+				<text style="font-size: 10px; margin: auto;">Remove Bookmark</text>
 			</div>
-			<div class='delete-all-opt'>
-				<input type='checkbox' name='cookies' id='cookies-all'>
-				<label for='cookies-all'>cookies</label>
+			<div style='display: flex; flex-direction: row; justify-content: center;'>
+				<div class='delete-all-opt'>
+					<input type='checkbox' name='cache' id='cache-all'>
+					<label for='cache-all'>cache</label>
+				</div>
+				<div class='delete-all-opt'>
+					<input type='checkbox' name='cookies' id='cookies-all'>
+					<label for='cookies-all'>cookies</label>
+				</div>
+				<div class='delete-all-opt'>
+					<input type='checkbox' name='fileSystems' id='fileSystems-all'>
+					<label for='fileSystems-all'>fileSystems</label>
+				</div>
+				<div class='delete-all-opt'>
+					<input type='checkbox' name='indexedDB' id='indexedDB-all'>
+					<label for='indexedDB-all'>indexedDB</label>
+				</div>
+				<div class='delete-all-opt'>
+					<input type='checkbox' name='localStorage' id='localStorage-all'>
+					<label for='localStorage-all'>localStorage</label>
+				</div>
+				<div class='delete-all-opt'>
+					<input type='checkbox' name='pluginData' id='pluginData-all'>
+					<label for='pluginData-all'>pluginData</label>
+				</div>
+				<div class='delete-all-opt'>
+					<input type='checkbox' name='webSQL' id='webSQL-all'>
+					<label for='webSQL-all'>webSQL</label>
+				</div>
 			</div>
-			<div class='delete-all-opt'>
-				<input type='checkbox' name='fileSystems' id='fileSystems-all'>
-				<label for='fileSystems-all'>fileSystems</label>
-			</div>
-			<div class='delete-all-opt'>
-				<input type='checkbox' name='indexedDB' id='indexedDB-all'>
-				<label for='indexedDB-all'>indexedDB</label>
-			</div>
-			<div class='delete-all-opt'>
-				<input type='checkbox' name='localStorage' id='localStorage-all'>
-				<label for='localStorage-all'>localStorage</label>
-			</div>
-			<div class='delete-all-opt'>
-				<input type='checkbox' name='pluginData' id='pluginData-all'>
-				<label for='pluginData-all'>pluginData</label>
-			</div>
-			<div class='delete-all-opt'>
-				<input type='checkbox' name='webSQL' id='webSQL-all'>
-				<label for='webSQL-all'>webSQL</label>
-			</div>
-			
 		</form>
 		<div id='container'></div>
 		<script src="page.js"></script>

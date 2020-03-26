@@ -1,5 +1,6 @@
 // global variable
 let selectedOrigins = [];
+let selectedBookmarks = [];
 
 //html element
 var deleteAllBtn = document.getElementById('deleteAll')
@@ -18,27 +19,16 @@ var background = document.getElementById('background');
 var waitingWindow = document.getElementById('waiting-window');
 var waitingText =  document.getElementById('waiting-window').children[0];
 var doneBtn = document.getElementById('waiting-window').children[1];
+var helpWindow = document.getElementById('help-window');
 
-var removeOptions = {
-    "cache": "Clears the browser's cache (including appcaches and cache storage)", 
-    "cookies": "Clears the browser's cookies and server-bound certificates modified within a particular timeframe.", 
-    // "downloads": "Clears the browser's list of downloaded files (not the downloaded files themselves).", 
-    "fileSystems": "Clears websites' file system data.", 
-    // "formData": "Clears the browser's stored form data (autofill).", 
-    // "history": "Clears the browser's history.", 
-    "indexedDB": "Clears websites' IndexedDB (database) data.", 
-    "localStorage": "Clears websites' local storage data.",
-    // "passwords": "Clears the browser's stored passwords.",
-    "pluginData": "Clears plugins' data.",
-    "webSQL": "Clears websites' WebSQL data."
-}
 var removeCache = ["appcache", "cacheStorage"];
+let removeBookmark = false;
 
 /**
  * Wrap a url into html node.
  * @param {string} url the url wants to wrap with
  * @param {string} title the text to display
- * @param {string} id  the bookmark id of the page 
+ * @param {string} id  the bookmark id 
  * @return the div node with url
  */
 function wrapListItem(url, title, id) {
@@ -53,8 +43,8 @@ function wrapListItem(url, title, id) {
     item.classList.add('item');
     checkbox.type = 'checkbox';
     checkbox.value = id;
-    checkbox.addEventListener('click', checkBoxHandler);//TODO: updateOriginList()
-    href.innerText = validateTitle(title);
+    checkbox.addEventListener('click', checkBoxHandler);
+    href.innerText = "<"+id+"> "+ validateTitle(title);
     href.setAttribute('href',url);
     href.classList.add('link');
     href.addEventListener('click', () => {popUpDetail(id, url, validateTitle(title))});
@@ -127,19 +117,12 @@ async function popUpDetail(id, url, title){
     if (url2)
         originList.push(url2);
 
-    document.getElementById('submitBtn').onclick = ((event) => {
+    document.getElementById('submit-btn').onclick = ((event) => {
         event.preventDefault();
-        let obj = {};
-        for (var el of removeForm.elements){
-            if (el.name && el.checked) {
-                obj[el.name] = true;
-                if(el.name === 'cache'){
-                    obj['appcache'] = true;
-                    obj['cacheStorage'] = true;
-                }
-            }
-        }
-        
+
+        // collect what data to delete
+        let obj = collectChecked(removeForm);
+
         // show waiting status
         background.classList.add('waiting-bg');
         waitingWindow.style.display = 'flex';
@@ -152,7 +135,9 @@ async function popUpDetail(id, url, title){
             function(res) {
                 waitingText.style.display = 'none';
                 doneBtn.style.display = 'block';
-                
+                // remove bookmark if it's ticked
+                if (removeBookmark)
+                    console.log('rmove ', id);//TODO: remove bookmark
             }
            
         );
@@ -173,12 +158,13 @@ function validateTitle(text) {
         return '<unnamed>';
 }
 
-
+/**
+ * Empty the bookmark detail window
+ */
 function emptyDetail(){
     bannerTitle.innerText = '';
     lastVisit.innerText = '';
     link.innerText = '';
-    // removeForm.reset();
     return Promise.resolve();
 }
 
@@ -210,7 +196,7 @@ function reverseFolderStatus(node){
  * @param {html element} parent the folder element
  * @param {booelan} value true means "display" and false means "hide"
  */
-function toggleFolder(parent,value){
+function toggleFolder(parent, value){
     let children = parent.children;
     for (let i = 1; i < children.length; i++) {
         children[i].style.display = (value)? 'flex' : 'none';
@@ -228,6 +214,7 @@ async function parseFolder(id){
             let parent = document.getElementById(id);
             if (child != undefined) {
                 let element = undefined;
+                // try to wrap the item as single url. If fails, parse as folder
                 try {
                     element = wrapListItem(child.url, child.title, child.id);
                 } catch (err) {
@@ -239,7 +226,6 @@ async function parseFolder(id){
                     element.style.display = 'none';
                     document.getElementById(id).appendChild(element);
                 }
-
             } 
         });
     });
@@ -265,6 +251,10 @@ function selectAll(id, value) {
         };
 }
 
+/**
+ * Push the url and it's bookmark id into list if checked. Remove them if unchecked.
+ * @param {html node} checkbox the checkbox clicked by user
+ */
 function updateOriginalList(checkbox){
     let href = checkbox.nextSibling.getAttribute('href');
 
@@ -283,57 +273,56 @@ function updateOriginalList(checkbox){
             if (href2)
                 selectedOrigins.push(href2);
         }    
-    
+        if (selectedBookmarks.indexOf(checkbox.value) < 0)
+            selectedBookmarks.push(checkbox.value);
+
     // remove the href (both http and https ver) from list
     } else {
-        let i = selectedOrigins.indexOf(href);
-        if (i >= 0)
-            selectedOrigins.splice(i, 1);
-        
-        if (href2){
-            let i2 = selectedOrigins.indexOf(href2);
-            if (i >= 0)
-                selectedOrigins.splice(i2, 1);
-        }
-    
+        removeFromList(href, selectedOrigins);
+        removeFromList(href2, selectedOrigins);
+        removeFromList(checkbox.value, selectedBookmarks);
     }
     
     console.log(selectedOrigins); 
+    console.log(selectedBookmarks);
 }
 
 /**
- * An event handler for dragging detail window
- * @param {event} e the mouse down event
+ * Remove a value from a list
+ * @param {string} value 
+ * @param {array} list 
  */
-function dragMouseDown(e){
-    e = e || window.event;
-    e.preventDefault();
-    // get the mouse position
-    mousePosX = e.clientX - detail.offsetLeft;
-    mousePosY= e.clientY - detail.offsetHeight;
-    topBanner.addEventListener("mousemove", dragElement(e, mousePosX, mousePosY));
-
-    topBanner.addEventListener("mouseup", (e) => {
-        topBanner.removeEventListener("mousemove", dragElement(e, mousePosX, mousePosY));
-    });
+function removeFromList(value, list){
+    let i = list.indexOf(value);
+    if (i >= 0)
+        list.splice(i, 1);
 }
 
-function dragElement(e, offsetX, offsetY) { //TODO: not working
-    e = e || window.event;
-    e.preventDefault();
-    console.log(offsetX, offsetY)
-    // calculate element position
-    // offsetX = mousePosX - e.clientX;
-    // offsetY = mousePosY - e.clientY;
-    // mousePosX = e.clientX;
-    // mousePosY = e.clientY;
-    console.log("left to", (detail.offsetLeft - offsetX), "right to", (detail.offsetTop - offsetY));
-    // detail.style.left =  (e.clientX - offsetX) + "px";
-    // detail.style.top = (e.clientY - offsetY) + "px";
-    
-    console.log("mouse Y:", e.clientY, "mouse X:", e.clientX);
-    console.log("Y:", detail.offsetHeight,", X:", detail.offsetLeft);
+/**
+ * collect checked browsing data option.
+ * @param {html node} parent the parent node of the checkboxes
+ * @return return the checked option as object
+ */
+function collectChecked(parent){
+    let obj = {};
+    for(var el of parent.elements){
+        if (el.name == 'remove-bookmark'){
+            if (el.checked)
+                removeBookmark = true; 
+            else 
+                removeBookmark = false;
+        
+        } else if (el.name && el.checked) {
+            obj[el.name] = true;
+                if(el.name === 'cache'){
+                    obj['appcache'] = true;
+                    obj['cacheStorage'] = true;
+                }
+        }
+    }
+    return obj;
 }
+
 
 /**
  * browse and display bookamrk
@@ -350,6 +339,7 @@ function getRoot() {
     });
 }
 
+
 /* event handler */
 function checkBoxHandler(event){
     updateOriginalList(event.target);
@@ -358,17 +348,10 @@ function checkBoxHandler(event){
 function deleteAll(event){
     event.preventDefault();
     var selectedBanner = document.getElementById('delete-selected-banner');
-   
-    let obj = {};
-    for(var el of selectedBanner.elements){
-        if (el.checked) {
-            obj[el.name] = true;
-                if(el.name === 'cache'){
-                    obj['appcache'] = true;
-                    obj['cacheStorage'] = true;
-                }
-        }
-    }
+    
+    // collect what data to delete
+    let obj = collectChecked(selectedBanner);
+    
     background.classList.add('waiting-bg');
     waitingWindow.style.display = 'flex';
     chrome.browsingData.remove(
@@ -379,7 +362,10 @@ function deleteAll(event){
         function(res) {
             waitingText.style.display = 'none';
             doneBtn.style.display = 'block';
-            
+            // remove bookmark if it's ticked
+            if (removeBookmark)
+                console.log('remove ' + selectedBookmarks);//TODO: remove bookmark
+
             // empty all checkbox
             for(var el of selectedBanner.elements)
                 el.checked = false;
@@ -389,6 +375,7 @@ function deleteAll(event){
 }
 
 
+
 getRoot();
 deleteAllBtn.addEventListener('click', deleteAll);
 doneBtn.onclick = (e) => {
@@ -396,4 +383,10 @@ doneBtn.onclick = (e) => {
     waitingText.style.display = 'block';
     doneBtn.style.display = 'none';
     background.classList.remove('waiting-bg');
-};
+}
+
+document.getElementById('helpBtn').onmouseover = (e) => {helpWindow.style.display = 'block'};
+document.getElementById('helpBtn').onmouseleave = (e) => {helpWindow.style.display = 'none'}
+
+
+
