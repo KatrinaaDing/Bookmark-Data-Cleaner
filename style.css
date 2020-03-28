@@ -168,7 +168,7 @@ a {
 	width: 100%;
 	height: 100%;
 	background-color: rgba(44, 44, 44, 0.7);
-	position: absolute;
+	position: fixed;
 	top: 0px;
 	left: 0px;
 	transition: all linear 0.5s;

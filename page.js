@@ -1,6 +1,7 @@
 // global variable
 let selectedOrigins = [];
 let selectedBookmarks = [];
+let selectedFolder = [];
 
 //html element
 var deleteAllBtn = document.getElementById('deleteAll')
@@ -44,7 +45,7 @@ function wrapListItem(url, title, id) {
     checkbox.type = 'checkbox';
     checkbox.value = id;
     checkbox.addEventListener('click', checkBoxHandler);
-    href.innerText = "<"+id+"> "+ validateTitle(title);
+    href.innerText = "<"+id+"> "+ validateTitle(title); //TOFIX 
     href.setAttribute('href',url);
     href.classList.add('link');
     href.addEventListener('click', () => {popUpDetail(id, url, validateTitle(title))});
@@ -69,13 +70,14 @@ function wrapListFolder(title, id){
     item.setAttribute("open", "false");
     checkbox.type = 'checkbox';
     checkbox.value = id;
-    titleText.innerText = validateTitle("> " + title);
+    titleText.innerText = validateTitle("> " + "<"+id+"> "+title); //TOFIX
     item.classList.add('folder');
     titleElement.classList.add('title');
     checkbox.style.marginRight = '15px';
     titleText.classList.add('text');
 
     checkbox.addEventListener('change', () => selectAll(id, checkbox.checked));
+    checkbox.addEventListener('click', checkBoxHandler);
     titleText.addEventListener('click', () => reverseFolderStatus(item));
     
     [checkbox, titleText].forEach(e => {titleElement.appendChild(e)});
@@ -136,15 +138,18 @@ async function popUpDetail(id, url, title){
                 waitingText.style.display = 'none';
                 doneBtn.style.display = 'block';
                 // remove bookmark if it's ticked
-                if (removeBookmark)
-                    console.log('rmove ', id);//TODO: remove bookmark
+                if (removeBookmark){
+                    chrome.bookmarks.remove(id, () => {
+                        console.log("Successfully remove bookmark <" + title + ">");
+                        document.getElementById(id).parentNode.removeChild(document.getElementById(id));
+                    })
+                }
             }
            
         );
     });
     detail.style.display = 'flex';
 }
-
 
 /**
  * validate title text to be non-empty string
@@ -237,7 +242,9 @@ async function parseFolder(id){
  * @param {boolean} value the value that wants to set in the checkbox
  */
 function selectAll(id, value) {
-    document.getElementById(id).firstChild.firstChild.checked = value;
+    let checkbox = document.getElementById(id).firstChild.firstChild;
+    checkbox.checked = value;
+    updateOriginalList(checkbox);
     let children = document.getElementById(id).children;
     for (let i = 1; i < children.length; i++) {
             if(children[i].classList.contains('item')){
@@ -258,33 +265,46 @@ function selectAll(id, value) {
 function updateOriginalList(checkbox){
     let href = checkbox.nextSibling.getAttribute('href');
 
-    // get https/http version of the url
-    var href2;
-    if (href.includes('https')){
-        href2 = href.replace(/https/, 'http');
-    } else if (href.includes('http')) {
-        href2 = href.replace(/http/, 'https');
-    }
+    // if it's an item
+    if (href){
+        // get https/http version of the url
+        var href2;
+        if (href.includes('https')){
+            href2 = href.replace(/https/, 'http');
+        } else if (href.includes('http')) {
+            href2 = href.replace(/http/, 'https');
+        }
 
-    // push the href (both http and https ver) into the list
-    if(checkbox.checked){
-        if (selectedOrigins.indexOf(href) < 0){
-            selectedOrigins.push(href);
-            if (href2)
-                selectedOrigins.push(href2);
-        }    
-        if (selectedBookmarks.indexOf(checkbox.value) < 0)
-            selectedBookmarks.push(checkbox.value);
+        // push the href (both http and https ver) into the list
+        if(checkbox.checked){
+            if (selectedOrigins.indexOf(href) < 0){
+                selectedOrigins.push(href);
+                if (href2)
+                    selectedOrigins.push(href2);
+            }    
+            if (selectedBookmarks.indexOf(checkbox.value) < 0)
+                selectedBookmarks.push(checkbox.value);
 
-    // remove the href (both http and https ver) from list
+        // remove the href (both http and https ver) from list
+        } else {
+            removeFromList(href, selectedOrigins);
+            removeFromList(href2, selectedOrigins);
+            removeFromList(checkbox.value, selectedBookmarks);
+        }
+
+    // if it's a folder    
     } else {
-        removeFromList(href, selectedOrigins);
-        removeFromList(href2, selectedOrigins);
-        removeFromList(checkbox.value, selectedBookmarks);
+        let folderId = checkbox.value;
+        if (checkbox.checked && selectedFolder.indexOf(folderId) < 0) {
+            selectedFolder.push(folderId);
+        } else if (!checkbox.checked && selectedFolder.indexOf(folderId) >= 0){
+            removeFromList(folderId, selectedFolder);
+        }
     }
-    
-    console.log(selectedOrigins); 
-    console.log(selectedBookmarks);
+
+    console.log("origins: ", selectedOrigins); 
+    console.log("bm:" + selectedBookmarks);
+    console.log("folder:" + selectedFolder);
 }
 
 /**
@@ -351,9 +371,12 @@ function deleteAll(event){
     
     // collect what data to delete
     let obj = collectChecked(selectedBanner);
-    
+
+    // setting background
     background.classList.add('waiting-bg');
     waitingWindow.style.display = 'flex';
+
+    // remove selected item
     chrome.browsingData.remove(
         {
             "origins": selectedOrigins
@@ -362,16 +385,35 @@ function deleteAll(event){
         function(res) {
             waitingText.style.display = 'none';
             doneBtn.style.display = 'block';
-            // remove bookmark if it's ticked
-            if (removeBookmark)
-                console.log('remove ' + selectedBookmarks);//TODO: remove bookmark
-
+            // remove bookmark if it's ticked, remove bookmark and html node
+            if (removeBookmark){
+                selectedBookmarks.forEach((b) => {
+                    chrome.bookmarks.remove(b, () => {
+                        console.log("successfully removed ", b);
+                        document.getElementById(b).parentNode.removeChild(document.getElementById(b));
+                    });
+                })
+            }
             // empty all checkbox
             for(var el of selectedBanner.elements)
                 el.checked = false;
         }
-       
     );
+
+    // remove ticked empty bookmark if "remove bookmark" is ticked
+    if (removeBookmark){
+        selectedFolder.sort(function(a, b){
+            return b-a;
+        });
+        // remove selected empty folders (if any)
+        selectedFolder.forEach((f) => {
+            chrome.bookmarks.remove(f, () => {
+                console.log("Successfully remove empty folder " + f);
+                document.getElementById(f).parentNode.removeChild(document.getElementById(f));
+            });
+        });
+    }
+    
 }
 
 
