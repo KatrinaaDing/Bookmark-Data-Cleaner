@@ -45,7 +45,6 @@ function wrapListItem(url, title, id) {
     checkbox.type = 'checkbox';
     checkbox.value = id;
     checkbox.addEventListener('click', checkBoxHandler);
-    // href.innerText = "<"+id+"> "+ validateTitle(title); //TODO: delete this line
     href.innerText = validateTitle(title);
     href.setAttribute('href',url);
     href.classList.add('link');
@@ -71,7 +70,6 @@ function wrapListFolder(title, id){
     item.setAttribute("open", "false");
     checkbox.type = 'checkbox';
     checkbox.value = id;
-    // titleText.innerText = validateTitle("> " + "<"+id+"> "+ title); //TODO: delete this line
     titleText.innerText = validateTitle("> " + title);
     item.classList.add('folder');
     titleElement.classList.add('title');
@@ -254,15 +252,13 @@ function selectAll(id, value) {
     updateOriginalList(checkbox);
     let children = document.getElementById(id).children;
     for (let i = 1; i < children.length; i++) {
-            if(children[i].classList.contains('item')){
-                children[i].firstChild.checked = value;
-                updateOriginalList(children[i].firstChild);
-            }
-               
-            else
-                // children[i].firstChild.firstChild.checked = value;
-                selectAll(children[i].id, value);
-        };
+        if(children[i].classList.contains('item')){
+            children[i].firstChild.checked = value;
+            updateOriginalList(children[i].firstChild);
+        } else {
+            selectAll(children[i].id, value);
+        }
+    };
 }
 
 /**
@@ -308,10 +304,6 @@ function updateOriginalList(checkbox){
             removeFromList(folderId, selectedFolder);
         }
     }
-
-    console.log("origins: ", selectedOrigins); 
-    console.log("bm:" + selectedBookmarks);
-    console.log("folder:" + selectedFolder);
 }
 
 /**
@@ -367,10 +359,18 @@ function getRoot() {
 
 
 /* event handler */
+/**
+ * Event handler for checkBox
+ * @param {event} event checkbox event
+ */
 function checkBoxHandler(event){
     updateOriginalList(event.target);
 }
 
+/**
+ * Event handler for 'delete all' button
+ * @param {event} event click event
+ */
 function deleteAll(event){
     event.preventDefault();
     var selectedBanner = document.getElementById('delete-selected-banner');
@@ -386,14 +386,15 @@ function deleteAll(event){
     selectedOrigins.sort(function(a, b){
         return b-a;
     });
+
     chrome.browsingData.remove(
         {
             "origins": selectedOrigins
         }, 
         obj, 
         function(res) {
-            waitingText.style.display = 'none';
-            doneBtn.style.display = 'block';
+
+        
             // remove bookmark if it's ticked, remove bookmark and html node
             if (removeBookmark){
                 selectedBookmarks.forEach((b) => {
@@ -423,16 +424,16 @@ function deleteAll(event){
             for(var el of selectedBanner.elements)
                 el.checked = false;
             
+            // empty all lists
             selectedFolder = [];
             selectedOrigins = [];
             selectedBookmarks = [];
-            
+        
+
+            waitingText.style.display = 'none';
+            doneBtn.style.display = 'block';
         }
     );
-
-    
-
-    
 }
 
 

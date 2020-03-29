@@ -1,6 +1,7 @@
 :root {
 	--font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-	--nelson-left: #f2709c;
+
+	--nelson-left: #f2709c;					/* color set */
 	--nelson-right: #ff9472;
 	--siriusTamed-left: #EFEFBB;
 	--siriusTamed-right: #D4D3DD;
@@ -37,7 +38,6 @@
 html {
 	background-color: rgb(255, 255, 255);
 	background-image: linear-gradient(to bottom right,  var(--almost-left), var(--almost-right));
-
 	background-attachment: fixed;
 }
 
@@ -115,7 +115,7 @@ a {
 	display: none;
 	z-index: 999;
 	position: absolute;
-	top: 20%;
+	top: 29%;
 	max-width: 500px;
 	font-size: 10px;
 	background-color: white;
@@ -133,7 +133,6 @@ a {
 	left: 30%;
 	margin: auto;
 	width: 40%;
-	/* background-image: radial-gradient(circle at 35% 30%, rgb(245, 222, 222), rgb(218, 206, 245)); */
 	background-image: radial-gradient(circle at 25% 30%, rgb(212, 212, 255) 0%, rgb(214, 237, 255) 60%);
 
 	background-attachment: fixed;
