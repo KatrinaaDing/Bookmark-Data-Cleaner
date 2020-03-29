@@ -1,11 +1,43 @@
 :root {
 	--font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	--nelson-left: #f2709c;
+	--nelson-right: #ff9472;
+	--siriusTamed-left: #EFEFBB;
+	--siriusTamed-right: #D4D3DD;
+	--aLostMemory-left: #DE6262;
+	--aLostMemory-right: #FFB88C;
+	--calmDarya-left: #5f2c82;
+	--calmDarya-right: #49a09d;
+	--stellar-left: #7474BF;
+	--stellar-right: #348AC7;
+	--moonrise-left: #DAE2F8;
+	--moonrise-right: #D6A4A4;
+	--almost-left: #ddd6f3;
+	--almost-right: #faaca8;
+	--dirtyFog-left: #B993D6;
+	--dirtyFog-right: #8CA6DB;
+	--piglet-left: #ee9ca7;
+	--piglet-right: #ffdde1;
+	--azurLane-left: #7F7FD5;
+	--azurLane-mid: #86A8E7;
+	--azurLane-right: #91EAE4;
+	--anamnisar-left: #9796f0;
+	--anamnisar-right: #fbc7d4;
+	--quepal-left: #11998e;
+	--quepal-right: #38ef7d;
+	--mojito-left: #1D976C;
+	--mojito-right: #93F9B9;
+	--blueSkies-left: #56ccf2;
+	--blueSkies-right: #2f80ed;
+
+	--header: rgb(133, 75, 109);
 }
 
 
 html {
-	background-color: rgb(134, 142, 252);
-	background-image: linear-gradient(to bottom right,  rgb(221, 209, 189), rgb(125, 158, 205));
+	background-color: rgb(255, 255, 255);
+	background-image: linear-gradient(to bottom right,  var(--almost-left), var(--almost-right));
+
 	background-attachment: fixed;
 }
 
@@ -13,7 +45,7 @@ header {
 	display: flex;
 	justify-content: center;
 	font-family: var(--font-family);
-	color: rgb(133, 75, 109);
+	color: var(--header);
 	font-size: 50px;
 	font-weight: 100;
 	padding: 20px;
@@ -41,14 +73,14 @@ table {
 	padding: 10px;
 	margin: 10px;
 	font-family: var(--font-family);
-	border: 1px solid rgb(133, 75, 109); 
+	border: 1px solid var(--header); 
 }
 
 button {
 	margin: 10px;
 	font-size: 12px;
 	background-color: white;
-	/* color: rgb(133, 75, 109); */
+	/* color: var(--header); */
 	border: 1px solid rgba(131, 131, 131, 0.603);
 	padding: 5px;
 	transition: all 0.2s ease-in-out;
@@ -76,7 +108,6 @@ a {
 	padding: 10px;
 	background-color: white;
 	box-shadow: 1px 1px 20px rgba(133, 75, 109, 0.3);
-	/* box-shadow: 1px 1px 12px rgba(147, 147, 147, 0.4); */
 	
 }
 
@@ -84,9 +115,8 @@ a {
 	display: none;
 	z-index: 999;
 	position: absolute;
-	top: 23%;
-	left: 25%;
-	width: 50%;
+	top: 20%;
+	max-width: 500px;
 	font-size: 10px;
 	background-color: white;
 	border-radius: 15px;
@@ -103,13 +133,15 @@ a {
 	left: 30%;
 	margin: auto;
 	width: 40%;
-	background-image: radial-gradient(circle at 35% 30%, rgb(245, 222, 222), rgb(218, 206, 245));
+	/* background-image: radial-gradient(circle at 35% 30%, rgb(245, 222, 222), rgb(218, 206, 245)); */
+	background-image: radial-gradient(circle at 25% 30%, rgb(212, 212, 255) 0%, rgb(214, 237, 255) 60%);
+
 	background-attachment: fixed;
 	z-index: 998;
 	padding: 10px;
 	border-radius: 15px;
-	border: 1px dashed rgb(133, 75, 109);
-	box-shadow: 1px 1px 20px rgba(133, 75, 109, 0.4);
+	border: 1px dashed rgb(112, 132, 231);
+	box-shadow: 1px 1px 20px rgba(75, 78, 133, 0.4);
 }
 
 #delete-selected-banner {
@@ -134,7 +166,7 @@ a {
 	padding: 10px;
 	border-radius: 5px;
 	border: 1px dashed rgb(108, 108, 92);
-	color: rgb(133, 75, 109);
+	color: var(--header);
 	text-align: center;
 }
 
@@ -227,7 +259,7 @@ a {
 	justify-content: start;
 	font-size: 14px;
 	font-weight: 550;
-	color: rgb(133, 75, 109);
+	color: var(--header);
 	
 }
 
@@ -254,7 +286,7 @@ a {
 	padding: 10px;
 	width: 80%;
 	font-weight: bold;
-	color: rgb(133, 75, 109);
+	color: var(--header);
 }
 
 .top-banner .close-btn {
@@ -267,7 +299,7 @@ a {
 
 .top-banner .close-btn:hover {
 	cursor: pointer;
-	text-shadow: 2px 2px 3px rgb(133, 75, 109);
+	text-shadow: 2px 2px 3px var(--header);
 	transition: text-shadow 0.1s ease-out;
 }
 

@@ -446,7 +446,10 @@ doneBtn.onclick = (e) => {
     background.classList.remove('waiting-bg');
 }
 
-document.getElementById('helpBtn').onmouseover = (e) => {helpWindow.style.display = 'block'};
+document.getElementById('helpBtn').onmouseover = (e) => {
+    helpWindow.style.display = 'block';
+    helpWindow.style.left = e.clientX - 100 + 'px';
+};
 document.getElementById('helpBtn').onmouseleave = (e) => {helpWindow.style.display = 'none'};
 
 
