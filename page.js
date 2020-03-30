@@ -21,6 +21,9 @@ var waitingWindow = document.getElementById('waiting-window');
 var waitingText =  document.getElementById('waiting-window').children[0];
 var doneBtn = document.getElementById('waiting-window').children[1];
 var helpWindow = document.getElementById('help-window');
+var likeWindow = document.getElementById('like-window');
+var helpBtn = document.getElementById('help-btn');
+var likeBtn = document.getElementById('like-btn');
 
 var removeCache = ["appcache", "cacheStorage"];
 let removeBookmark = false;
@@ -326,10 +329,8 @@ function collectChecked(parent){
     let obj = {};
     for(var el of parent.elements){
         if (el.name == 'remove-bookmark'){
-            if (el.checked)
-                removeBookmark = true; 
-            else 
-                removeBookmark = false;
+            removeBookmark = (el.checked)? true : false;
+          
         } else if (el.name && el.checked) {
             obj[el.name] = true;
                 if(el.name === 'cache'){
@@ -393,8 +394,6 @@ function deleteAll(event){
         }, 
         obj, 
         function(res) {
-
-        
             // remove bookmark if it's ticked, remove bookmark and html node
             if (removeBookmark){
                 selectedBookmarks.forEach((b) => {
@@ -447,11 +446,16 @@ doneBtn.onclick = (e) => {
     background.classList.remove('waiting-bg');
 }
 
-document.getElementById('helpBtn').onmouseover = (e) => {
+helpBtn.onmouseover = (e) => {
     helpWindow.style.display = 'block';
     helpWindow.style.left = e.clientX - 100 + 'px';
 };
-document.getElementById('helpBtn').onmouseleave = (e) => {helpWindow.style.display = 'none'};
+helpBtn.onmouseleave = (e) => {helpWindow.style.display = 'none'};
 
+likeBtn.onmouseover = (e) => {
+    likeWindow.style.top = likeBtn.offsetTop - 10 + 'px'; 
+    likeWindow.style.left = likeBtn.offsetLeft + 30 + 'px';
+    likeWindow.style.display = 'block';
 
-
+};
+likeBtn.onmouseleave = (e) => {likeWindow.style.display = 'none'};

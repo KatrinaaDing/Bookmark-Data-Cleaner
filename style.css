@@ -80,7 +80,6 @@ button {
 	margin: 10px;
 	font-size: 12px;
 	background-color: white;
-	/* color: var(--header); */
 	border: 1px solid rgba(131, 131, 131, 0.603);
 	padding: 5px;
 	transition: all 0.2s ease-in-out;
@@ -125,6 +124,21 @@ a {
 	box-shadow: 1px 1px 20px rgba(133, 75, 109, 0.4);
 }
 
+#like-window {
+	display: none;
+	z-index: 999;
+	position: absolute;
+	width: 70px;
+	padding: 5px;
+	font-size: 10px;
+	background-color: white;
+	border-radius: 7px;
+	border: 1px solid var(--header);
+	color: rgb(107, 107, 107);
+	opacity: 90%;
+	box-shadow: 1px 1px 20px rgba(133, 75, 109, 0.4);
+}
+
 #detail {
 	display: none;
 	flex-direction: column;
@@ -134,7 +148,6 @@ a {
 	margin: auto;
 	width: 40%;
 	background-image: radial-gradient(circle at 25% 30%, rgb(212, 212, 255) 0%, rgb(214, 237, 255) 60%);
-
 	background-attachment: fixed;
 	z-index: 998;
 	padding: 10px;
@@ -169,22 +182,32 @@ a {
 	text-align: center;
 }
 
+.like {
+	height: 17px; 
+	margin: auto; 
+	padding: 5px; 
+	transition: all 0.2s ease-in-out;
+}
+
+.like:hover {
+	cursor: pointer;
+	box-shadow: 2px 2px 7px rgba(163, 163, 163, 0.45);
+	transform: translate(-1px, -1px);
+}
 
 .help {
-	width: 15px;
-	height: 14px;
-	font-size: 10.5px;
-	font-family: var(--font-family);
-	border-radius: 50%;
-	color: rgba(128, 128, 128, 0.7);
-	font-weight: bolder;
-	border: 1.3px solid rgba(128, 128, 128, 0.7);
+	height: 17px;
 	margin: auto;
+	padding: 5px;
 	z-index: 999;
+	transition: all 0.2s ease-in-out;
+
 }
 
 .help:hover {
 	cursor: pointer;
+	box-shadow: 2px 2px 7px rgba(163, 163, 163, 0.45);
+	transform: translate(-1px, -1px);
 }
 
 .done-btn {
