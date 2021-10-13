@@ -69,62 +69,73 @@
 			
 		</table>
 
-		<div id='detail'>
-			<div class="top-banner" id="top-banner">
-				<div class="title" id="banner-title"></div>
-				<div class="close-btn" id="close-btn">X</div>
-			</div>
-			
-			<table id="detail-table">
-				<tr>
-					<td id="visit-title" class="detail-title"> last visit: </td>
-					<td id="last-visit"></td>
-				</tr>
-				<tr>
-					<td id="link-title" class="detail-title">URL: </td>
-					<td><a id="link"></a></td>
-				</tr>
-			</table>
+		<div class="modal fade" id='detail' aria-hidden="true" aria-labelledby="banner-title">
+			<div class="modal-dialog modal-dialog-centered">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 id="banner-title" class="modal-title"></h5>
+						<button id="close-btn" type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+				
+					<div class="modal-body">
+						<div class="container-fluid">
+								<table id="detail-table">
+									<tr>
+										<td id="visit-title" class="detail-title"> last visit: </td>
+										<td id="last-visit"></td>
+									</tr>
+									<tr>
+										<td id="link-title" class="detail-title">URL: </td>
+										<td><a id="link"></a></td>
+									</tr>
+								</table>
+								<form id="remove-form">
+									<div style='display: flex; justify-content: start;  text-align: center;'>
+										<button id='submit-btn' type="button" class="btn btn-primary" style='margin-left: 10px'>Delete Selected Data</button>
+										<button type="reset" class="btn btn-secondary">Reset</button>
+										<input type="checkbox" id='remove-bookmark' name='remove-bookmark' style="transform: scale(1); margin-left: 0px; margin-right: 0px;">
+										<label for='remove-bookmark' style="font-size: 10px; margin: auto; margin-left: 4px;">Remove Bookmark</label>
+									</div>
+									<div style='height: 10px'></div>
+									<div class="delete-options" style="display: flex">
+											<div class='form-check'>
+												<input class="form-check-input" type="checkbox" name='cache' id='cache'>
+												<label class="form-check-label" for='cache'>cache</label>
+											</div>
+											<div class='form-check'>
+												<input class="form-check-input" type="checkbox" name='cookies' id='cookies'>
+												<label class="form-check-label" for='cookies'>cookies</label>
+											</div>
+											<div class='form-check'>
+												<input class="form-check-input" type="checkbox" name='fileSystems' id='fileSystems'>
+												<label class="form-check-label" for='fileSystems'>fileSystems</label>
+											</div>
+											<div class='form-check'>
+												<input class="form-check-input" type="checkbox" name='indexedDB' id='indexedDB'>
+												<label class="form-check-label" for='indexedDB'>indexedDB</label>
+											</div>
+											<div class='form-check'>
+												<input class="form-check-input" type="checkbox"  name='localStorage' id='localStorage'>
+												<label class="form-check-label" for='localStorage'>localStorage</label>
+											</div>
+											<div class='form-check'>
+												<input class="form-check-input" type="checkbox" name='pluginData' id='pluginData'>
+												<label class="form-check-label" for='pluginData'>pluginData</label>
+											</div>
+											<div class='form-check'>
+												<input class="form-check-input" type="checkbox" name='webSQL' id='webSQL'>
+												<label class="form-check-label" for='webSQL'>webSQL</label>
+											</div>
+									</div>
+								</form>
 
-			<form id="remove-form">
-				<div style='display: flex; justify-content: start;  text-align: center;'>
-					<button id='submit-btn' type="button" style='margin-left: 10px'>Delete Selected Data</button>
-					<button type="reset">Reset</button>
-					<input type="checkbox" name='remove-bookmark' style="transform: scale(1); margin-left: 0px; margin-right: 0px;">
-					<text style="font-size: 10px; margin: auto; margin-left: 4px;">Remove Bookmark</text>
+						</div>
+						
+			
+		
+					</div>
 				</div>
-				<div style='height: 10px'></div>
-				<div class="delete-options" style="display: flex">
-						<div class='form-check'>
-							<input class="form-check-input" type="checkbox" name='cache' id='cache'>
-							<label class="form-check-label" for='cache'>cache</label>
-						</div>
-						<div class='form-check'>
-							<input class="form-check-input" type="checkbox" name='cookies' id='cookies'>
-							<label class="form-check-label" for='cookies'>cookies</label>
-						</div>
-						<div class='form-check'>
-							<input class="form-check-input" type="checkbox" name='fileSystems' id='fileSystems'>
-							<label class="form-check-label" for='fileSystems'>fileSystems</label>
-						</div>
-						<div class='form-check'>
-							<input class="form-check-input" type="checkbox" name='indexedDB' id='indexedDB'>
-							<label class="form-check-label" for='indexedDB'>indexedDB</label>
-						</div>
-						<div class='form-check'>
-							<input class="form-check-input" type="checkbox"  name='localStorage' id='localStorage'>
-							<label class="form-check-label" for='localStorage'>localStorage</label>
-						</div>
-						<div class='form-check'>
-							<input class="form-check-input" type="checkbox" name='pluginData' id='pluginData'>
-							<label class="form-check-label" for='pluginData'>pluginData</label>
-						</div>
-						<div class='form-check'>
-							<input class="form-check-input" type="checkbox" name='webSQL' id='webSQL'>
-							<label class="form-check-label" for='webSQL'>webSQL</label>
-						</div>
-				</div>
-			</form>
+			</div>
 		</div>
 
 		<form class="mb-3" id='delete-selected-banner'>
@@ -135,8 +146,8 @@
 				<button type="button" class="btn btn-primary" id='deleteAll'>Delete Selected Data</button>
 				<button type='reset' class="btn btn-secondary">Reset</button>
 				<div style="margin: auto">
-					<input class="form-check-input" type="checkbox" id='remove-bookmark' name='remove-bookmark' style="vertical-align: middle;"/>
-					<label class="form-check-label" for='#remove-bookmark' style="vertical-align: middle;">Remove Bookmark</label>
+					<input class="form-check-input" type="checkbox" id='remove-bookmark-all' name='remove-bookmark' style="vertical-align: middle;"/>
+					<label class="form-check-label" for='remove-bookmark-all' style="vertical-align: middle;">Remove Bookmark</label>
 				</div>
 			</div>
 			<div style='display: flex; flex-direction: row; justify-content: center;'>

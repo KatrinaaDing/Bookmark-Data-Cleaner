@@ -7,10 +7,8 @@ let selectedFolder = [];
 var deleteAllBtn = document.getElementById('deleteAll')
 var container = document.getElementById('container');
 var detail = document.getElementById('detail');
-var topBanner = document.getElementById('top-banner');
 var bannerTitle = document.getElementById('banner-title')
 var closeBtn = document.getElementById('close-btn');
-var detailTable = document.getElementById('detail-table'); 
 var visitTitle = document.getElementById('visit-title');
 var lastVisit = document.getElementById('last-visit');
 var linkTitle = document.getElementById('link-title');
@@ -54,7 +52,7 @@ function wrapListItem(url, title, id) {
     let href = document.createElement('button');
 
     item.id = id;
-    // ['list-group-item', 'list-group-item-action'].forEach(e => item.classList.add(e));
+    // ['list-group-item'].forEach(e => item.classList.add(e));
     // item.classList.add('item');
 
     /* attribute */
@@ -62,6 +60,9 @@ function wrapListItem(url, title, id) {
     checkbox.type = 'checkbox';
     checkbox.value = id;
     href.innerText = validateTitle(title);
+    href.type = 'button';
+    href.setAttribute('data-bs-toggle', 'modal');
+    href.setAttribute('data-bs-target', '#detail');
 
     /* style */
     item.style.display = 'inline-flex';
@@ -95,7 +96,7 @@ function wrapListFolder(title, id){
     item.setAttribute("open", "false");
     checkbox.type = 'checkbox';
     checkbox.value = id;
-    titleText.innerText = validateTitle("> " + title);
+    titleText.innerText = validateTitle(title);
     // apply bootstrap collapse
     childrenContainer.id = `children${id}`;
     titleText.setAttribute("data-bs-toggle", "collapse");
@@ -107,10 +108,10 @@ function wrapListFolder(title, id){
     /* style */
     addClasses(item, ['folder']);
     addClasses(titleElement, ['title']);
-    addClasses(titleText, ['btn', 'h5', 'text']);
+    addClasses(titleText, ['btn', 'd-inline-flex', 'align-items-center', 'rounded', 'h5', 'text']);
     // checkbox.style.marginRight = '15px';
     addClasses(checkbox, ['form-check-input']);
-    addClasses(childrenContainer, ['collapse'])
+    addClasses(childrenContainer, ['collapse', 'children-container'])
 
     /* Event listener */
     checkbox.addEventListener('change', () => selectAll(id, checkbox.checked));
@@ -133,7 +134,6 @@ async function popUpDetail(id, url, title){
     await emptyDetail();
 
     bannerTitle.innerText = title;
-    closeBtn.addEventListener('click', (e) => { detail.style.display = 'none' });
 
     // get and display last visit time
     chrome.history.getVisits({ "url": url }, res => {
@@ -226,29 +226,10 @@ function reverseFolderStatus(node){
     let titleNode = node.firstChild.firstChild.nextSibling;
     let title = titleNode.innerText;
 
-    if (node.getAttribute("open") == "true") {
-        titleNode.innerText = title.replace('v', '>');
-        node.setAttribute("open", "false");
-        // toggleFolder(node, false);
-        return false;
-    } else {
-        titleNode.innerText = title.replace('>', 'v');
-        node.setAttribute("open", "true");
-        // toggleFolder(node, true);
-        return true;
-    }
-}
+    const curState = node.getAttribute("open");
+    node.setAttribute("open", !curState);
 
-/**
- * display and hide elements in folder
- * @param {html element} parent the folder element
- * @param {booelan} value true means "display" and false means "hide"
- */
-function toggleFolder(parent, value){
-    let children = parent.children;
-    for (let i = 1; i < children.length; i++) {
-        children[i].style.display = (value)? 'flex' : 'none';
-    };
+    return node.getAttribute("open");
 }
 
 /**

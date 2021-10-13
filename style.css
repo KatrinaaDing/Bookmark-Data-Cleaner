@@ -35,12 +35,6 @@
 }
 
 
-/* html {
-	background-color: rgb(255, 255, 255);
-	background-image: linear-gradient(to bottom right,  var(--almost-left), var(--almost-right));
-	background-attachment: fixed;
-} */
-
 header {
 	display: flex;
 	justify-content: center;
@@ -54,42 +48,26 @@ header {
 
 
 input[type=checkbox]{
-	/* transform: scale(1.3); */
 	padding: 8px;
 	margin-top: auto;
 	margin-bottom: auto;
 	cursor: pointer;
 }
 
-/* label {
-	cursor: pointer;
-	margin: auto;
-	margin-right: 10px;
-	font-size: 12px;
-	-webkit-text-stroke-width: thin;
-} */
-
-table {
+/* table {
 	padding: 10px;
 	margin: 10px;
 	font-family: var(--font-family);
 	border: 1px solid var(--header); 
-}
+} */
 
 button {
 	margin: 5px;
-	/* font-size: 12px; */
-	/* background-color: white; */
-	/* border: 1px solid rgba(131, 131, 131, 0.603); */
-	/* padding: 5px; */
-	/* transition: all 0.2s ease-in-out; */
 }
 
-/* button:hover {
+label:hover {
 	cursor: pointer;
-	box-shadow: 2px 2px 7px rgba(163, 163, 163, 0.45);
-	transform: translate(-1px, -1px);
-} */
+}
 
 a {
 	word-break: break-all;
@@ -97,17 +75,11 @@ a {
 }
 
 #container {
-	border: 0.5px solid rgb(172, 172, 172);
+	border-left: 0.5px solid rgb(172, 172, 172);
+	padding-left: 30px;
 	display: flex;
 	flex-direction: column;
 	justify-content: start;
-	/* width: 85%;
-	margin: auto;
-	border-radius: 20px;
-	padding: 10px;
-	background-color: white;
-	box-shadow: 1px 1px 20px rgba(133, 75, 109, 0.3); */
-	
 }
 
 #help-window {
@@ -124,22 +96,8 @@ a {
 	box-shadow: 1px 1px 20px rgba(133, 75, 109, 0.4);
 }
 
-#like-window {
-	display: block;
-	z-index: 999;
-	position: absolute;
-	width: 70px;
-	padding: 5px;
-	font-size: 10px;
-	background-color: white;
-	border-radius: 7px;
-	border: 1px solid var(--header);
-	color: rgb(107, 107, 107);
-	opacity: 90%;
-	box-shadow: 1px 1px 20px rgba(133, 75, 109, 0.4);
-}
 
-#detail {
+/* #detail {
 	display: none;
 	flex-direction: column;
 	position: fixed;
@@ -154,7 +112,7 @@ a {
 	border-radius: 15px;
 	border: 1px dashed rgb(112, 132, 231);
 	box-shadow: 1px 1px 20px rgba(75, 78, 133, 0.4);
-}
+} */
 
 #delete-selected-banner {
 	display: flex;
@@ -193,7 +151,6 @@ a {
 
 .banner-btn:hover {
 	cursor: pointer;
-	/* box-shadow: 2px 2px 7px rgba(163, 163, 163, 0.45); */
 	background-color: rgba(230, 230, 230, 0.63);
 }
 
@@ -246,10 +203,6 @@ a {
 	border: solid 1px rgb(216, 216, 216) ;
 }
 
-.link:active {
-	box-shadow: inset 0px 2px 7px 0px rgba(198, 198, 198);
-	transform: translate(1px, 1px);
-}
 
 .folder {
 	display: flex;
@@ -281,33 +234,18 @@ a {
 	background-color: rgb(219, 219, 219);
 }
 
-.top-banner {
-	display: flex;
-    justify-content: space-between;
-	flex-direction: row;
-	font-size: 15px;
-	font-family: var(--font-family);
-	word-break: break-all;
-	text-overflow: ellipsis;
-	overflow: hidden;
-	padding: 10px;
-	width: -webkit-fill-available;
+
+.folder .title .text::before {
+	content: url("bootstrap-icons-1.5.0/chevron-right.svg");
+	margin-right: 5px;
+	transition: transform 0.35s ease;
+	transform-origin: .5em 50%;
+}
+.folder .title .text[aria-expanded="true"]::before {
+	transform: rotate(90deg);
 }
 
-.top-banner .title {
-	padding: 10px;
-	width: 80%;
-	font-weight: bold;
-	color: var(--header);
-}
 
-.top-banner .close-btn {
-	padding: 10px;
-	width: 20px;
-	height: 20px;
-	font-size: 15px;
-	text-align: center;
-}
 
 .top-banner .close-btn:hover {
 	cursor: pointer;
@@ -327,6 +265,7 @@ a {
 	flex-wrap: wrap;
 }
 
-.detail-title {
-	width: 20%;
+
+.children-container {
+	border-left: 1px solid rgb(160, 160, 160);
 }
