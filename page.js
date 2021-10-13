@@ -29,6 +29,16 @@ var removeCache = ["appcache", "cacheStorage"];
 let removeBookmark = false;
 
 /**
+ * A helper function to add a list of classes to an html node
+ * @param {*} node The html node to add classes on
+ * @param {*} classlist The list of classes to add
+ */
+function addClasses(node, classlist) {
+    if (typeof(node) !== 'object') alert("ERROR adding classes")
+    classlist.forEach(e => node.classList.add(e));
+}
+
+/**
  * Wrap a url into html node.
  * @param {string} url the url wants to wrap with
  * @param {string} title the text to display
@@ -41,17 +51,27 @@ function wrapListItem(url, title, id) {
     
     let item = document.createElement('div');
     let checkbox = document.createElement('input');
-    let href = document.createElement('div');
+    let href = document.createElement('button');
 
     item.id = id;
-    item.classList.add('item');
+    // ['list-group-item', 'list-group-item-action'].forEach(e => item.classList.add(e));
+    // item.classList.add('item');
+
+    /* attribute */
+    href.setAttribute('href', url);
     checkbox.type = 'checkbox';
     checkbox.value = id;
-    checkbox.addEventListener('click', checkBoxHandler);
     href.innerText = validateTitle(title);
-    href.setAttribute('href',url);
-    href.classList.add('link');
-    href.addEventListener('click', () => {popUpDetail(id, url, validateTitle(title))});
+
+    /* style */
+    item.style.display = 'inline-flex';
+    item.style.width = '-webkit-fill-available'
+    addClasses(checkbox, ["form-check-input"]);
+    addClasses(href, ['link', 'btn', 'text']);
+
+    /* Event Listener */
+    checkbox.addEventListener('click', checkBoxHandler);
+    href.addEventListener('click', () => popUpDetail(id, url, validateTitle(title)));
     
     [checkbox, href].forEach(e => {item.appendChild(e)});
     return item;
@@ -65,26 +85,41 @@ function wrapListItem(url, title, id) {
  */
 function wrapListFolder(title, id){
     let item = document.createElement('div');
-    let titleElement = document.createElement('div');
+    let titleElement = document.createElement('div');   // the item of folder title
     let checkbox = document.createElement('input');
-    let titleText = document.createElement('div');
+    let titleText = document.createElement('button');
+    let childrenContainer = document.createElement('div');  // a container for all children item
     
+    /* attribute */
     item.id = id;
     item.setAttribute("open", "false");
     checkbox.type = 'checkbox';
     checkbox.value = id;
     titleText.innerText = validateTitle("> " + title);
-    item.classList.add('folder');
-    titleElement.classList.add('title');
-    checkbox.style.marginRight = '15px';
-    titleText.classList.add('text');
+    // apply bootstrap collapse
+    childrenContainer.id = `children${id}`;
+    titleText.setAttribute("data-bs-toggle", "collapse");
+    titleText.setAttribute('data-bs-target', `#children${id}`);
+    titleText.setAttribute('aria-expanded', 'false');
+    titleText.type = 'button';
+    titleText.setAttribute('aria-controls', `children${id}`);
+    
+    /* style */
+    addClasses(item, ['folder']);
+    addClasses(titleElement, ['title']);
+    addClasses(titleText, ['btn', 'h5', 'text']);
+    // checkbox.style.marginRight = '15px';
+    addClasses(checkbox, ['form-check-input']);
+    addClasses(childrenContainer, ['collapse'])
 
+    /* Event listener */
     checkbox.addEventListener('change', () => selectAll(id, checkbox.checked));
     checkbox.addEventListener('click', checkBoxHandler);
     titleText.addEventListener('click', () => reverseFolderStatus(item));
-    
+
     [checkbox, titleText].forEach(e => {titleElement.appendChild(e)});
-    item.appendChild(titleElement);
+    [titleElement, childrenContainer].forEach(e => item.appendChild(e));
+    
     return item;
 }
 
@@ -194,12 +229,12 @@ function reverseFolderStatus(node){
     if (node.getAttribute("open") == "true") {
         titleNode.innerText = title.replace('v', '>');
         node.setAttribute("open", "false");
-        toggleFolder(node, false);
+        // toggleFolder(node, false);
         return false;
     } else {
         titleNode.innerText = title.replace('>', 'v');
         node.setAttribute("open", "true");
-        toggleFolder(node, true);
+        // toggleFolder(node, true);
         return true;
     }
 }
@@ -236,8 +271,8 @@ async function parseFolder(id){
                 } finally {
                     // increment indent level, hide all children by default
                     element.style.marginLeft = '30px';
-                    element.style.display = 'none';
-                    document.getElementById(id).appendChild(element);
+                    // append child item into container
+                    document.getElementById(`children${id}`).appendChild(element);
                 }
             } 
         });
@@ -252,14 +287,18 @@ async function parseFolder(id){
 function selectAll(id, value) {
     let checkbox = document.getElementById(id).firstChild.firstChild;
     checkbox.checked = value;
+ 
     updateOriginalList(checkbox);
-    let children = document.getElementById(id).children;
-    for (let i = 1; i < children.length; i++) {
-        if(children[i].classList.contains('item')){
+    let children = document.getElementById(`children${id}`).children;
+    for (let i = 0; i < children.length; i++) {
+        // recursively select nested folder
+        if(children[i].classList.contains('folder')){
+            selectAll(children[i].id, value);
+        
+        // add href into list
+        } else {
             children[i].firstChild.checked = value;
             updateOriginalList(children[i].firstChild);
-        } else {
-            selectAll(children[i].id, value);
         }
     };
 }
@@ -329,7 +368,7 @@ function collectChecked(parent){
     let obj = {};
     for(var el of parent.elements){
         if (el.name == 'remove-bookmark'){
-            removeBookmark = (el.checked)? true : false;
+            removeBookmark = el.checked;
           
         } else if (el.name && el.checked) {
             obj[el.name] = true;

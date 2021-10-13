@@ -35,11 +35,11 @@
 }
 
 
-html {
+/* html {
 	background-color: rgb(255, 255, 255);
 	background-image: linear-gradient(to bottom right,  var(--almost-left), var(--almost-right));
 	background-attachment: fixed;
-}
+} */
 
 header {
 	display: flex;
@@ -54,20 +54,20 @@ header {
 
 
 input[type=checkbox]{
-	transform: scale(1.3);
-	padding: 10px;
+	/* transform: scale(1.3); */
+	padding: 8px;
 	margin-top: auto;
 	margin-bottom: auto;
 	cursor: pointer;
 }
 
-label {
+/* label {
 	cursor: pointer;
 	margin: auto;
 	margin-right: 10px;
 	font-size: 12px;
 	-webkit-text-stroke-width: thin;
-}
+} */
 
 table {
 	padding: 10px;
@@ -77,19 +77,19 @@ table {
 }
 
 button {
-	margin: 10px;
-	font-size: 12px;
-	background-color: white;
-	border: 1px solid rgba(131, 131, 131, 0.603);
-	padding: 5px;
-	transition: all 0.2s ease-in-out;
+	margin: 5px;
+	/* font-size: 12px; */
+	/* background-color: white; */
+	/* border: 1px solid rgba(131, 131, 131, 0.603); */
+	/* padding: 5px; */
+	/* transition: all 0.2s ease-in-out; */
 }
 
-button:hover {
+/* button:hover {
 	cursor: pointer;
 	box-shadow: 2px 2px 7px rgba(163, 163, 163, 0.45);
 	transform: translate(-1px, -1px);
-}
+} */
 
 a {
 	word-break: break-all;
@@ -101,12 +101,12 @@ a {
 	display: flex;
 	flex-direction: column;
 	justify-content: start;
-	width: 85%;
+	/* width: 85%;
 	margin: auto;
 	border-radius: 20px;
 	padding: 10px;
 	background-color: white;
-	box-shadow: 1px 1px 20px rgba(133, 75, 109, 0.3);
+	box-shadow: 1px 1px 20px rgba(133, 75, 109, 0.3); */
 	
 }
 
@@ -125,7 +125,7 @@ a {
 }
 
 #like-window {
-	display: none;
+	display: block;
 	z-index: 999;
 	position: absolute;
 	width: 70px;
@@ -182,32 +182,19 @@ a {
 	text-align: center;
 }
 
-.like {
-	height: 17px; 
-	margin: auto; 
-	padding: 5px; 
-	transition: all 0.2s ease-in-out;
-}
 
-.like:hover {
-	cursor: pointer;
-	box-shadow: 2px 2px 7px rgba(163, 163, 163, 0.45);
-	transform: translate(-1px, -1px);
-}
-
-.help {
-	height: 17px;
+.banner-btn {
 	margin: auto;
-	padding: 5px;
+	padding: 10px;
 	z-index: 999;
 	transition: all 0.2s ease-in-out;
-
+	border-radius: 50%;
 }
 
-.help:hover {
+.banner-btn:hover {
 	cursor: pointer;
-	box-shadow: 2px 2px 7px rgba(163, 163, 163, 0.45);
-	transform: translate(-1px, -1px);
+	/* box-shadow: 2px 2px 7px rgba(163, 163, 163, 0.45); */
+	background-color: rgba(230, 230, 230, 0.63);
 }
 
 .done-btn {
@@ -231,8 +218,7 @@ a {
 }
 
 .delete-all-opt {
-	margin-top: auto;
-	margin-bottom: auto;
+	margin: 5px;
 }
 
 .item {
@@ -251,14 +237,13 @@ a {
 	overflow: hidden;
 	padding: 10px;
 	margin: auto;
-	border-radius: 12px;
+	/* border-radius: 12px; */
 	transition: box-shadow 0.3s ease-in;
 }
 
 .link:hover, .link:focus{
 	cursor: pointer;
-	box-shadow: 3px 2px 7px rgba(156, 156, 156);
-
+	border: solid 1px rgb(216, 216, 216) ;
 }
 
 .link:active {
@@ -269,8 +254,6 @@ a {
 .folder {
 	display: flex;
 	flex-direction: column;
-	padding-top: 10px;
-	padding-bottom: 10px;
 	font-family: var(--font-family);
 	color: rgb(108, 108, 92);
 }
@@ -282,13 +265,20 @@ a {
 	font-size: 14px;
 	font-weight: 550;
 	color: var(--header);
-	
+	margin-bottom: 5px;
+}
+
+.text {
+	text-align: left;
+	margin-top: auto;
+	margin-bottom: auto;
 }
 
 .folder .title .text:hover {
-	font-size: 15.5px;
+	/* font-size: 15.5px; */
 	cursor: pointer;
 	transition: all 0.1s ease-in-out;
+	background-color: rgb(219, 219, 219);
 }
 
 .top-banner {
@@ -335,11 +325,6 @@ a {
 	font-family: var(--font-family);
 	flex-direction: row;
 	flex-wrap: wrap;
-}
-
-.delete-opt {
-	flex-direction: row;
-	padding: 5px;
 }
 
 .detail-title {
