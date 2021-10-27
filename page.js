@@ -3,33 +3,27 @@ let selectedOrigins = [];
 let selectedBookmarks = [];
 let selectedFolder = [];
 
-//html element
-var deleteAllBtn = document.getElementById('deleteAll')
-var container = document.getElementById('container');
-var detail = document.getElementById('detail');
-var bannerTitle = document.getElementById('banner-title')
-var closeBtn = document.getElementById('close-btn');
-var visitTitle = document.getElementById('visit-title');
-var lastVisit = document.getElementById('last-visit');
-var linkTitle = document.getElementById('link-title');
-var link = document.getElementById('link');
-var removeForm = document.getElementById('remove-form');
-var background = document.getElementById('background');
-var waitingWindow = document.getElementById('waiting-window');
-var waitingText =  document.getElementById('waiting-window').children[0];
-var doneBtn = document.getElementById('waiting-window').children[1];
-var helpWindow = document.getElementById('help-window');
-var likeWindow = document.getElementById('like-window');
-var helpBtn = document.getElementById('help-btn');
-var likeBtn = document.getElementById('like-btn');
+// html elements
+const deleteAllBtn = document.getElementById('deleteAll');
+const selectAllBtn = document.getElementById('selectAll-all');
+const container = document.getElementById('container');
+const detail = document.getElementById('detail');
+const bannerTitle = document.getElementById('banner-title')
+const lastVisit = document.getElementById('last-visit');
+const link = document.getElementById('link');
+const removeForm = document.getElementById('remove-form');
+const background = document.getElementById('background');
+const waitingWindow = document.getElementById('waiting-window');
+const waitingText =  document.getElementById('waiting-window').children[0];
+const doneBtn = document.getElementById('waiting-window').children[1];
 
-var removeCache = ["appcache", "cacheStorage"];
+const removeCache = ["appcache", "cacheStorage"];
 let removeBookmark = false;
 
 /**
  * A helper function to add a list of classes to an html node
- * @param {*} node The html node to add classes on
- * @param {*} classlist The list of classes to add
+ * @param {html node} node The html node to add classes on
+ * @param {array} classlist The list of classes to add
  */
 function addClasses(node, classlist) {
     if (typeof(node) !== 'object') alert("ERROR adding classes")
@@ -109,7 +103,6 @@ function wrapListFolder(title, id){
     addClasses(item, ['folder']);
     addClasses(titleElement, ['title']);
     addClasses(titleText, ['btn', 'd-inline-flex', 'align-items-center', 'rounded', 'h5', 'text']);
-    // checkbox.style.marginRight = '15px';
     addClasses(checkbox, ['form-check-input']);
     addClasses(childrenContainer, ['collapse', 'children-container'])
 
@@ -171,7 +164,6 @@ async function popUpDetail(id, url, title){
         // show waiting status
         background.classList.add('waiting-bg');
         waitingWindow.style.display = 'flex';
-        detail.style.display = 'none';
         chrome.browsingData.remove(
             {
                 "origins": originList
@@ -181,7 +173,7 @@ async function popUpDetail(id, url, title){
                 waitingText.style.display = 'none';
                 doneBtn.style.display = 'block';
                 // remove bookmark if it's ticked
-                if (removeBookmark){
+                if (removeBookmark) {
                     chrome.bookmarks.remove(id, () => {
                         console.log("Successfully remove bookmark <" + title + ">");
                         document.getElementById(id).parentNode.removeChild(document.getElementById(id));
@@ -191,7 +183,6 @@ async function popUpDetail(id, url, title){
            
         );
     });
-    detail.style.display = 'flex';
 }
 
 /**
@@ -379,7 +370,8 @@ function getRoot() {
 }
 
 
-/* event handler */
+/* =============================================== event handler =============================================== */
+
 /**
  * Event handler for checkBox
  * @param {event} event checkbox event
@@ -393,7 +385,6 @@ function checkBoxHandler(event){
  * @param {event} event click event
  */
 function deleteAll(event){
-    event.preventDefault();
     var selectedBanner = document.getElementById('delete-selected-banner');
     
     // collect what data to delete
@@ -402,12 +393,10 @@ function deleteAll(event){
     // setting background
     background.classList.add('waiting-bg');
     waitingWindow.style.display = 'flex';
+    
+    selectedOrigins.sort((a, b) => b-a);
 
     // remove selected item
-    selectedOrigins.sort(function(a, b){
-        return b-a;
-    });
-
     chrome.browsingData.remove(
         {
             "origins": selectedOrigins
@@ -415,7 +404,7 @@ function deleteAll(event){
         obj, 
         function(res) {
             // remove bookmark if it's ticked, remove bookmark and html node
-            if (removeBookmark){
+            if (removeBookmark) {
                 selectedBookmarks.forEach((b) => {
                     chrome.bookmarks.remove(b, () => {
                         console.log("successfully removed ", b);
@@ -425,19 +414,17 @@ function deleteAll(event){
             }
             
             // remove ticked empty bookmark if "remove bookmark" is ticked
-            if (removeBookmark){
-                selectedFolder.sort(function(a, b){
-                    return b-a;
-                });
+            if (removeBookmark) {
+                selectedFolder.sort((a, b) => b-a);
                 
                 // remove selected empty folders (if any)
-                selectedFolder.forEach((f) => {
+                selectedFolder.forEach((f) => 
                     chrome.bookmarks.remove(f, () => {
                         console.log("Successfully remove empty folder " + f);
                         document.getElementById(f).parentNode.removeChild(document.getElementById(f));
-                    });
-                });
-            }   
+                    })
+                );
+            }
 
             // empty all checkbox
             for(var el of selectedBanner.elements)
@@ -447,7 +434,6 @@ function deleteAll(event){
             selectedFolder = [];
             selectedOrigins = [];
             selectedBookmarks = [];
-        
 
             waitingText.style.display = 'none';
             doneBtn.style.display = 'block';
@@ -455,10 +441,21 @@ function deleteAll(event){
     );
 }
 
+/**
+ * Event handler for 'select all' button for "delete all" function
+ * @param {event} event click event
+ */
+function selectAllData(e) {
+    const ch = document.getElementById('delete-all-options').children;
+    for (let i = 0; i < ch.length; i++)
+        ch[i].children[0].checked = true;
+}
 
 
 getRoot();
-deleteAllBtn.addEventListener('click', deleteAll);
+deleteAllBtn.onclick = deleteAll;
+selectAllBtn.onclick = selectAllData;
+
 doneBtn.onclick = (e) => {
     waitingWindow.style.display = 'none';
     waitingText.style.display = 'block';
@@ -466,16 +463,3 @@ doneBtn.onclick = (e) => {
     background.classList.remove('waiting-bg');
 }
 
-helpBtn.onmouseover = (e) => {
-    helpWindow.style.display = 'block';
-    helpWindow.style.left = e.clientX - 100 + 'px';
-};
-helpBtn.onmouseleave = (e) => {helpWindow.style.display = 'none'};
-
-likeBtn.onmouseover = (e) => {
-    likeWindow.style.top = likeBtn.offsetTop - 10 + 'px'; 
-    likeWindow.style.left = likeBtn.offsetLeft + 30 + 'px';
-    likeWindow.style.display = 'block';
-
-};
-likeBtn.onmouseleave = (e) => {likeWindow.style.display = 'none'};

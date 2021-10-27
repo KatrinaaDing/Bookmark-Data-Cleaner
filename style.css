@@ -31,13 +31,13 @@
 	--blueSkies-left: #56ccf2;
 	--blueSkies-right: #2f80ed;
 
-	--header: rgb(133, 75, 109);
+	--header: rgb(11, 94, 215);
 }
-
 
 header {
 	display: flex;
 	justify-content: center;
+	text-align: center;
 	font-family: var(--font-family);
 	color: var(--header);
 	font-size: 50px;
@@ -46,20 +46,12 @@ header {
 
 }
 
-
 input[type=checkbox]{
 	padding: 8px;
 	margin-top: auto;
 	margin-bottom: auto;
 	cursor: pointer;
 }
-
-/* table {
-	padding: 10px;
-	margin: 10px;
-	font-family: var(--font-family);
-	border: 1px solid var(--header); 
-} */
 
 button {
 	margin: 5px;
@@ -71,7 +63,10 @@ label:hover {
 
 a {
 	word-break: break-all;
-	
+}
+
+td {
+	padding-right: 10px;
 }
 
 #container {
@@ -82,37 +77,9 @@ a {
 	justify-content: start;
 }
 
-#help-window {
-	display: none;
-	z-index: 999;
-	position: absolute;
-	top: 29%;
-	max-width: 500px;
-	font-size: 10px;
-	background-color: white;
-	border-radius: 15px;
-	color: rgb(107, 107, 107);
-	opacity: 90%;
-	box-shadow: 1px 1px 20px rgba(133, 75, 109, 0.4);
+#detail-table {
+	margin: 10px;
 }
-
-
-/* #detail {
-	display: none;
-	flex-direction: column;
-	position: fixed;
-	top: 30%;
-	left: 30%;
-	margin: auto;
-	width: 40%;
-	background-image: radial-gradient(circle at 25% 30%, rgb(212, 212, 255) 0%, rgb(214, 237, 255) 60%);
-	background-attachment: fixed;
-	z-index: 998;
-	padding: 10px;
-	border-radius: 15px;
-	border: 1px dashed rgb(112, 132, 231);
-	box-shadow: 1px 1px 20px rgba(75, 78, 133, 0.4);
-} */
 
 #delete-selected-banner {
 	display: flex;
@@ -120,7 +87,6 @@ a {
 	flex-wrap: wrap;
 	flex-direction: column;
 	width: 85%;
-	border-radius: 25px;
 	margin: auto;
 	margin-bottom: 20px;
 	padding: 5px;
@@ -135,7 +101,6 @@ a {
 	z-index: 999;
 	padding: 10px;
 	border-radius: 5px;
-	border: 1px dashed rgb(108, 108, 92);
 	color: var(--header);
 	text-align: center;
 }
@@ -155,11 +120,6 @@ a {
 }
 
 .done-btn {
-	border-radius: 5px;
-	background-color: white;
-	color: rgba(133, 75, 109);
-	border: 1px solid rgba(133, 75, 109, 0);
-	padding: 10px;
 	display: none;
 }
 
@@ -176,6 +136,8 @@ a {
 
 .delete-all-opt {
 	margin: 5px;
+	margin-top: auto;
+	margin-bottom: auto;
 }
 
 .item {
@@ -263,9 +225,20 @@ a {
 	font-family: var(--font-family);
 	flex-direction: row;
 	flex-wrap: wrap;
+	margin-left: 10px;
 }
 
 
 .children-container {
 	border-left: 1px solid rgb(160, 160, 160);
+}
+
+.delete-opt {
+	width: fit-content;
+}
+
+.alert {
+	position: fixed;
+	top: 0px;
+	
 }

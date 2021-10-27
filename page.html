@@ -5,70 +5,22 @@
 	</div>
 	<head>
 		
-		<title>Book mark cleaner</title>
+		<title>Bookmark Data Cleaner</title>
 		<!-- Bootstrap CSS from https://getbootstrap.com/ -->
 		<link href="./bootstrap-5.1.3-dist/css/bootstrap.min.css" rel="stylesheet" ">
 		<link rel="stylesheet" href="style.css">
 	</head>
-	<header>Bookmark Cleaner</header>
+	<header>Bookmark Data Cleaner</header>
 	<body>
 		<div id='waiting-window' style='background-color: rgb(240, 240, 240); display: none; justify-content: center;' >
 			<div style='padding: 10px;'>
 				Please be patient, this process usually takes less than 5 minutes...
 			</div>
-			<button class='done-btn'>
+			<button class='btn btn-outline-primary done-btn'>
 				Done! Click me to return.
 			</button>
 		</div>
 		
-		<table id='help-window'>
-
-			<tr>
-				<td><strong>delete selected data:</strong> Remove selected browsing data with selected bookmarks.</td>
-			</tr>
-			<tr>
-				<td><strong>reset:</strong> Reset the checkboxes of browsing data.</td>
-			</tr>
-			<tr>
-				<td><strong>remove bookmark:</strong> Remove the selected bookmark at the same time.</td>
-			</tr>
-			<tr style='text-align: center;'>
-				<td>
-					-----------
-				</td>
-			</tr>
-				<td><strong>cache:</strong> Clears the browser's cache (including appcaches and cache storage).</td>
-			</tr>
-			<tr>
-				<td><strong>cookies:</strong> Clears the browser's cookies and server-bound certificates modified within a particular timeframe.</td>
-			</tr>
-			<tr>
-				<td><strong>fileSystems:</strong> Clears websites' file system data.</td>
-			</tr>
-			<tr>
-				<td><strong>indexedDB:</strong> Clears websites' IndexedDB (database) data.</td>
-			</tr>
-			<tr>
-				<td><strong>localStorage:</strong> Clears websites' local storage data.</td>
-			</tr>
-			<tr>
-				<td><strong>pluginData:</strong> Clears plugins' data.</td>
-			</tr>
-			<tr>
-				<td><strong>webSQL:</strong> Clears websites' WebSQL data.</td>
-			</tr>
-			<tr style='text-align: center;'>
-				<td>
-					-----------
-				</td>
-			</tr>
-			<tr>
-				<td><strong>Note:</strong> Currently Chrome only supports removing those browsing data with specific origins.<td>
-			</tr>
-			
-			
-		</table>
-
 		<div class="modal fade" id='detail' aria-hidden="true" aria-labelledby="banner-title">
 			<div class="modal-dialog modal-dialog-centered">
 				<div class="modal-content">
@@ -81,7 +33,7 @@
 						<div class="container-fluid">
 								<table id="detail-table">
 									<tr>
-										<td id="visit-title" class="detail-title"> last visit: </td>
+										<td id="visit-title" class="detail-title">last visit: </td>
 										<td id="last-visit"></td>
 									</tr>
 									<tr>
@@ -91,100 +43,158 @@
 								</table>
 								<form id="remove-form">
 									<div style='display: flex; justify-content: start;  text-align: center;'>
-										<button id='submit-btn' type="button" class="btn btn-primary" style='margin-left: 10px'>Delete Selected Data</button>
-										<button type="reset" class="btn btn-secondary">Reset</button>
-										<input type="checkbox" id='remove-bookmark' name='remove-bookmark' style="transform: scale(1); margin-left: 0px; margin-right: 0px;">
-										<label for='remove-bookmark' style="font-size: 10px; margin: auto; margin-left: 4px;">Remove Bookmark</label>
+										<button 
+											id='submit-btn' 
+											type="button" 
+											class="btn btn-primary" 
+											style='margin-left: 10px'
+											data-bs-toggle="tooltip" 
+											data-bs-placement="top"
+											data-bs-dismiss="modal"
+											title="Remove selected browsing data to the current url."
+										>
+											Delete Selected Data
+										</button>
+										<button 
+											type="reset" 
+											class="btn btn-secondary" 
+											data-bs-toggle="tooltip" 
+											data-bs-placement="top" 
+											title="Clear all checkboxes."
+										>
+											Reset
+										</button>
+										<div style="margin: auto" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove the selected bookmark simultaneously.">
+											<input class="form-check-input" type="checkbox" id='remove-bookmark' name='remove-bookmark' style="vertical-align: middle;"/>
+											<label class="form-check-label" for='remove-bookmark' style="vertical-align: middle;">Remove Bookmark</label>
+										</div>
 									</div>
 									<div style='height: 10px'></div>
-									<div class="delete-options" style="display: flex">
-											<div class='form-check'>
-												<input class="form-check-input" type="checkbox" name='cache' id='cache'>
-												<label class="form-check-label" for='cache'>cache</label>
-											</div>
-											<div class='form-check'>
-												<input class="form-check-input" type="checkbox" name='cookies' id='cookies'>
-												<label class="form-check-label" for='cookies'>cookies</label>
-											</div>
-											<div class='form-check'>
-												<input class="form-check-input" type="checkbox" name='fileSystems' id='fileSystems'>
-												<label class="form-check-label" for='fileSystems'>fileSystems</label>
-											</div>
-											<div class='form-check'>
-												<input class="form-check-input" type="checkbox" name='indexedDB' id='indexedDB'>
-												<label class="form-check-label" for='indexedDB'>indexedDB</label>
-											</div>
-											<div class='form-check'>
-												<input class="form-check-input" type="checkbox"  name='localStorage' id='localStorage'>
-												<label class="form-check-label" for='localStorage'>localStorage</label>
-											</div>
-											<div class='form-check'>
-												<input class="form-check-input" type="checkbox" name='pluginData' id='pluginData'>
-												<label class="form-check-label" for='pluginData'>pluginData</label>
-											</div>
-											<div class='form-check'>
-												<input class="form-check-input" type="checkbox" name='webSQL' id='webSQL'>
-												<label class="form-check-label" for='webSQL'>webSQL</label>
-											</div>
+									<div class="delete-options">
+										<div class='form-check delete-opt' data-bs-toggle="tooltip" data-bs-placement="right" title="Clears the browser's cache (including appcaches and cache storage).">
+											<input class="form-check-input" type="checkbox" name='cache' id='cache'>
+											<label class="form-check-label" for='cache'>cache</label>
+										</div>
+										<div class='form-check delete-opt' data-bs-toggle="tooltip" data-bs-placement="right" title="Clears the browser's cookies and server-bound certificates modified within a particular timeframe.">
+											<input class="form-check-input" type="checkbox" name='cookies' id='cookies'>
+											<label class="form-check-label" for='cookies'>cookies</label>
+										</div>
+										<div class='form-check delete-opt' data-bs-toggle="tooltip" data-bs-placement="right" title="Clears websites' file system data.">
+											<input class="form-check-input" type="checkbox" name='fileSystems' id='fileSystems'>
+											<label class="form-check-label" for='fileSystems'>fileSystems</label>
+										</div>
+										<div class='form-check delete-opt' data-bs-toggle="tooltip" data-bs-placement="right" title="Clears websites' IndexedDB (database) data.">
+											<input class="form-check-input" type="checkbox" name='indexedDB' id='indexedDB'>
+											<label class="form-check-label" for='indexedDB'>indexedDB</label>
+										</div>
+										<div class='form-check delete-opt' data-bs-toggle="tooltip" data-bs-placement="right" title="Clears websites' local storage data.">
+											<input class="form-check-input" type="checkbox"  name='localStorage' id='localStorage'>
+											<label class="form-check-label" for='localStorage'>localStorage</label>
+										</div>
+										<div class='form-check delete-opt' data-bs-toggle="tooltip" data-bs-placement="right" title="Clears plugins' data.">
+											<input class="form-check-input" type="checkbox" name='pluginData' id='pluginData'>
+											<label class="form-check-label" for='pluginData'>pluginData</label>
+										</div>
+										<div class='form-check delete-opt' data-bs-toggle="tooltip" data-bs-placement="right" title="Clears websites' WebSQL data.">
+											<input class="form-check-input" type="checkbox" name='webSQL' id='webSQL'>
+											<label class="form-check-label" for='webSQL'>webSQL</label>
+										</div>
 									</div>
 								</form>
-
 						</div>
-						
-			
-		
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<form class="mb-3" id='delete-selected-banner'>
-			<div style='display: flex; justify-content: center; margin: auto; text-align: center;'>
-				<img id='like-btn' src="bootstrap-icons-1.5.0/hand-thumbs-up.svg" class='banner-btn' title="Like this tool? Click to rate!"/>
-
-				<img src='./bootstrap-icons-1.5.0/question-circle.svg' alt="help" id="help-btn" class="banner-btn"/>
-				<button type="button" class="btn btn-primary" id='deleteAll'>Delete Selected Data</button>
-				<button type='reset' class="btn btn-secondary">Reset</button>
-				<div style="margin: auto">
+		<form id='delete-selected-banner'>
+			<div style='display: flex; justify-content: center; margin: auto; text-align: center; flex-wrap: wrap'>
+				<!-- <img 
+					id='like-btn' 
+					src="bootstrap-icons-1.5.0/hand-thumbs-up.svg" 
+					class='banner-btn'
+					data-bs-toggle="tooltip"  
+					data-bs-placement="top"
+					title="Like this tool? Click to rate!"
+				/> -->
+				<img 
+					src='./bootstrap-icons-1.5.0/question-circle.svg' 
+					alt="help" 
+					id="help-btn" 
+					class="banner-btn" 
+					data-bs-toggle="tooltip"  
+					data-bs-placement="top"
+					title="Currently Chrome only supports removing those browsing data with specific origins."
+				/>
+				<button 
+					type="button" 
+					class="btn btn-primary" 
+					id='deleteAll' 
+					data-bs-toggle="tooltip"  
+					data-bs-placement="top" 
+					title="Remove selected browsing data with selected bookmarks."
+				>
+					Delete Selected Data
+				</button>
+				<button 
+					type="button" 
+					class="btn btn-secondary" 
+					id='selectAll-all'
+					data-bs-toggle="tooltip" 
+					data-bs-placement="top" 
+					title="Select all checkboxes."
+				>
+					Select All
+				</button>
+				<button 
+					type='reset' 
+					class="btn btn-secondary"
+					data-bs-toggle="tooltip"  
+					data-bs-placement="top" 
+					title="Reset the checkboxes of browsing data."
+				>
+					Reset
+				</button>
+				<div style="margin: auto" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove the selected bookmark simultaneously.">
 					<input class="form-check-input" type="checkbox" id='remove-bookmark-all' name='remove-bookmark' style="vertical-align: middle;"/>
 					<label class="form-check-label" for='remove-bookmark-all' style="vertical-align: middle;">Remove Bookmark</label>
 				</div>
 			</div>
-			<div style='display: flex; flex-direction: row; justify-content: center;'>
-				<div class='form-check delete-all-opt'>
+			<div id='delete-all-options' style='display: flex; flex-direction: row; justify-content: center; flex-wrap: wrap;'>
+				<div class='form-check delete-all-opt' data-bs-toggle="tooltip" data-bs-placement="bottom" title="Clears the browser's cache (including appcaches and cache storage).">
 					<input class="form-check-input" type="checkbox" name='cache' id='cache-all'>
 					<label class="form-check-label" for='cache-all'>cache</label>
 				</div>
-				<div class='form-check delete-all-opt'>
+				<div class='form-check delete-all-opt' data-bs-toggle="tooltip" data-bs-placement="bottom" title="Clears the browser's cookies and server-bound certificates modified within a particular timeframe.">
 					<input class="form-check-input" type="checkbox" name='cookies' id='cookies-all'>
 					<label class="form-check-label" for='cookies-all'>cookies</label>
 				</div>
-				<div class='form-check delete-all-opt'>
+				<div class='form-check delete-all-opt' data-bs-toggle="tooltip" data-bs-placement="bottom" title="Clears websites' file system data.">
 					<input class="form-check-input" type="checkbox" name='fileSystems' id='fileSystems-all'>
 					<label class="form-check-label" for='fileSystems-all'>fileSystems</label>
 				</div>
-				<div class='form-check delete-all-opt'>
+				<div class='form-check delete-all-opt' data-bs-toggle="tooltip" data-bs-placement="bottom" title="Clears websites' IndexedDB (database) data.">
 					<input class="form-check-input" type="checkbox" name='indexedDB' id='indexedDB-all'>
 					<label class="form-check-label" for='indexedDB-all'>indexedDB</label>
 				</div>
-				<div class='form-check delete-all-opt'>
+				<div class='form-check delete-all-opt' data-bs-toggle="tooltip" data-bs-placement="bottom" title="Clears websites' local storage data.">
 					<input class="form-check-input" type="checkbox"  name='localStorage' id='localStorage-all'>
 					<label class="form-check-label" for='localStorage-all'>localStorage</label>
 				</div>
-				<div class='form-check delete-all-opt'>
+				<div class='form-check delete-all-opt' data-bs-toggle="tooltip" data-bs-placement="bottom" title="Clears plugins' data.">
 					<input class="form-check-input" type="checkbox" name='pluginData' id='pluginData-all'>
 					<label class="form-check-label" for='pluginData-all'>pluginData</label>
 				</div>
-				<div class='form-check delete-all-opt'>
+				<div class='form-check delete-all-opt' data-bs-toggle="tooltip" data-bs-placement="bottom" title="Clears websites' WebSQL data.">
 					<input class="form-check-input" type="checkbox" name='webSQL' id='webSQL-all'>
 					<label class="form-check-label" for='webSQL-all'>webSQL</label>
 				</div>
 			</div>
 		</form>
-		<div  class="container-sm" id='container'></div>
+		<div class="container-sm" id='container'></div>
 		<script src="page.js"></script>
 		<!-- JavaScript Bundle with Popper -->
 		<script src="./bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js"></script>
-		
+		<script src="./bootstrap-triggers.js"></script>
 	</body>
 </html>
