@@ -1,7 +1,8 @@
 :root {
 	--font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
-	--nelson-left: #f2709c;					/* color set */
+	/* colorset - prepared for theme selector */
+	/* --nelson-left: #f2709c;					
 	--nelson-right: #ff9472;
 	--siriusTamed-left: #EFEFBB;
 	--siriusTamed-right: #D4D3DD;
@@ -29,7 +30,7 @@
 	--mojito-left: #1D976C;
 	--mojito-right: #93F9B9;
 	--blueSkies-left: #56ccf2;
-	--blueSkies-right: #2f80ed;
+	--blueSkies-right: #2f80ed; */
 
 	--header: rgb(11, 94, 215);
 }
@@ -48,8 +49,7 @@ header {
 
 input[type=checkbox]{
 	padding: 8px;
-	margin-top: auto;
-	margin-bottom: auto;
+	margin: auto 5px auto 0;
 	cursor: pointer;
 }
 
@@ -70,16 +70,17 @@ td {
 }
 
 #container {
-	border-left: 0.5px solid rgb(172, 172, 172);
-	padding-left: 30px;
+	/* border-left: 0.5px solid rgb(172, 172, 172); */
+	padding: 10px 30px 10px 30px;
+	margin-bottom: 30px;
 	display: flex;
 	flex-direction: column;
 	justify-content: start;
+	background-color: rgba(255, 255, 255, 0.63);
+	border-radius: 16px;
+	box-shadow:  3px -1px 37px 11px rgb(79 79 79 / 10%);
 }
 
-#detail-table {
-	margin: 10px;
-}
 
 #delete-selected-banner {
 	display: flex;
@@ -136,8 +137,11 @@ td {
 
 .delete-all-opt {
 	margin: 5px;
-	margin-top: auto;
-	margin-bottom: auto;
+	display: flex;
+}
+
+.detail-title {
+	width: 100px;
 }
 
 .item {
@@ -228,17 +232,21 @@ td {
 	margin-left: 10px;
 }
 
-
 .children-container {
 	border-left: 1px solid rgb(160, 160, 160);
 }
 
 .delete-opt {
 	width: fit-content;
+	display: flex;
 }
 
 .alert {
 	position: fixed;
 	top: 0px;
 	
+}
+
+.modal-content {
+	box-shadow: 3px -1px 37px 11px rgb(79 79 79 / 40%);
 }

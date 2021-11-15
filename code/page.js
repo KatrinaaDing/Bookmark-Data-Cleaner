@@ -45,11 +45,9 @@ function wrapListItem(url, title, id) {
     let checkbox = document.createElement('input');
     let href = document.createElement('button');
 
-    item.id = id;
-    // ['list-group-item'].forEach(e => item.classList.add(e));
-    // item.classList.add('item');
 
     /* attribute */
+    item.id = id;
     href.setAttribute('href', url);
     checkbox.type = 'checkbox';
     checkbox.value = id;
@@ -206,7 +204,6 @@ function emptyDetail(){
     link.innerText = '';
     return Promise.resolve();
 }
-
 
 /**
  * Reverse the value of attribute to indicate if a folder is opened
@@ -398,9 +395,7 @@ function deleteAll(event){
 
     // remove selected item
     chrome.browsingData.remove(
-        {
-            "origins": selectedOrigins
-        }, 
+        { "origins": selectedOrigins }, 
         obj, 
         function(res) {
             // remove bookmark if it's ticked, remove bookmark and html node
@@ -427,13 +422,16 @@ function deleteAll(event){
             }
 
             // empty all checkbox
-            for(var el of selectedBanner.elements)
+            for(let el of selectedBanner.elements)
                 el.checked = false;
             
-            // empty all lists
-            selectedFolder = [];
-            selectedOrigins = [];
-            selectedBookmarks = [];
+            // empty all lists 
+            if (removeBookmark) {
+                selectedFolder = [];
+                selectedOrigins = [];
+                selectedBookmarks = [];
+
+            }
 
             waitingText.style.display = 'none';
             doneBtn.style.display = 'block';
