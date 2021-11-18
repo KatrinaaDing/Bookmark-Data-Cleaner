@@ -1,8 +1,4 @@
 
-chrome.cookies.onChanged.addListener(function (info) {
-    console.log("onChanged" + JSON.stringify(info));
-});
-
 function focusOrCreateTab(url) {
     chrome.windows.getAll({ "populate": true }, function (windows) {
         var existing_tab = null;
@@ -24,7 +20,7 @@ function focusOrCreateTab(url) {
     });
 }
 
-chrome.browserAction.onClicked.addListener(function (tab) {
+chrome.action.onClicked.addListener(function (tab) {
     var manager_url = chrome.extension.getURL("page.html");
     focusOrCreateTab(manager_url);
 });

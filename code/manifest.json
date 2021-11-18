@@ -1,14 +1,15 @@
 {
    "name" : "Bookmark Data Cleaner",
-   "version" : "2.0",
-   "manifest_version" : 2,
+   "version" : "2.1",
+   "manifest_version" : 3,
    "description" : "Removing browsing data when deleting a bookmark.",
    "permissions": [ "bookmarks", "history", "browsingData", "cookies"],
-   "browser_action" : {
+   "action" : {
       "default_icon": "icon.png",
       "default_popup": "popup.html"
    },
-   "content_scripts": [{
-      "js": ["page.js"]
-    }]
+   // "content_scripts": [{
+   //    "matches": ["https://*/*"],
+   //    "js": ["page.js"]
+   //  }]
 }
