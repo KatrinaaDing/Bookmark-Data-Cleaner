@@ -5,7 +5,7 @@ A Chrome extension that delete all cache, browser data before deleting a bookmar
 
 ## Google Chrome Extension Page
 
-https://chrome.google.com/webstore/detail/bookmark-data-cleaner/fgbajdlddblimpajlokkmkdngpnmmaja?hl=en-GB&authuser=0
+[Download the extension here](https://chrome.google.com/webstore/detail/bookmark-data-cleaner/fgbajdlddblimpajlokkmkdngpnmmaja?hl=en-GB&authuser=0)
 
 
 
