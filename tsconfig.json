@@ -13,11 +13,11 @@
     ],
     "strict": true,
     "noEmitOnError": true,
-    "rootDir": "code",
+    "rootDir": "extension",
     "outDir": "dist/extension",
     "skipLibCheck": true
   },
   "include": [
-    "code/**/*.ts"
+    "extension/**/*.ts"
   ]
 }

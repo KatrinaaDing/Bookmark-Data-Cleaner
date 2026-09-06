@@ -1,6 +1,6 @@
 import { rm, mkdir, cp, readdir } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
-const source = 'code';
+const source = 'extension';
 const target = 'dist/extension';
 await rm(target, { recursive: true, force: true });
 try {
