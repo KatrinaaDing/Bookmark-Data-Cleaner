@@ -6,6 +6,7 @@ export function el<K extends keyof HTMLElementTagNameMap>(
   const node = document.createElement(tag);
   if (className) node.className = className;
   if (text) node.textContent = text;
+  if (node instanceof HTMLDetailsElement) animateDisclosure(node);
   return node;
 }
 export function button(
@@ -55,3 +56,33 @@ export function disclosure(label: string, text: string): HTMLDetailsElement {
   details.append(el("summary", "", label), el("p", "fine", text));
   return details;
 }
+
+// Keep native summary keyboard behavior while animating both directions.
+function animateDisclosure(details: HTMLDetailsElement): void {
+  let motion: Animation | undefined;
+  let target = details.open;
+  details.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element) || !event.target.closest("summary")) return;
+    if (event.target.closest("details") !== details) return;
+    event.preventDefault();
+    const start = details.getBoundingClientRect().height;
+    if (!motion) target = details.open;
+    target = !target;
+    motion?.cancel();
+    motion = undefined;
+    details.open = target;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const end = details.getBoundingClientRect().height;
+    details.open = true;
+    details.style.overflow = "hidden";
+    motion = details.animate([{ height: `${start}px` }, { height: `${end}px` }], {
+      duration: 220, easing: "cubic-bezier(.2,.8,.2,1)",
+    });
+    motion.onfinish = () => {
+      details.open = target;
+      details.style.overflow = "";
+      motion = undefined;
+    };
+  });
+}
+
