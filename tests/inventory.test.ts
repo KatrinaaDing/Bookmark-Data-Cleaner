@@ -66,3 +66,21 @@ test("partitioned cookie belongs to its top-level site and keeps distinct partit
   ]);
   assert.equal(sites.find((s) => s.host === "parent.test")?.cookies.length, 1);
 });
+
+test("bookmarked subdomain includes cookies partitioned under its registrable top-level site", async () => {
+  const { sitesFromBookmarks } = await import("../extension/core/inventory.js");
+  const sites = sitesFromBookmarks(
+    [{ id: "1", title: "App", url: "https://app.example.test/", path: "" }],
+    [
+      {
+        ...cookie,
+        domain: "third.test",
+        partitionKey: {
+          topLevelSite: "https://example.test",
+          hasCrossSiteAncestor: true,
+        },
+      },
+    ],
+  );
+  assert.equal(sites[0].cookies.length, 1);
+});

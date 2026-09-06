@@ -85,7 +85,7 @@ export function sitesFromBookmarks(
       site.origins.push(origin, `https://${host}`, `http://${host}`);
       site.cookies = cookies.filter((c) =>
         c.partitionKey
-          ? cookieOwner(c) === host
+          ? !!cookieOwner(c) && domainMatches(host, cookieOwner(c)!)
           : domainMatches(host, c.domain),
       );
       for (const visit of history)
