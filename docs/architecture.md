@@ -31,3 +31,7 @@ Required: bookmarks, browsingData and storage. Cookie/site access and history ar
 Minimal job status/results live in `storage.session`; full plans and cookie values are not persisted. A restarted worker changes a saved running job to **unverified** and never resumes destructive work automatically. Browser-session storage does not survive a full browser restart. An API timeout/interruption cannot prove which internal browser work completed.
 
 All assets are packaged locally. Metadata inspection performs no target-page requests. Explicitly opening a known URL visits the site and can create browsing data. Bookmark sync follows the user's browser configuration.
+
+## Details and motion
+
+Both workspaces share a native details dialog. The list uses page scrolling; the open card locks the background and supplies one scroll surface. Request tokens ignore results after dismissal or replacement. Stable row keys restore focus even when saving rebuilds the list. Folder expansion uses CSS grid transitions and makes collapsed descendants inert. Reduced-motion preferences disable spatial transitions.

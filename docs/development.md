@@ -2,7 +2,7 @@
 
 ## Run locally
 
-Use Node 24+ and Chrome 130+ (current automated browser coverage: Chrome for Testing 152 on macOS arm64).
+Use Node 24+ and a current desktop Edge or Chrome. The Chrome API baseline is 130; automated coverage includes Edge 152 and Chrome for Testing 152 on macOS arm64.
 
 ```sh
 npm ci
@@ -11,8 +11,8 @@ npm test
 npm run build
 ```
 
-1. Use a separate Chrome profile with disposable bookmarks and data; keep sync off.
-2. Open `chrome://extensions`, enable **Developer mode**, select **Load unpacked**.
+1. Use a separate browser profile with disposable bookmarks and data; keep sync off.
+2. Open `edge://extensions` (Edge) or `chrome://extensions` (Chrome), enable **Developer mode**, select **Load unpacked**.
 3. Select **`dist/extension/`**, then click the extension toolbar icon.
 4. Allow cookie/site access in Site data when needed. Visit dates request history separately.
 
@@ -36,11 +36,13 @@ npm run build
 npm run test:browser
 ```
 
-Each script creates and removes a fresh temporary profile. Never point these scripts at your normal profile. The harness requires Chrome for Testing's unpacked-extension debugging support.
+Each script creates and removes a fresh temporary profile. Never point these scripts at your normal profile. The harness requires unpacked-extension debugging support. It also works with the tested Edge 152 executable; set `CHROME_BIN='/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'` on macOS.
 
 - `permissions-smoke`: unmodified manifest, optional access gate, single app tab.
 - `cleanup-smoke`: selected partition removed; another partition and unrelated cookies preserved; no cookie values in inventory state.
 - `storage-smoke`: known-origin Local Storage, IndexedDB, CacheStorage and workers removed; control origin preserved.
+- `folder-motion-smoke`: animated collapse, rapid toggles and reduced-motion expansion.
+- `ui-refinement-smoke`: sliding details card, one scroll surface, disclosures, dismissal/focus, focus after saving, stale requests and narrow windows. Captures go to `dist/refinement/`.
 - `ui-smoke`: dashboard/routes, folders, indeterminate and duplicate selection, metadata, validation, bookmark-only and site-cookie cleanup, timeline, narrow layouts and offline reload. Screenshots go to ignored `dist/screenshots/`.
 
 Cleanup/storage/UI tests copy the package into their temporary profile and grant optional permissions **in that test copy only** to seed fixtures without browser prompts. The permission test uses the real manifest. These are controlled integration tests, not complete browser compatibility coverage.

@@ -1,26 +1,28 @@
 # Main app design
 
-Mode: operate. Help users review exact website cleanup scope confidently. The public name and existing icon are retained until a naming decision.
+Mode: operate. Keep the interface clean, familiar and easy to scan. Preserve the three-page structure and the original product name/icon.
 
 ## Visual foundation
 
-The implemented interface uses a pale green-gray canvas (`#f5f6f2`), white surfaces, dark green text (`#203c35`) and green actions (`#24614d`). Destructive confirmation uses red; irreversible-action explanations use a warm amber surface. Tokens live in `extension/styles/tokens.css`.
+White surfaces, neutral text (`#212529`) and the original blue accent (`#0b5ed7`). Light blue marks active navigation; red is reserved for destructive confirmation. System fonts and locally authored SVG icons keep the extension lightweight and offline.
 
-System sans-serif typography keeps the package offline and small. Base text is 15px/1.55; headings use restrained weight and size contrast. Native inputs, selects, checkboxes and dialogs preserve familiar keyboard behavior. Borders, spacing and a single dialog shadow define regions.
+Use short page instructions. Refresh, clear selection and other familiar secondary actions may use icons with accessible names and hover titles. Keep important actions such as reviewing and confirming cleanup labeled in text. Put explanatory material behind disclosures, while keeping deletion consequences and exact scope visible at confirmation.
 
-## Composition
+## Layout and interaction
 
-- Header: existing icon/name, Overview/Bookmarks/Site data navigation, local-processing label.
-- Overview: two requested feature cards and a short privacy/coverage explanation.
-- Workspaces: controls and selected count above a primary list, with local metadata alongside.
-- Bookmarks: nested collapsible folders, indeterminate checkboxes, selected/total folder counts.
-- Sites: compact year/date timeline; undated sites remain in a separate group.
-- Cleanup: choice dialog → fixed review → explicit destructive confirmation → persistent category-level results.
+- Overview: two feature cards and a brief local-processing note.
+- Workspaces: a full-width list with compact controls. The page owns scrolling.
+- Bookmark folders: nested selection and animated expansion/collapse. Closed folders are inert and hidden from assistive technology.
+- Site timeline: compact date groups; missing history stays separate.
+- Details: a shared, right-sliding card, up to 620px wide. It shows visit/cookie/bookmark summaries first; URLs, storage scope and forms expand on demand.
+- The card uses a native modal dialog. The background is locked; the card has one scroll surface, with no scrollable panels inside it. Close by button, Escape or backdrop. Focus returns to the source row, including its replacement after a list refresh.
 
-Below 720px the workspaces stack. Inspecting a row focuses/reveals its details, with a Back to list button returning to that row. Desktop details remain sticky with their own bounded scroll area. Dashboard cards stack; dates move above site rows.
+## Motion
 
-## Interaction and accessibility
+Folder expansion: 220ms, with a rotating chevron. Drawer entrance: 240ms; exit: 160ms. Interrupted interactions must settle on the latest state. Reduced-motion preferences remove spatial transitions while retaining clear state changes.
 
-Visible focus outlines, labeled controls, a skip link, native dialog behavior and text-backed status spinners. Reduced-motion settings stop spinner animation. No automatic target-page or favicon requests. URLs are only visited through explicit links that explain the browsing-data consequence.
+## Validation
 
-UI behavior and responsive overflow are checked by `scripts/ui-smoke.mjs`; screenshots are generated under `dist/screenshots/`. An independent visual review found the offscreen-details issue; the final focus/return fix was verified locally after the reviewer hit its usage limit.
+`folder-motion-smoke.mjs` checks collapse timing, rapid toggles and reduced motion. `ui-refinement-smoke.mjs` checks the drawer, progressive disclosure, dismissal/focus, save-refresh-focus recovery, stale requests, route cleanup and narrow windows. Captures live in ignored `dist/refinement/`.
+
+This pass was reviewed independently and verified in disposable Edge 152 profiles. No real website previews or remote favicons are loaded.
