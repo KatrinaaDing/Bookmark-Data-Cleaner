@@ -1,28 +1,29 @@
-html {
-  scrollbar-gutter: stable;
+html { scrollbar-gutter: stable; }
+.workspace {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0fr);
+  column-gap: 0;
+  transition: grid-template-columns 240ms ease-out, column-gap 240ms ease-out;
 }
-html.drawer-open {
-  overflow: hidden;
+.workspace.has-details {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 24px;
 }
+.details-rail { min-width: 0; overflow: clip; }
 .details-drawer {
-  position: fixed;
-  inset: 16px 16px 16px auto;
-  width: min(620px, calc(100% - 32px));
-  height: auto;
-  max-width: none;
-  max-height: none;
+  min-width: 0;
   margin: 0;
-  padding: 0 28px 28px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  padding: 0 24px 24px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 14px;
   color: var(--ink);
   background: var(--surface);
-  box-shadow: 0 12px 48px rgb(26 40 61 / 18%);
+  box-shadow: 0 8px 36px rgb(32 45 67 / 7%);
 }
-.details-drawer::backdrop {
-  background: rgb(30 40 56 / 22%);
+@media (max-width: 760px) {
+  .workspace, .workspace.has-details { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .workspace { transition: none; }
 }
 .drawer-header {
   position: sticky;
@@ -67,15 +68,6 @@ html.drawer-open {
   padding: 0;
   flex-shrink: 0;
 }
-@media (max-width: 600px) {
-  .details-drawer {
-    inset: 8px 8px 8px auto;
-    width: calc(100% - 16px);
-    padding: 0 20px 24px;
-    border-radius: 12px;
-  }
-}
-
 .detail-disclosure {
   border-top: 1px solid var(--line);
   padding: 14px 0;

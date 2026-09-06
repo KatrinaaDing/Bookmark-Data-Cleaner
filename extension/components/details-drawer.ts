@@ -8,7 +8,7 @@ export interface DetailsDrawer {
 let shared: DetailsDrawer | undefined;
 export function detailsDrawer(): DetailsDrawer {
   if (shared) return shared;
-  const dialog = el("dialog", "details-drawer");
+  const dialog = el("aside", "details-drawer");
   dialog.setAttribute("aria-label", "Site details");
   const body = el("div", "drawer-content");
   let request = 0,
@@ -19,15 +19,18 @@ export function detailsDrawer(): DetailsDrawer {
   const header = el("div", "drawer-header");
   header.append(closeButton);
   dialog.append(header, body);
-  document.body.append(dialog);
+  const rail = el("div", "details-rail");
+  rail.append(dialog);
+  let opened = false;
   const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
   function finishClose() {
     const finished = motion;
     motion = undefined;
-    dialog.close();
+    opened = false;
+    rail.remove();
     finished?.cancel();
     closing = false;
-    document.documentElement.classList.remove("drawer-open");
+    document.querySelector(".workspace.has-details")?.classList.remove("has-details");
     const key = trigger?.dataset.focusKey;
     const replacement = key
       ? document.querySelector<HTMLElement>(
@@ -40,9 +43,10 @@ export function detailsDrawer(): DetailsDrawer {
     else document.getElementById("content")?.focus({ preventScroll: true });
   }
   function close() {
-    if (!dialog.open || closing) return;
+    if (!opened || closing) return;
     request++;
     closing = true;
+    rail.closest(".workspace")?.classList.remove("has-details");
     motion?.cancel();
     if (reduced()) {
       finishClose();
@@ -53,29 +57,20 @@ export function detailsDrawer(): DetailsDrawer {
         { transform: "translateX(0)", opacity: 1 },
         { transform: "translateX(calc(100% + 20px))", opacity: 0 },
       ],
-      { duration: 160, easing: "ease-in", fill: "forwards" },
+      { duration: 240, easing: "ease-in", fill: "forwards" },
     );
     motion.onfinish = finishClose;
   }
-  dialog.addEventListener("cancel", (event) => {
-    event.preventDefault();
-    close();
-  });
-  dialog.addEventListener("click", (event) => {
-    const rect = dialog.getBoundingClientRect();
-    if (
-      event.target === dialog &&
-      (event.clientX < rect.left ||
-        event.clientX > rect.right ||
-        event.clientY < rect.top ||
-        event.clientY > rect.bottom)
-    )
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && opened && !document.querySelector("dialog[open]")) {
+      event.preventDefault();
       close();
+    }
   });
   window.addEventListener("hashchange", () => {
     request++;
     motion?.cancel();
-    if (dialog.open) {
+    if (opened) {
       finishClose();
       document.getElementById("content")?.focus({ preventScroll: true });
     }
@@ -85,13 +80,18 @@ export function detailsDrawer(): DetailsDrawer {
       request++;
       trigger = source;
       closing = false;
+      rail.closest(".workspace")?.classList.add("has-details");
       motion?.cancel();
       body.replaceChildren(content);
       dialog.scrollTop = 0;
-      const alreadyOpen = dialog.open;
+      const alreadyOpen = opened;
       if (!alreadyOpen) {
-        document.documentElement.classList.add("drawer-open");
-        dialog.showModal();
+        const workspace = source.closest(".workspace");
+        if (!workspace) return request;
+        workspace.append(rail);
+        void rail.offsetWidth;
+        workspace.classList.add("has-details");
+        opened = true;
         closeButton.focus({ preventScroll: true });
       }
       if (!alreadyOpen && !reduced())
@@ -105,7 +105,7 @@ export function detailsDrawer(): DetailsDrawer {
       return request;
     },
     update(content, token) {
-      if (token === request && dialog.open && !closing)
+      if (token === request && opened && !closing)
         body.replaceChildren(content);
     },
     close,

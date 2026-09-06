@@ -40,7 +40,7 @@ try {
     "design.test",
   );
   await run(
-    `document.querySelector('.details-drawer[open] [aria-label="Close details"]').click()`,
+    `document.querySelector('.details-drawer [aria-label="Close details"]').click()`,
   );
   await pause(200);
   await run(
@@ -150,11 +150,11 @@ try {
     `Array.from(document.querySelectorAll('.site-row .row-title')).find(b=>b.textContent==='old.test').click()`,
   );
   assert.equal(
-    await run(`!!document.querySelector('.details-drawer[open]')`),
+    await run(`!!document.querySelector('.details-drawer')`),
     true,
   );
   await run(
-    `document.querySelector('.details-drawer[open] [aria-label="Close details"]').click()`,
+    `document.querySelector('.details-drawer [aria-label="Close details"]').click()`,
   );
   await pause(200);
   assert.equal(await run(`document.activeElement.textContent`), "old.test");

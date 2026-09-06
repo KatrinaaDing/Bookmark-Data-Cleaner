@@ -6,40 +6,52 @@ try {
   const page = await browser.attach(
     `chrome-extension://${browser.id}/app.html#bookmarks`,
   );
+  await browser.cmd("Emulation.setDeviceMetricsOverride", { width: 1360, height: 900, deviceScaleFactor: 1, mobile: false }, page.sessionId);
   const run = (expression) => browser.evaluate(page.sessionId, expression);
   await run(`(async()=>{
     const folder=await chrome.bookmarks.create({title:'Refinement fixtures'});
     for(let i=0;i<35;i++)await chrome.bookmarks.create({parentId:folder.id,title:'Reference '+i,url:'https://example.test/page/'+i});
   })()`);
   await browser.cmd("Page.reload", {}, page.sessionId);
-  await pause(250);
+  await pause(350);
   await run(
     `document.querySelectorAll('.folder-toggle').forEach(b=>{if(b.getAttribute('aria-expanded')==='false')b.click();})`,
   );
   await pause(300);
-  await run(`document.querySelector('.bookmark-row .row-title').click()`);
+  await run(`document.querySelector('.bookmark-row').click()`);
   await pause(300);
   assert.equal(
-    await run(`!!document.querySelector('dialog.details-drawer[open]')`),
+    await run(`!!document.querySelector('aside.details-drawer')`),
     true,
   );
   assert.equal(
-    await run(`getComputedStyle(document.documentElement).overflowY`),
-    "hidden",
+    await run(`getComputedStyle(document.documentElement).overflowY === "hidden"`),
+    false,
   );
   assert.equal(
     await run(
-      `document.querySelector('.workspace').getBoundingClientRect().width === document.querySelector('.workspace-list').getBoundingClientRect().width`,
+      `document.querySelector('.workspace-list').getBoundingClientRect().right <= document.querySelector('.details-drawer').getBoundingClientRect().left`,
     ),
     true,
   );
   assert.equal(
     await run(
-      `document.querySelector('dialog.details-drawer .save-bookmark').checkVisibility()`,
+      `document.querySelector('aside.details-drawer .save-bookmark').checkVisibility()`,
     ),
     false,
     "Save form is disclosed on demand",
   );
+  await run(`document.querySelectorAll('.bookmark-row')[1].click()`);
+  await pause(350);
+  assert.equal(await run(`document.querySelector('.details-drawer').textContent.includes('Reference 1')`), true, "Main list remains interactive");
+  await run(`document.querySelector('.bookmark-row').click()`);
+  await pause(350);
+  await run(`document.querySelector('.details-drawer summary').click()`);
+  assert.equal(await run(`document.querySelector('.details-drawer details').getAnimations().length > 0`), true, "Disclosure expansion animates");
+  await pause(350);
+  await run(`document.querySelector('.details-drawer summary').click()`);
+  assert.equal(await run(`document.querySelector('.details-drawer details').getAnimations().length > 0`), true, "Disclosure collapse animates");
+  await pause(350);
   await browser.cmd(
     "Input.dispatchKeyEvent",
     {
@@ -50,22 +62,22 @@ try {
     },
     page.sessionId,
   );
-  await pause(250);
+  await pause(350);
   assert.equal(
-    await run(`!!document.querySelector('dialog.details-drawer[open]')`),
+    await run(`!!document.querySelector('aside.details-drawer')`),
     false,
   );
   assert.equal(await run(`document.activeElement.textContent`), "Reference 0");
   await run(`document.querySelector('.bookmark-row .row-title').click()`);
   await pause(150);
   await run(
-    `const form=document.querySelector('.details-drawer[open] .save-bookmark');form.closest('details').open=true;form.requestSubmit();`,
+    `const form=document.querySelector('.details-drawer .save-bookmark');form.closest('details').open=true;form.requestSubmit();`,
   );
   await pause(350);
   await run(
-    `document.querySelector('.details-drawer[open] [aria-label="Close details"]').click()`,
+    `document.querySelector('.details-drawer [aria-label="Close details"]').click()`,
   );
-  await pause(250);
+  await pause(350);
   assert.equal(
     await run(`document.activeElement.matches('.bookmark-row .row-title')`),
     true,
@@ -74,10 +86,10 @@ try {
   assert.equal(await run(`document.activeElement.textContent`), "Reference 0");
   // A delayed details request must not reopen the card after the user closes it.
   await run(
-    `(async()=>{const {detailsDrawer}=await import('./components/details-drawer.js');window.testDrawer=detailsDrawer();const token=window.testDrawer.open(document.createElement('section'),document.querySelector('.row-title'));window.testDrawer.close();await new Promise(r=>setTimeout(r,250));window.testDrawer.update(document.createElement('section'),token);})()`,
+    `(async()=>{const {detailsDrawer}=await import('./components/details-drawer.js');window.testDrawer=detailsDrawer();const token=window.testDrawer.open(document.createElement('section'),document.querySelector('.row-title'));window.testDrawer.close();await new Promise(r=>setTimeout(r,350));window.testDrawer.update(document.createElement('section'),token);})()`,
   );
   assert.equal(
-    await run(`!!document.querySelector('dialog.details-drawer[open]')`),
+    await run(`!!document.querySelector('aside.details-drawer')`),
     false,
   );
   await browser.cmd(
@@ -89,12 +101,12 @@ try {
   await pause(100);
   assert.equal(
     await run(
-      `document.querySelector('dialog.details-drawer').getAnimations().length`,
+      `document.querySelector('aside.details-drawer').getAnimations().length`,
     ),
     0,
   );
   await run(
-    `document.querySelector('dialog.details-drawer[open] [aria-label="Close details"]').click()`,
+    `document.querySelector('aside.details-drawer [aria-label="Close details"]').click()`,
   );
   await pause(50);
   await browser.cmd(
@@ -128,9 +140,9 @@ try {
   await capture("details", 1360, 900);
   await capture("details-narrow", 390, 844);
   await run(`location.hash='home'`);
-  await pause(250);
+  await pause(350);
   assert.equal(
-    await run(`!!document.querySelector('dialog.details-drawer[open]')`),
+    await run(`!!document.querySelector('aside.details-drawer')`),
     false,
   );
   await capture("home", 1360, 900);
