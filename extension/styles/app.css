@@ -668,3 +668,13 @@ button.danger:hover:not(:disabled) {
 .toolbar {
   gap: 0.55rem;
 }
+
+/* Give each interactive surface breathing room and a consistent row target. */
+.bookmark-row, .folder-row, .site-row { cursor: pointer; }
+.bookmark-row:hover, .folder-row:hover, .site-row:hover { background: var(--tint); }
+.row-title, .folder-toggle { padding: .4rem .5rem; border-radius: 5px; }
+.check { padding: .35rem; border-radius: 5px; }
+.check:hover:not(:has(input:disabled)), summary:hover { background: var(--tint); }
+summary { padding: .65rem .75rem; border-radius: 6px; }
+.url { padding: .4rem .5rem; border-radius: 5px; }
+.url:hover { background: var(--tint); }

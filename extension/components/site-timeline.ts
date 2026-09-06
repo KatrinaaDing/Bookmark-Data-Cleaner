@@ -1,6 +1,6 @@
 import type { SiteRecord } from "../core/types.js";
 import type { Selection } from "../core/state.js";
-import { button, checkbox, dateText, el } from "./dom.js";
+import { clickableRow, button, checkbox, dateText, el } from "./dom.js";
 export function siteTimeline(
   sites: SiteRecord[],
   selection: Selection,
@@ -41,6 +41,7 @@ export function siteTimeline(
       ),
     );
     row.append(label, main);
+    clickableRow(row, title);
     list.append(row);
   }
   return list;

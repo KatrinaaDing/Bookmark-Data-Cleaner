@@ -1,5 +1,5 @@
 import { Selection } from "../core/state.js";
-import { button, checkbox, el } from "./dom.js";
+import { clickableRow, button, checkbox, el } from "./dom.js";
 import type { FolderRef } from "../core/types.js";
 export interface TreeView {
   element: HTMLElement;
@@ -78,6 +78,7 @@ export function bookmarkTree(
       );
       title.dataset.focusKey = `bookmark:${node.id}`;
       row.append(title);
+      clickableRow(row, title);
       const host = el("span", "row-host");
       try {
         host.textContent = new URL(node.url).hostname;
@@ -110,6 +111,7 @@ export function bookmarkTree(
       toggle.setAttribute("aria-expanded", String(expanded.has(node.id)));
       toggle.setAttribute("aria-controls", children.id);
       row.append(toggle, counter!);
+      clickableRow(row, toggle);
       item.append(row, children);
       for (const child of node.children ?? [])
         render(child, content, depth + 1, protectedNode);

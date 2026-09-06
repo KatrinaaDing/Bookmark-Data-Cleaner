@@ -86,3 +86,10 @@ function animateDisclosure(details: HTMLDetailsElement): void {
   });
 }
 
+/** Forward empty row space to its native button, preserving independent controls. */
+export function clickableRow(row: HTMLElement, action: HTMLButtonElement): void {
+  row.addEventListener("click", (event) => {
+    if (event.target instanceof Element &&
+        !event.target.closest("button, input, label, a, select, textarea")) action.click();
+  });
+}
