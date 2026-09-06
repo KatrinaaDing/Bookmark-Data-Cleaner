@@ -1,60 +1,43 @@
-# Bookmark-Cleaner
-A Chrome extension that delete all cache, browser data before deleting a bookmark.
+# Bookmark Data Cleaner
 
+**Choose the sites. Clear their data.** A local Chrome extension for selective cleanup, starting from bookmarks or detected site cookies.
 
+- **Overview:** choose bookmark cleanup or site data cleanup.
+- **Bookmarks:** collapsible folders, bulk selection and local metadata.
+- **Site data:** detected-cookie inventory, last-visit timeline, search and bookmark filter.
+- **Cleanup:** review cookies, saved site data, caches, workers and optional bookmark removal before confirming.
 
-## Development and rebranding
+Site discovery uses cookies, including partitioned cookies; storage-only sites may be missing. History enriches the list when permitted. It is not the inventory source. No remote previews, favicons, analytics or runtime dependencies.
 
-- [Stage 1 rebranding plan](docs/rebranding-plan.md)
-- [Run and test the extension](docs/development.md)
+## Run
 
-The overview below describes the legacy release. The plan documents the proposed replacement and updated cleanup categories.
+Node 24+; Chrome 130+ API baseline.
 
-## Google Chrome Extension Page
+```sh
+npm ci
+npm run build
+```
 
-[Download the extension here](https://chrome.google.com/webstore/detail/bookmark-data-cleaner/fgbajdlddblimpajlokkmkdngpnmmaja?hl=en-GB&authuser=0)
+In `chrome://extensions`, enable Developer mode and load **`dist/extension/`**. Click the toolbar icon to open the app. After source changes, rebuild and reload the extension.
 
+## Develop
 
+```sh
+npm run typecheck
+npm test
+npm run build
+```
 
-## Overview
+Source lives in `extension/`: TypeScript, native HTML and custom CSS. Development dependencies are TypeScript and Chrome/Node typings. All shipped assets are local.
 
-Bookmark Data Cleaner allows you to efficiently clear related browsing data saved from your bookmarks/favourites (you can also remove the bookmarks/favourites at the same time)
+- [Running and browser tests](docs/development.md)
+- [Rebranding plan and implementation status](docs/rebranding-plan.md)
+- [Architecture and limits](docs/architecture.md)
+- [Stage 1 release notes](docs/release-notes.md)
 
-
- ☆☆☆ Supported browsing data to clean ☆☆☆
-
-* Cache: Clears the browser's cache (including app caches and cache storage).
-
-* Cookies: Clears the browser's cookies and server-bound certificates modified within a particular timeframe.
-
-* File System Data: Clears websites' file system data..
-
-* IndexedDB Data: Clears websites' IndexedDB (database) data.
-
-* Local Storage:  Clears websites' local storage data.
-
-* Plugin Data: Clears plugins' data.
-
-* Web SQL Data: Clears websites' WebSQL data.
-
-------------------------------------------------------------------
-
-Bookmark Data Cleaner可让您高效地清除书签/收藏夹中保存的相关浏览数据（您也可以同时删除相应的书签/收藏夹）。
-
- ☆☆☆ 支持清理的浏览数据☆☆☆
-
-* 缓存：清除浏览器的缓存（包括应用缓存和缓存存储）。
-* Cookies：清除浏览器的 cookie 和在特定时间范围内修改的服务器绑定证书。
-* 文件系统数据：清除网站的文件系统数据..
-* IndexedDB 数据：清除网站的IndexedDB（数据库）数据。
-* 本地存储：清除网站的本地存储数据。
-* 插件数据：清除插件数据。
-* Web SQL 数据：清除网站的 WebSQL 数据。
-
-
+The public name and icon are retained for this development branch. The toolbar quick-clean popup is Stage 2. This branch has not been published to the Chrome Web Store.
 
 ## Screenshots
 
-![preview-home](images/preview-home.png)
-
-![preview-home](images/preview-detail.png)
+![Overview](images/overview.png)
+![Site-data workspace](images/site-data.png)

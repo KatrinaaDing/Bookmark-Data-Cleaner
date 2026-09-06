@@ -1,6 +1,6 @@
 # Rebranding — Stage 1 Plan
 
-Status: proposed plan; implementation has not started. Updated: 2026-09-06.
+Status: implemented on `codex/rebrand-stage-1`; release checks and public naming remain. Updated: 2026-09-06.
 
 ## Product direction
 
@@ -8,7 +8,7 @@ Status: proposed plan; implementation has not started. Updated: 2026-09-06.
 
 Use TypeScript compiled to native JavaScript modules, custom CSS, native HTML controls and locally packaged assets. Use `tsc` and small Node scripts; no WXT, UI framework or bundler. TypeScript and Chrome/Node type definitions are development-only dependencies. Keep the current product name during restructuring; select the public-facing name with the visual design, before release.
 
-**Planning assumption requiring scope confirmation:** discover sites through cookies, including partitioned cookies, then enrich with history/bookmarks. This is verified but does not discover every storage-only site. Do not describe the inventory as complete. Cleanup can still target other supported data for known origins.
+**Implemented discovery scope:** discover sites through cookies, including partitioned cookies, then enrich with history/bookmarks. This is verified but does not discover every storage-only site. Do not describe the inventory as complete. Cleanup can still target other supported data for known origins.
 
 ## Pages, features and journeys
 
@@ -56,7 +56,7 @@ Remove obsolete AppCache, WebSQL and plugin-data options. Exclude history, passw
 - Distinguish detected data from **remove if present** capabilities. Successful requests are not proof that every possible trace is gone.
 - Loading/refresh: spinner + text + `aria-busy`; retain the previous list during refresh and mark it stale if refresh fails.
 - Deleting: spinner + completed-site count, prevent duplicate submission, keep scope fixed. Do not invent percentage progress for opaque API calls.
-- Results: persistent summary of completed, failed and unverified operations; retry failed work only after review. State that site-data deletion is irreversible.
+- Results: persistent summary of completed, failed and unverified operations; retry failed sites/categories only after review (manual selection; no automatic replay). State that site-data deletion is irreversible.
 - Separate first-use, permission-denied, empty inventory, no search matches and load-failed states. Preserve selections on errors; expose readable messages rather than raw exceptions.
 - Use labeled controls, keyboard navigation, visible focus, native dialog focus behavior and an accessible status region.
 
@@ -104,46 +104,47 @@ Chrome loads `dist/extension/`, never the TypeScript source directory. Manifest/
 
 Components render records and emit actions; they do not call deletion APIs. Browser modules expose meaningful operations rather than wrapping every Chrome method. Core functions accept plain records and injected browser operations so they can be tested without a DOM.
 
-Key contracts: `scanSites()` returns `{sites, coverage, errors}`; `buildCleanupPlan(selection, options)` returns a fixed plan; `executeCleanup(plan, onProgress)` returns per-target outcomes. Keep cookie values out of persisted application state.
+Key contracts: `scanSites()` returns `{sites, coverage, warnings}`; `buildCleanupPlan(selection, options)` returns a fixed plan; `executeCleanup(plan, onProgress)` returns per-target outcomes. Keep cookie values out of persisted application state.
 
 ## Implementation order
 
 ### 1. TypeScript migration
 
-- [ ] Add locked development dependencies: `typescript`, `@types/chrome`, `@types/node`. Keep runtime dependencies empty.
-- [ ] Convert first-party `code/*.js` to `.ts` in place before moving folders. Type DOM references, Chrome callbacks and operation state; use explicit guards rather than blanket `any` or `@ts-ignore`. Keep third-party Bootstrap JavaScript unchanged, with narrow local declarations where needed.
-- [ ] Enable `strict`, `noEmitOnError`, ES2022 output and NodeNext module resolution with package `type: module`. Use explicit `.js` relative imports and module script tags; preserve dependency execution order.
-- [ ] Add `npm run typecheck` and `npm run build`. Build clears stale output, compiles into `dist/extension/`, then copies manifest, HTML, CSS and required local assets. Exclude TypeScript sources, tests and development dependencies from the package.
-- [ ] Load the compiled package and smoke-test launch, folders and selection. Keep current behavior while identifying existing defects for the architecture step.
+- [x] Add locked development dependencies: `typescript`, `@types/chrome`, `@types/node`. Keep runtime dependencies empty.
+- [x] Convert first-party `code/*.js` to `.ts` in place before moving folders. Type DOM references, Chrome callbacks and operation state; use explicit guards rather than blanket `any` or `@ts-ignore`. Keep third-party Bootstrap JavaScript unchanged, with narrow local declarations where needed.
+- [x] Enable `strict`, `noEmitOnError`, ES2022 output and NodeNext module resolution with package `type: module`. Use explicit `.js` relative imports and module script tags; preserve dependency execution order.
+- [x] Add `npm run typecheck` and `npm run build`. Build clears stale output, compiles into `dist/extension/`, then copies manifest, HTML, CSS and required local assets. Exclude TypeScript sources, tests and development dependencies from the package.
+- [x] Load the compiled package and smoke-test launch, folders and selection. Keep current behavior while identifying existing defects for the architecture step.
 
 **Exit:** the existing app builds from typed sources and runs from generated JavaScript; no page redesign yet.
 
 ### 2. File structure
 
-- [ ] Move typed `code/` sources to `extension/`; preserve current entry points and Bootstrap assets temporarily.
-- [ ] Update compiler inputs and asset-copy paths. The loaded package remains `dist/extension/`.
-- [ ] Verify typecheck/build, manifest/resources, launch and folder rendering in an isolated profile.
+- [x] Move typed `code/` sources to `extension/`; preserve current entry points and Bootstrap assets temporarily.
+- [x] Update compiler inputs and asset-copy paths. The loaded package remains `dist/extension/`.
+- [x] Verify typecheck/build, manifest/resources, launch and folder rendering in an isolated profile.
 
 **Exit:** the typed app has the new source root with the same working build/load workflow.
 
 ### 3. Architecture
 
-- [ ] Extract browser adapters, site identity, selection state and cleanup planning from `page.ts`; keep the legacy UI connected until replacement.
-- [ ] Add typed regression tests compiled into `.test-build/` and executed by Node's built-in runner. Cover duplicate URLs, invalid/empty targets, scheme handling, failure sequencing and folder ordering before fixing those paths.
-- [ ] Implement capability-aware cookie discovery, partition identity and optional history/bookmark enrichment within the confirmed discovery scope.
-- [ ] Coordinate jobs outside view components. Store minimal session job metadata; reconcile interrupted jobs as unverified, never automatically repeat destructive operations after worker restart.
-- [ ] Test with real synthetic browser data, including partition isolation and unrelated-site preservation.
+- [x] Extract browser adapters, site identity, selection state and cleanup planning from `page.ts`; keep the legacy UI connected until replacement.
+- [x] Add typed regression tests compiled into `.test-build/` and executed by Node's built-in runner. Cover duplicate URLs, invalid/empty targets, scheme handling, failure sequencing and folder ordering before fixing those paths.
+- [x] Implement capability-aware cookie discovery, partition identity and optional history/bookmark enrichment within the confirmed discovery scope.
+- [x] Coordinate jobs outside view components. Store minimal session job metadata; reconcile interrupted jobs as unverified, never automatically repeat destructive operations after worker restart.
+- [x] Test with real synthetic browser data, including partition isolation and unrelated-site preservation.
 
 **Exit:** shared, tested operations; honest coverage/results; no new CSS framework.
 
 ### 4. UI foundation and pages
 
-- [ ] Replace Bootstrap with CSS tokens, native controls and selected local SVGs; remove unused vendor assets while preserving applicable licenses.
-- [ ] Build dashboard → bookmark workspace → timeline workspace; connect shared metadata, cleanup and feedback components.
-- [ ] Verify keyboard/focus, narrow-window layouts, offline local features and every loading/error/success state.
-- [ ] Finalize the name, icon and privacy copy against verified behavior; update screenshots, manifest, README and release notes.
+- [x] Replace Bootstrap with CSS tokens, native controls and selected local SVGs; remove unused vendor assets while preserving applicable licenses.
+- [x] Build dashboard → bookmark workspace → timeline workspace; connect shared metadata, cleanup and feedback components.
+- [x] Verify core journeys, dialog validation, narrow-window details/focus return, offline local features and responsive overflow in controlled browser tests.
+- [ ] Complete the manual release matrix in `docs/development.md`, including actual permission prompts, minimum Chrome and worker interruption with DevTools closed.
+- [ ] Finalize the public name and icon before release. Privacy copy, screenshots, manifest, README and release notes are updated; existing name/icon are retained for review.
 
-**Exit:** all three journeys work with accurate scope and feedback. Follow [Running and testing](development.md).
+**Exit:** all three journeys are implemented and pass controlled Chrome 152 checks. Minimum-version, real permission-prompt, policy and full browser-shutdown checks remain before release. Follow [Running and testing](development.md).
 
 ## Deferred
 
