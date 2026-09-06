@@ -3,24 +3,14 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
-    "types": [
-      "chrome"
-    ],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["chrome"],
     "strict": true,
     "noEmitOnError": true,
     "rootDir": "extension",
     "outDir": "dist/extension",
     "skipLibCheck": true
   },
-  "include": [
-    "extension/**/*.ts"
-  ],
-  "exclude": [
-    "extension/background.ts"
-  ]
+  "include": ["extension/**/*.ts"],
+  "exclude": ["extension/background.ts"]
 }

@@ -1,5 +1,13 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "rootDir": ".", "outDir": ".test-build", "types": ["chrome", "node"] },
-  "include": ["tests/**/*.ts", "extension/core/**/*.ts", "extension/helpers/**/*.ts"]
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": ".test-build",
+    "types": ["chrome", "node"]
+  },
+  "include": [
+    "tests/**/*.ts",
+    "extension/core/**/*.ts",
+    "extension/helpers/**/*.ts"
+  ]
 }
