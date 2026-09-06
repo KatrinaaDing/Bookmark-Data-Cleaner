@@ -16,7 +16,7 @@ const jobs = new JobCoordinator(
   { removeData, removeBookmark, removeFolder: removeEmptyFolder },
 );
 async function openManager(): Promise<void> {
-  const url = chrome.runtime.getURL("page.html");
+  const url = chrome.runtime.getURL("app.html");
   const contexts = await chrome.runtime.getContexts({
     contextTypes: [chrome.runtime.ContextType.TAB],
   });

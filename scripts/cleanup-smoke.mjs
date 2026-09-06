@@ -3,7 +3,7 @@ import { launch } from "./browser-harness.mjs";
 const browser = await launch({ grantTestPermissions: true });
 try {
   const page = await browser.attach(
-    `chrome-extension://${browser.id}/page.html`,
+    `chrome-extension://${browser.id}/app.html`,
   );
   const result = await browser.evaluate(
     page.sessionId,
