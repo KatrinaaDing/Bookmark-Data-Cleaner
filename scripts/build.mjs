@@ -1,4 +1,4 @@
-import { rm, mkdir, cp, readdir } from "node:fs/promises";
+import { rm, mkdir, cp } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 const source = "extension";
 const target = "dist/extension";
@@ -15,7 +15,8 @@ try {
   await mkdir(target, { recursive: true });
   await cp(source, target, {
     recursive: true,
-    filter: (path) => !/\.ts$/.test(path),
+    filter: (path) =>
+      !/\.[^.]+$/.test(path) || /\.(html|json|css|png|svg|woff2)$/.test(path),
   });
 } catch (error) {
   await rm(target, { recursive: true, force: true });
