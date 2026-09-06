@@ -87,23 +87,31 @@ export function bookmarkTree(
     } else {
       const children = el("div", "folder-children");
       children.id = `folder-${node.id}`;
-      children.hidden = !expanded.has(node.id);
+      const content = el("div", "folder-content");
+      children.append(content);
+      const setExpanded = (open: boolean) => {
+        children.classList.toggle("is-expanded", open);
+        children.inert = !open;
+        children.setAttribute("aria-hidden", String(!open));
+      };
+      setExpanded(expanded.has(node.id));
       const toggle = button(
         node.title || "Untitled folder",
         () => {
-          children.hidden = !children.hidden;
-          toggle.setAttribute("aria-expanded", String(!children.hidden));
-          if (children.hidden) expanded.delete(node.id);
-          else expanded.add(node.id);
+          const open = !expanded.has(node.id);
+          setExpanded(open);
+          toggle.setAttribute("aria-expanded", String(open));
+          if (open) expanded.add(node.id);
+          else expanded.delete(node.id);
         },
         "folder-toggle",
       );
-      toggle.setAttribute("aria-expanded", String(!children.hidden));
+      toggle.setAttribute("aria-expanded", String(expanded.has(node.id)));
       toggle.setAttribute("aria-controls", children.id);
       row.append(toggle, counter!);
       item.append(row, children);
       for (const child of node.children ?? [])
-        render(child, children, depth + 1, protectedNode);
+        render(child, content, depth + 1, protectedNode);
     }
     parent.append(item);
   }

@@ -617,3 +617,16 @@ button.danger:hover:not(:disabled) {
 
 .page-heading h1 { color: var(--accent); font-weight: 500; }
 .workspace-list { box-shadow: 0 8px 36px rgb(32 45 67 / 7%); border-radius: 14px; }
+
+.folder-children {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows 220ms cubic-bezier(.2,.8,.2,1), visibility 220ms;
+}
+.folder-children.is-expanded { grid-template-rows: 1fr; visibility: visible; }
+.folder-content { min-height: 0; overflow: hidden; }
+.folder-toggle::before { transition: transform 180ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .folder-children, .folder-toggle::before { transition: none; }
+}
