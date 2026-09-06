@@ -678,3 +678,29 @@ button.danger:hover:not(:disabled) {
 summary { padding: .65rem .75rem; border-radius: 6px; }
 .url { padding: .4rem .5rem; border-radius: 5px; }
 .url:hover { background: var(--tint); }
+input[type="checkbox"] {
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  border: 1px solid #9ba8b8;
+  border-radius: 4px;
+  background: var(--surface);
+}
+input[type="checkbox"]:checked, input[type="checkbox"]:indeterminate {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+input[type="checkbox"]:checked::after {
+  content: "";
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: translateY(-1px) rotate(-45deg);
+}
+input[type="checkbox"]:indeterminate::after { content: ""; width: 8px; height: 2px; background: white; }
+input[type="checkbox"]:disabled { opacity: .45; }
+@media (forced-colors: active) {
+  input[type="checkbox"] { appearance: auto; }
+  input[type="checkbox"]::after { display: none; }
+}
