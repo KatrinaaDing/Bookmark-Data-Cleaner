@@ -42,7 +42,7 @@ try {
   await run(
     `document.querySelector('.details-drawer [aria-label="Close details"]').click()`,
   );
-  await pause(200);
+  await pause(350);
   await run(
     `document.querySelector('input[aria-label="Select Design notes"]').click()`,
   );
@@ -156,7 +156,7 @@ try {
   await run(
     `document.querySelector('.details-drawer [aria-label="Close details"]').click()`,
   );
-  await pause(200);
+  await pause(350);
   assert.equal(await run(`document.activeElement.textContent`), "old.test");
   await run(`location.hash='bookmarks'`);
   await capture("bookmarks-desktop", 1360, 960);
