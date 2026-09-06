@@ -31,6 +31,7 @@ export function siteTimeline(
     input.setAttribute("aria-label", `Select ${site.host}`);
     const main = el("div", "site-label");
     const title = button(site.host, () => inspect(site, title), "row-title");
+    title.dataset.focusKey = `site:${site.id}`;
     main.append(
       title,
       el(

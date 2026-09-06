@@ -28,8 +28,16 @@ export function detailsDrawer(): DetailsDrawer {
     finished?.cancel();
     closing = false;
     document.documentElement.classList.remove("drawer-open");
-    if (trigger?.isConnected && !trigger.closest("[hidden]"))
-      trigger.focus({ preventScroll: true });
+    const key = trigger?.dataset.focusKey;
+    const replacement = key
+      ? document.querySelector<HTMLElement>(
+          `[data-focus-key="${CSS.escape(key)}"]`,
+        )
+      : undefined;
+    const target = trigger?.isConnected ? trigger : replacement;
+    if (target && !target.closest("[hidden]"))
+      target.focus({ preventScroll: true });
+    else document.getElementById("content")?.focus({ preventScroll: true });
   }
   function close() {
     if (!dialog.open || closing) return;

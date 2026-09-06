@@ -76,6 +76,7 @@ export function bookmarkTree(
         () => inspect(node.id, title),
         "row-title",
       );
+      title.dataset.focusKey = `bookmark:${node.id}`;
       row.append(title);
       const host = el("span", "row-host");
       try {

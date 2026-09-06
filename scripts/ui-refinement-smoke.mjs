@@ -56,6 +56,22 @@ try {
     false,
   );
   assert.equal(await run(`document.activeElement.textContent`), "Reference 0");
+  await run(`document.querySelector('.bookmark-row .row-title').click()`);
+  await pause(150);
+  await run(
+    `const form=document.querySelector('.details-drawer[open] .save-bookmark');form.closest('details').open=true;form.requestSubmit();`,
+  );
+  await pause(350);
+  await run(
+    `document.querySelector('.details-drawer[open] [aria-label="Close details"]').click()`,
+  );
+  await pause(250);
+  assert.equal(
+    await run(`document.activeElement.matches('.bookmark-row .row-title')`),
+    true,
+    "Closing after save returns focus to the refreshed source row",
+  );
+  assert.equal(await run(`document.activeElement.textContent`), "Reference 0");
   // A delayed details request must not reopen the card after the user closes it.
   await run(
     `(async()=>{const {detailsDrawer}=await import('./components/details-drawer.js');window.testDrawer=detailsDrawer();const token=window.testDrawer.open(document.createElement('section'),document.querySelector('.row-title'));window.testDrawer.close();await new Promise(r=>setTimeout(r,250));window.testDrawer.update(document.createElement('section'),token);})()`,

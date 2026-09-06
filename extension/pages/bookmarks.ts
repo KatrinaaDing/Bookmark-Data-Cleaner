@@ -81,9 +81,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): {
     count.hidden = selection.ids.size === 0;
     clean.disabled = busy || !selection.ids.size;
   }
-  let inspection = 0;
   async function inspect(id: string, trigger: HTMLElement) {
-    const version = ++inspection;
     const bookmark = records.find((b) => b.id === id);
     if (!bookmark) return;
     const request = drawer.open(
@@ -95,7 +93,6 @@ export function bookmarksPage(onStarted: (job: Job) => void): {
         readHistory(),
         hasSiteAccess().then((allowed) => (allowed ? readCookies() : [])),
       ]);
-      if (version !== inspection) return;
       drawer.update(
         siteDetails(
           sitesFromBookmarks([bookmark], cookies, visits.history)[0],
@@ -106,11 +103,10 @@ export function bookmarksPage(onStarted: (job: Job) => void): {
         request,
       );
     } catch {
-      if (version === inspection)
-        drawer.update(
-          status("Could not load details. Close and select the item to retry."),
-          request,
-        );
+      drawer.update(
+        status("Could not load details. Close and select the item to retry."),
+        request,
+      );
     }
   }
   async function load(force = false) {
@@ -157,7 +153,6 @@ export function bookmarksPage(onStarted: (job: Job) => void): {
           status("No bookmarks yet. Saved bookmarks will appear here."),
         );
       loaded = true;
-      inspection++;
 
       feedback.replaceChildren();
     } catch {
