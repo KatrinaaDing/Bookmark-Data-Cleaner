@@ -57,11 +57,11 @@ input[type="checkbox"] {
   outline-offset: 3px;
 }
 ::selection {
-  background: #c8e3cd;
+  background: #dbe9ff;
   color: var(--ink);
 }
 * {
-  scrollbar-color: #9aac9e var(--canvas);
+  scrollbar-color: #a9b3c1 var(--canvas);
   scrollbar-width: thin;
 }
 h1,
@@ -106,7 +106,7 @@ p {
   gap: 0.65rem;
   text-decoration: none;
   font-weight: 650;
-  color: var(--ink);
+  color: var(--accent);
 }
 nav {
   display: flex;
@@ -614,3 +614,6 @@ button.danger:hover:not(:disabled) {
 .details > button:first-child {
   margin-bottom: 1rem;
 }
+
+.page-heading h1 { color: var(--accent); font-weight: 500; }
+.workspace-list { box-shadow: 0 8px 36px rgb(32 45 67 / 7%); border-radius: 14px; }

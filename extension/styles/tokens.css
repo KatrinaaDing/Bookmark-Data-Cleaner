@@ -1,16 +1,16 @@
 :root {
   color-scheme: light;
-  --canvas: #f5f6f2;
+  --canvas: #ffffff;
   --surface: #ffffff;
-  --ink: #203c35;
-  --muted: #596860;
-  --line: #d6ded7;
-  --accent: #24614d;
-  --accent-hover: #194936;
-  --tint: #e8efe8;
+  --ink: #212529;
+  --muted: #626a75;
+  --line: #e3e7ed;
+  --accent: #0b5ed7;
+  --accent-hover: #094db1;
+  --tint: #eef4ff;
   --danger: #a52c29;
   --warning: #fff2d9;
-  --focus: #986117;
+  --focus: #0b5ed7;
   --radius: 8px;
   font:
     15px/1.55 -apple-system,
