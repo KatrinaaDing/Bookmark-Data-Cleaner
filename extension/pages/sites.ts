@@ -1,3 +1,4 @@
+import { detailsDrawer } from "../components/details-drawer.js";
 import {
   coverage,
   hasSiteAccess,
@@ -11,7 +12,7 @@ import type { Job, SiteRecord } from "../core/types.js";
 import { Selection } from "../core/state.js";
 import { cleanupDialog } from "../components/cleanup-dialog.js";
 import { button, checkbox, el, heading, status } from "../components/dom.js";
-import { siteDetails, revealDetails } from "../components/site-details.js";
+import { siteDetails } from "../components/site-details.js";
 import { siteTimeline } from "../components/site-timeline.js";
 export function sitesPage(onStarted: (job: Job) => void): {
   element: HTMLElement;
@@ -31,9 +32,8 @@ export function sitesPage(onStarted: (job: Job) => void): {
     busy = false;
   const selection = new Selection();
   const feedback = el("div"),
-    list = el("div", "workspace-list"),
-    details = el("div", "details-slot");
-  details.append(siteDetails());
+    list = el("div", "workspace-list");
+  const drawer = detailsDrawer();
   const toolbar = el("div", "toolbar");
   const search = el("input");
   search.type = "search";
@@ -141,7 +141,7 @@ export function sitesPage(onStarted: (job: Job) => void): {
   actionbar.append(all, clear, history, count, clean);
   page.append(toolbar, actionbar, access, feedback);
   const workspace = el("div", "workspace");
-  workspace.append(list, details);
+  workspace.append(list);
   page.append(workspace);
   function visible() {
     return sites
@@ -174,8 +174,7 @@ export function sitesPage(onStarted: (job: Job) => void): {
             filtered,
             selection,
             (site, trigger) =>
-              revealDetails(
-                details,
+              drawer.open(
                 siteDetails(site, () => {
                   void load(true);
                 }),
@@ -223,7 +222,7 @@ export function sitesPage(onStarted: (job: Job) => void): {
       sites = result.sites;
       selection.retain(new Set(sites.map((s) => s.id)));
       loaded = true;
-      details.replaceChildren(siteDetails());
+
       render();
       feedback.replaceChildren(
         ...result.warnings.map((warning) => status(warning)),

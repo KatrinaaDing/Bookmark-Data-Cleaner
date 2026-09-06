@@ -1,0 +1,91 @@
+html {
+  scrollbar-gutter: stable;
+}
+html.drawer-open {
+  overflow: hidden;
+}
+.details-drawer {
+  position: fixed;
+  inset: 16px 16px 16px auto;
+  width: min(620px, calc(100% - 32px));
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0 28px 28px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: 0 12px 48px rgb(26 40 61 / 18%);
+}
+.details-drawer::backdrop {
+  background: rgb(30 40 56 / 22%);
+}
+.drawer-header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 0 8px;
+  background: var(--surface);
+  z-index: 1;
+}
+.details {
+  border: 0;
+  padding: 0;
+}
+.details h2 {
+  font-size: 1.6rem;
+  overflow-wrap: anywhere;
+}
+.details h3 {
+  margin-top: 1.6rem;
+}
+.details dl {
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.details dd {
+  max-width: 30ch;
+}
+.icon {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  flex-shrink: 0;
+}
+@media (max-width: 600px) {
+  .details-drawer {
+    inset: 8px 8px 8px auto;
+    width: calc(100% - 16px);
+    padding: 0 20px 24px;
+    border-radius: 12px;
+  }
+}
+
+.detail-disclosure {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+.detail-disclosure summary {
+  font-weight: 550;
+}
+.detail-disclosure[open] > :not(summary) {
+  margin-top: 12px;
+}
+.details > .muted {
+  overflow-wrap: anywhere;
+}

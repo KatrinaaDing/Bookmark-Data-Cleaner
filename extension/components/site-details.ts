@@ -1,7 +1,7 @@
 import type { SiteRecord } from "../core/types.js";
 import { saveBookmark } from "../browser/bookmarks.js";
 import { webOrigin } from "../helpers/sites.js";
-import { button, dateText, el, status } from "./dom.js";
+import { dateText, el, status } from "./dom.js";
 export function siteDetails(
   site?: SiteRecord,
   onSaved: () => void = () => {},
@@ -21,7 +21,13 @@ export function siteDetails(
   }
   panel.append(
     el("h2", "", site.host),
-    el("p", "muted", "Local details · no page requests"),
+    el(
+      "p",
+      "muted",
+      site.bookmarks.length === 1
+        ? site.bookmarks[0].title
+        : "Saved website details",
+    ),
   );
   const list = el("dl");
   for (const [label, value] of [
@@ -30,50 +36,59 @@ export function siteDetails(
     ["Bookmarks", String(site.bookmarks.length)],
   ])
     list.append(el("dt", "", label), el("dd", "", value));
-  panel.append(
-    list,
+  panel.append(list);
+  const storage = el("details", "detail-disclosure");
+  storage.append(
+    el("summary", "", "Storage scope"),
     el(
       "p",
       "fine",
-      "Other storage is not measured. Zero detected cookies does not mean there is no saved site data.",
+      "Cookie counts are detected data. Other storage is not measured.",
     ),
   );
+  for (const origin of site.origins) storage.append(el("p", "url", origin));
+  if (site.cookies.some((cookie) => cookie.partitionKey))
+    storage.append(
+      el(
+        "p",
+        "fine",
+        "Includes third-party cookies under this site's partition. Other partitions stay separate.",
+      ),
+    );
+  panel.append(storage);
   if (site.bookmarks.length) {
-    panel.append(el("h3", "", "Bookmark locations"));
-    for (const b of site.bookmarks)
-      panel.append(
-        el("p", "wrap", `${b.title || "Untitled"} · ${b.path || "Bookmarks"}`),
+    const bookmarks = el("details", "detail-disclosure");
+    bookmarks.append(el("summary", "", "Bookmark locations"));
+    for (const bookmark of site.bookmarks)
+      bookmarks.append(
+        el(
+          "p",
+          "wrap",
+          `${bookmark.title || "Untitled"} · ${bookmark.path || "Bookmarks"}`,
+        ),
       );
+    panel.append(bookmarks);
   }
-  panel.append(el("h3", "", "Known origins"));
-  for (const origin of site.origins) panel.append(el("p", "url", origin));
-  if (site.cookies.some((c) => c.partitionKey))
-    panel.append(
-      el(
-        "p",
-        "fine",
-        "Includes third-party cookies partitioned under this top-level site. Other partitions remain separate.",
-      ),
-    );
   if (site.urls.length) {
-    panel.append(el("h3", "", "Known URLs"));
-    for (const url of site.urls.slice(0, 8)) {
-      const a = el("a", "url", url);
-      if (webOrigin(url)) {
-        a.href = url;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.title = "Open website in a new tab (creates browsing data)";
-      }
-      panel.append(a);
-    }
-    panel.append(
+    const links = el("details", "detail-disclosure");
+    links.append(
+      el("summary", "", `Known URLs (${site.urls.length})`),
       el(
         "p",
         "fine",
-        "Opening a URL visits the site and can create new browsing data.",
+        "Opening a URL visits the site and can create browsing data.",
       ),
     );
+    for (const url of site.urls) {
+      const link = el("a", "url", url);
+      if (webOrigin(url)) {
+        link.href = url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+      }
+      links.append(link);
+    }
+    panel.append(links);
   }
   const form = el("form", "save-bookmark");
   const title = el("input"),
@@ -114,28 +129,15 @@ export function siteDetails(
         submit.disabled = false;
       });
   });
-  panel.append(el("h3", "", "Keep this site"), form);
+  const save = el("details", "detail-disclosure");
+  save.append(
+    el(
+      "summary",
+      "",
+      site.bookmarks.length ? "Save another bookmark" : "Save bookmark",
+    ),
+    form,
+  );
+  panel.append(save);
   return panel;
-}
-
-export function revealDetails(
-  slot: HTMLElement,
-  panel: HTMLElement,
-  trigger: HTMLElement,
-): void {
-  slot.replaceChildren(panel);
-  if (window.matchMedia("(max-width: 720px)").matches) {
-    const back = button(
-      "Back to list",
-      () => {
-        trigger.focus({ preventScroll: true });
-        trigger.scrollIntoView({ block: "center" });
-      },
-      "quiet",
-    );
-    panel.prepend(back);
-    panel.tabIndex = -1;
-    panel.focus({ preventScroll: true });
-    panel.scrollIntoView({ block: "start" });
-  }
 }

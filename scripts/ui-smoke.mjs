@@ -40,6 +40,10 @@ try {
     "design.test",
   );
   await run(
+    `document.querySelector('.details-drawer[open] [aria-label="Close details"]').click()`,
+  );
+  await pause(200);
+  await run(
     `document.querySelector('input[aria-label="Select Design notes"]').click()`,
   );
   assert.equal(
@@ -62,7 +66,7 @@ try {
   await pause(50);
   assert.equal(
     await run(
-      `document.querySelector('dialog').textContent.includes('Choose what to remove.')`,
+      `document.querySelector('dialog.cleanup-dialog').textContent.includes('Choose what to remove.')`,
     ),
     true,
   );
@@ -71,7 +75,7 @@ try {
   );
   await pause(80);
   assert.equal(
-    await run(`document.querySelector('dialog h2').textContent`),
+    await run(`document.querySelector('dialog.cleanup-dialog h2').textContent`),
     "Review this cleanup",
   );
   await run(
@@ -141,10 +145,14 @@ try {
   await run(
     `Array.from(document.querySelectorAll('.site-row .row-title')).find(b=>b.textContent==='old.test').click()`,
   );
-  assert.equal(await run(`document.activeElement.className`), "details");
-  await run(
-    `Array.from(document.querySelectorAll('.details button')).find(b=>b.textContent==='Back to list').click()`,
+  assert.equal(
+    await run(`!!document.querySelector('.details-drawer[open]')`),
+    true,
   );
+  await run(
+    `document.querySelector('.details-drawer[open] [aria-label="Close details"]').click()`,
+  );
+  await pause(200);
   assert.equal(await run(`document.activeElement.textContent`), "old.test");
   await run(`location.hash='bookmarks'`);
   await capture("bookmarks-desktop", 1360, 960);
@@ -153,17 +161,38 @@ try {
   await capture("home-mobile", 390, 844);
   await run(`location.hash='sites'`);
   await pause(50);
-  await run(`document.querySelector('input[aria-label="Select old.test"]').click(); Array.from(document.querySelectorAll('section:not([hidden]) button')).find(b=>b.textContent==='Review cleanup').click()`);
+  await run(
+    `document.querySelector('input[aria-label="Select old.test"]').click(); Array.from(document.querySelectorAll('section:not([hidden]) button')).find(b=>b.textContent==='Review cleanup').click()`,
+  );
   await pause(80);
-  await run(`Array.from(document.querySelectorAll('dialog label')).find(l=>l.textContent==='Cookies and sign-in data').querySelector('input').click(); Array.from(document.querySelectorAll('dialog button')).find(b=>b.textContent==='Review cleanup').click()`);
+  await run(
+    `Array.from(document.querySelectorAll('dialog label')).find(l=>l.textContent==='Cookies and sign-in data').querySelector('input').click(); Array.from(document.querySelectorAll('dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
+  );
   await pause(80);
-  await run(`Array.from(document.querySelectorAll('dialog button')).find(b=>b.textContent==='Confirm cleanup').click()`);
+  await run(
+    `Array.from(document.querySelectorAll('dialog button')).find(b=>b.textContent==='Confirm cleanup').click()`,
+  );
   for (let i = 0; i < 50; i++) {
     await pause(100);
-    if (await run(`chrome.runtime.sendMessage({type:'get-job'}).then(r=>r.value?.status==='finished')`)) break;
+    if (
+      await run(
+        `chrome.runtime.sendMessage({type:'get-job'}).then(r=>r.value?.status==='finished')`,
+      )
+    )
+      break;
   }
-  assert.deepEqual(await run(`chrome.cookies.getAll({}).then(c=>c.map(item=>item.domain).sort())`), ['design.test', 'orphan.test']);
-  assert.equal(await run(`chrome.bookmarks.get(${JSON.stringify(fixtures.b)}).then(()=>true)`), true);
+  assert.deepEqual(
+    await run(
+      `chrome.cookies.getAll({}).then(c=>c.map(item=>item.domain).sort())`,
+    ),
+    ["design.test", "orphan.test"],
+  );
+  assert.equal(
+    await run(
+      `chrome.bookmarks.get(${JSON.stringify(fixtures.b)}).then(()=>true)`,
+    ),
+    true,
+  );
   await run(`location.hash='home'`);
   // The ordinary package must run without network fetches; this profile has synthetic data only.
   await browser.cmd("Network.enable", {}, page.sessionId);

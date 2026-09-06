@@ -255,7 +255,7 @@ button.danger:hover:not(:disabled) {
 }
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 310px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.5rem;
   align-items: start;
 }
@@ -539,7 +539,7 @@ button.danger:hover:not(:disabled) {
     display: none;
   }
   .workspace {
-    grid-template-columns: minmax(0, 1fr) 260px;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
   }
   .row-host {
@@ -601,18 +601,6 @@ button.danger:hover:not(:disabled) {
   .feature-card {
     transition: none;
   }
-}
-
-@media (min-width: 721px) {
-  .details-slot {
-    position: sticky;
-    top: 1rem;
-    max-height: calc(100vh - 2rem);
-    overflow: auto;
-  }
-}
-.details > button:first-child {
-  margin-bottom: 1rem;
 }
 
 .page-heading h1 { color: var(--accent); font-weight: 500; }

@@ -1,3 +1,4 @@
+import { detailsDrawer } from "../components/details-drawer.js";
 import { readBookmarks } from "../browser/bookmarks.js";
 import { readHistory, requestHistory } from "../browser/history.js";
 import { hasSiteAccess, readCookies } from "../browser/site-data.js";
@@ -7,7 +8,7 @@ import type { BookmarkRef, Job } from "../core/types.js";
 import { bookmarkTree, type TreeView } from "../components/bookmark-tree.js";
 import { cleanupDialog } from "../components/cleanup-dialog.js";
 import { button, el, heading, status } from "../components/dom.js";
-import { siteDetails, revealDetails } from "../components/site-details.js";
+import { siteDetails } from "../components/site-details.js";
 export function bookmarksPage(onStarted: (job: Job) => void): {
   element: HTMLElement;
   load: () => Promise<void>;
@@ -29,9 +30,8 @@ export function bookmarksPage(onStarted: (job: Job) => void): {
     loaded = false,
     busy = false;
   const list = el("div", "workspace-list"),
-    details = el("div", "details-slot"),
     feedback = el("div");
-  details.append(siteDetails());
+  const drawer = detailsDrawer();
   const clean = button(
     "Review cleanup",
     () =>
@@ -79,7 +79,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): {
   toolbar.append(refresh, history, count, clean);
   page.append(toolbar, feedback);
   const workspace = el("div", "workspace");
-  workspace.append(list, details);
+  workspace.append(list);
   page.append(workspace);
   function changed() {
     count.textContent = `${selection.ids.size} selected`;
@@ -90,27 +90,30 @@ export function bookmarksPage(onStarted: (job: Job) => void): {
     const version = ++inspection;
     const bookmark = records.find((b) => b.id === id);
     if (!bookmark) return;
-    details.replaceChildren(status("Loading local details…", true));
+    const request = drawer.open(
+      status("Loading local details…", true),
+      trigger,
+    );
     try {
       const [visits, cookies] = await Promise.all([
         readHistory(),
         hasSiteAccess().then((allowed) => (allowed ? readCookies() : [])),
       ]);
       if (version !== inspection) return;
-      revealDetails(
-        details,
+      drawer.update(
         siteDetails(
           sitesFromBookmarks([bookmark], cookies, visits.history)[0],
           () => {
             void load(true);
           },
         ),
-        trigger,
+        request,
       );
     } catch {
       if (version === inspection)
-        details.replaceChildren(
-          status("Could not load local details. Select the title to retry."),
+        drawer.update(
+          status("Could not load details. Close and select the item to retry."),
+          request,
         );
     }
   }
@@ -151,7 +154,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): {
         );
       loaded = true;
       inspection++;
-      details.replaceChildren(siteDetails());
+
       feedback.replaceChildren();
     } catch {
       feedback.replaceChildren(
