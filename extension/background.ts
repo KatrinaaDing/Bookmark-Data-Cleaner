@@ -17,10 +17,16 @@ const jobs = new JobCoordinator(
 );
 async function openManager(): Promise<void> {
   const url = chrome.runtime.getURL("page.html");
-  const tabs = await chrome.tabs.query({ url: `${url}*` });
-  if (tabs[0]?.id !== undefined) {
-    await chrome.tabs.update(tabs[0].id, { active: true });
-    await chrome.windows.update(tabs[0].windowId, { focused: true });
+  const contexts = await chrome.runtime.getContexts({
+    contextTypes: [chrome.runtime.ContextType.TAB],
+  });
+  const tab = contexts.find(
+    (context) =>
+      context.documentUrl?.split("#")[0] === url && context.tabId >= 0,
+  );
+  if (tab) {
+    await chrome.tabs.update(tab.tabId, { active: true });
+    await chrome.windows.update(tab.windowId, { focused: true });
   } else await chrome.tabs.create({ url });
 }
 chrome.runtime.onMessage.addListener(
