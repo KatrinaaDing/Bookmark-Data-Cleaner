@@ -15,3 +15,10 @@ Implemented:
 The independent review found a save → refresh → close focus issue. A regression test reproduced it in Edge; the fix restores focus to the replacement row or main content. The reviewer verified the fix in Edge.
 
 See [development](development.md) for test commands. Naming, the rich toolbar popup and unrelated new features remain outside this pass.
+
+## Follow-up interaction polish
+
+- Details now shares the workspace with an interactive list; the list shrinks as details slides in. Narrow screens stack both sections.
+- All disclosures animate opening and closing, honoring reduced motion.
+- Full rows open details or toggle folders; checkbox clicks only select.
+- Hover targets have padding and unchecked checkbox borders are lighter.
