@@ -1,3 +1,4 @@
+import { iconButton } from "../components/icons.js";
 import { detailsDrawer } from "../components/details-drawer.js";
 import { readBookmarks } from "../browser/bookmarks.js";
 import { readHistory, requestHistory } from "../browser/history.js";
@@ -16,10 +17,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): {
 } {
   const page = el("section");
   page.append(
-    heading(
-      "Bookmark cleanup",
-      "Keep the useful ones. Choose what to clear when a bookmark has served its purpose.",
-    ),
+    heading("Bookmark cleanup", "Select bookmarks to review their site data."),
   );
   const toolbar = el("div", "toolbar");
   const count = el("span", "selection-count", "0 selected");
@@ -52,30 +50,27 @@ export function bookmarksPage(onStarted: (job: Job) => void): {
     "primary",
   );
   clean.disabled = true;
-  const refresh = button("Refresh", () => {
+  const refresh = iconButton("refresh", "Refresh", () => {
     void load(true);
   });
-  const history = button(
-    "Enable visit dates",
-    () => {
-      void requestHistory()
-        .then((granted) => {
-          feedback.replaceChildren(
-            status(
-              granted
-                ? "Visit dates enabled. Select a title to see them."
-                : "History access declined. Bookmark cleanup still works.",
-            ),
-          );
-        })
-        .catch(() =>
-          feedback.replaceChildren(
-            status("Could not request history access. Try again."),
+  const history = iconButton("history", "Enable visit dates", () => {
+    void requestHistory()
+      .then((granted) => {
+        history.hidden = granted;
+        feedback.replaceChildren(
+          status(
+            granted
+              ? "Visit dates enabled. Select a title to see them."
+              : "History access declined. Bookmark cleanup still works.",
           ),
         );
-    },
-    "quiet",
-  );
+      })
+      .catch(() =>
+        feedback.replaceChildren(
+          status("Could not request history access. Try again."),
+        ),
+      );
+  });
   toolbar.append(refresh, history, count, clean);
   page.append(toolbar, feedback);
   const workspace = el("div", "workspace");
@@ -83,6 +78,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): {
   page.append(workspace);
   function changed() {
     count.textContent = `${selection.ids.size} selected`;
+    count.hidden = selection.ids.size === 0;
     clean.disabled = busy || !selection.ids.size;
   }
   let inspection = 0;
@@ -120,6 +116,14 @@ export function bookmarksPage(onStarted: (job: Job) => void): {
   async function load(force = false) {
     if (busy || (loaded && !force)) return;
     busy = true;
+    void chrome.permissions
+      .contains({ permissions: ["history"] })
+      .then((allowed) => {
+        history.hidden = allowed;
+      })
+      .catch(() => {
+        history.hidden = false;
+      });
     refresh.disabled = true;
     changed();
     feedback.replaceChildren(

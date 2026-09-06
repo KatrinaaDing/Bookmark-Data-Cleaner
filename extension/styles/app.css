@@ -133,7 +133,7 @@ main {
   max-width: 1440px;
   margin: auto;
   padding: 2.8rem 3.5% 4rem;
-  min-height: calc(100vh - 170px);
+  min-height: calc(100vh - 76px);
 }
 .page-heading {
   margin-bottom: 1.8rem;
@@ -459,8 +459,6 @@ button.danger:hover:not(:disabled) {
 }
 .operation ul {
   padding-left: 1.2rem;
-  max-height: 250px;
-  overflow: auto;
   font-size: 0.85rem;
   overflow-wrap: anywhere;
 }
@@ -505,8 +503,6 @@ button.danger:hover:not(:disabled) {
   border-block: 1px solid var(--line);
   margin: 1rem 0;
   padding-bottom: 1rem;
-  max-height: 32vh;
-  overflow-y: auto;
 }
 .cleanup-scope h3 {
   margin: 1rem 0 0.35rem;
@@ -603,18 +599,72 @@ button.danger:hover:not(:disabled) {
   }
 }
 
-.page-heading h1 { color: var(--accent); font-weight: 500; }
-.workspace-list { box-shadow: 0 8px 36px rgb(32 45 67 / 7%); border-radius: 14px; }
+.page-heading h1 {
+  color: var(--accent);
+  font-weight: 500;
+}
+.workspace-list {
+  box-shadow: 0 8px 36px rgb(32 45 67 / 7%);
+  border-radius: 14px;
+}
 
 .folder-children {
   display: grid;
   grid-template-rows: 0fr;
   visibility: hidden;
-  transition: grid-template-rows 220ms cubic-bezier(.2,.8,.2,1), visibility 220ms;
+  transition:
+    grid-template-rows 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    visibility 220ms;
 }
-.folder-children.is-expanded { grid-template-rows: 1fr; visibility: visible; }
-.folder-content { min-height: 0; overflow: hidden; }
-.folder-toggle::before { transition: transform 180ms ease-out; }
+.folder-children.is-expanded {
+  grid-template-rows: 1fr;
+  visibility: visible;
+}
+.folder-content {
+  min-height: 0;
+  overflow: hidden;
+}
+.folder-toggle::before {
+  transition: transform 180ms ease-out;
+}
 @media (prefers-reduced-motion: reduce) {
-  .folder-children, .folder-toggle::before { transition: none; }
+  .folder-children,
+  .folder-toggle::before {
+    transition: none;
+  }
+}
+
+.help-disclosure {
+  margin: 0 0 1.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.help-disclosure summary {
+  width: fit-content;
+}
+.help-disclosure p {
+  margin-top: 0.6rem;
+}
+.local-note {
+  margin: 1.6rem 0 0.8rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.page-heading {
+  margin-bottom: 1.2rem;
+}
+.page-heading p {
+  font-size: 0.95rem;
+}
+.dashboard h1 {
+  font-size: clamp(2rem, 3vw, 2.6rem);
+}
+.dashboard .page-heading {
+  margin-bottom: 2rem;
+}
+.feature-card {
+  min-height: 220px;
+}
+.toolbar {
+  gap: 0.55rem;
 }

@@ -1,3 +1,4 @@
+import { iconButton } from "../components/icons.js";
 import { detailsDrawer } from "../components/details-drawer.js";
 import {
   coverage,
@@ -11,7 +12,14 @@ import { cookieOwner } from "../helpers/sites.js";
 import type { Job, SiteRecord } from "../core/types.js";
 import { Selection } from "../core/state.js";
 import { cleanupDialog } from "../components/cleanup-dialog.js";
-import { button, checkbox, el, heading, status } from "../components/dom.js";
+import {
+  button,
+  checkbox,
+  disclosure,
+  el,
+  heading,
+  status,
+} from "../components/dom.js";
 import { siteDetails } from "../components/site-details.js";
 import { siteTimeline } from "../components/site-timeline.js";
 export function sitesPage(onStarted: (job: Job) => void): {
@@ -21,12 +29,9 @@ export function sitesPage(onStarted: (job: Job) => void): {
 } {
   const page = el("section");
   page.append(
-    heading(
-      "Site data cleanup",
-      "Review the websites that left something behind. Start with the ones you have not visited in a while.",
-    ),
+    heading("Site data cleanup", "Choose the sites you no longer need."),
   );
-  page.append(el("p", "coverage", coverage));
+  page.append(disclosure("About this list", coverage));
   let sites: SiteRecord[] = [],
     loaded = false,
     busy = false;
@@ -50,7 +55,7 @@ export function sitesPage(onStarted: (job: Job) => void): {
     order.append(option);
   }
   const bookmarked = checkbox("Bookmarked only", () => render());
-  const refresh = button("Refresh", () => {
+  const refresh = iconButton("refresh", "Refresh", () => {
     void load(true);
   });
   const count = el("span", "selection-count");
@@ -75,22 +80,14 @@ export function sitesPage(onStarted: (job: Job) => void): {
       ),
     "primary",
   );
-  const all = button(
-    "Select visible",
-    () => {
-      for (const site of visible()) selection.set(site.id, true);
-      render();
-    },
-    "quiet",
-  );
-  const clear = button(
-    "Clear selection",
-    () => {
-      selection.ids.clear();
-      render();
-    },
-    "quiet",
-  );
+  const all = iconButton("select", "Select visible", () => {
+    for (const site of visible()) selection.set(site.id, true);
+    render();
+  });
+  const clear = iconButton("clear", "Clear selection", () => {
+    selection.ids.clear();
+    render();
+  });
   const access = button(
     "Allow site discovery",
     () => {
@@ -115,31 +112,26 @@ export function sitesPage(onStarted: (job: Job) => void): {
     "primary",
   );
   access.hidden = true;
-  const history = button(
-    "Enable visit dates",
-    () => {
-      void requestHistory()
-        .then((granted) => {
-          if (granted) void load(true);
-          else
-            feedback.replaceChildren(
-              status(
-                "History access declined. You can still clean detected site data.",
-              ),
-            );
-        })
-        .catch(() =>
+  const history = iconButton("history", "Enable visit dates", () => {
+    void requestHistory()
+      .then((granted) => {
+        if (granted) void load(true);
+        else
           feedback.replaceChildren(
-            status("Could not request history access. Try again."),
-          ),
-        );
-    },
-    "quiet",
-  );
+            status(
+              "History access declined. You can still clean detected site data.",
+            ),
+          );
+      })
+      .catch(() =>
+        feedback.replaceChildren(
+          status("Could not request history access. Try again."),
+        ),
+      );
+  });
   toolbar.append(search, order, bookmarked.label, refresh);
-  const actionbar = el("div", "toolbar");
-  actionbar.append(all, clear, history, count, clean);
-  page.append(toolbar, actionbar, access, feedback);
+  toolbar.append(all, clear, history, count, clean);
+  page.append(toolbar, access, feedback);
   const workspace = el("div", "workspace");
   workspace.append(list);
   page.append(workspace);
@@ -163,6 +155,8 @@ export function sitesPage(onStarted: (job: Job) => void): {
   }
   function changed() {
     count.textContent = `${selection.ids.size} selected`;
+    count.hidden = selection.ids.size === 0;
+    clear.disabled = selection.ids.size === 0;
     clean.disabled = busy || !selection.ids.size;
   }
   function render() {
@@ -197,6 +191,14 @@ export function sitesPage(onStarted: (job: Job) => void): {
   async function load(force = false) {
     if (busy || (loaded && !force)) return;
     busy = true;
+    void chrome.permissions
+      .contains({ permissions: ["history"] })
+      .then((allowed) => {
+        history.hidden = allowed;
+      })
+      .catch(() => {
+        history.hidden = false;
+      });
     refresh.disabled = true;
     changed();
     feedback.replaceChildren(

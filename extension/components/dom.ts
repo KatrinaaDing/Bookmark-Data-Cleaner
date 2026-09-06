@@ -38,13 +38,20 @@ export function status(text: string, busy = false): HTMLElement {
   }
   return node;
 }
-export function heading(title: string, description: string): HTMLElement {
+export function heading(title: string, description = ""): HTMLElement {
   const node = el("header", "page-heading");
-  node.append(el("h1", "", title), el("p", "muted", description));
+  node.append(el("h1", "", title));
+  if (description) node.append(el("p", "muted", description));
   return node;
 }
 export function dateText(time?: number): string {
   return time
     ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(time)
     : "No matching history";
+}
+
+export function disclosure(label: string, text: string): HTMLDetailsElement {
+  const details = el("details", "help-disclosure");
+  details.append(el("summary", "", label), el("p", "fine", text));
+  return details;
 }

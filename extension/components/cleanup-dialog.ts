@@ -27,40 +27,36 @@ export function cleanupDialog(
   title.id = "cleanup-title";
   body.append(
     title,
-    el(
-      "p",
-      "muted",
-      "Your choices apply only to the selected targets. Nothing is removed until you review and confirm.",
-    ),
+    el("p", "muted", "Review your choices before confirming."),
   );
   const options = { ...noCleanup };
   const choices: [keyof CleanupOptions, string, string][] = [
     [
       "cookies",
       "Cookies and sign-in data",
-      "Remove detected cookies. You may be signed out, including from related subdomains.",
+      "May sign you out, including from related subdomains.",
     ],
     [
       "savedData",
       "Saved site data",
-      "Remove Local Storage, IndexedDB and website file-system data, if present. Locally saved work can be lost.",
+      "Local Storage, IndexedDB and files. Unsynced work may be lost.",
     ],
     [
       "cache",
       "Cached resources",
-      "Remove cache and CacheStorage for the listed origins, if present.",
+      "Cached files and offline copies, if present.",
     ],
     [
       "workers",
       "Background workers",
-      "Remove service-worker registrations for the listed origins, if present.",
+      "Service workers used for offline and background activity.",
     ],
   ];
   if (allowBookmarks)
     choices.push([
       "bookmarks",
       "Remove selected bookmarks",
-      "Independent of site data. Combined cleanup keeps bookmarks when their data request fails.",
+      "Bookmarks are kept if their selected data cleanup fails.",
     ]);
   let cookieInput: HTMLInputElement | undefined;
   for (const [key, label, description] of choices) {
