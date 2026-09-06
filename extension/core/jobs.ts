@@ -46,8 +46,14 @@ export class JobCoordinator {
       total: plan.sites.length,
       outcomes: [],
     };
+    const previous = this.current;
     this.current = job;
-    await this.storage.write(job);
+    try {
+      await this.storage.write(job);
+    } catch (error) {
+      this.current = previous;
+      throw error;
+    }
     void this.run(plan, job);
     return structuredClone(job);
   }
