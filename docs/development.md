@@ -1,92 +1,60 @@
-# Running and testing the extension
+# Running and testing
 
-## Run the current app
+## Run locally
 
-1. Use a separate Chrome profile with disposable bookmarks/site data; keep sync off.
-2. Open `chrome://extensions` and enable **Developer mode**.
-3. Choose **Load unpacked** and select this repository's **`code/`** folder, which contains `manifest.json`.
-4. Click the extension toolbar icon. The current popup opens the bookmark manager in a tab.
-
-No npm install, development server or internet connection is required for the packaged UI. Chrome APIs require an installed extension; opening `page.html` as a normal file is insufficient.
-
-After edits, click **Reload** on the extension card, then close/reopen its manager tab. Inspect that tab with DevTools for UI errors; inspect the popup separately when troubleshooting launch behavior. The current manifest has no registered worker, so there is no worker console yet.
-
-## After the TypeScript migration — planned workflow
-
-These commands become available in implementation step 1; they do not exist in the current checkout.
-
-Use Node 24+ and the committed dependency lockfile:
+Use Node 24+ and Chrome 130+ (current automated browser coverage: Chrome for Testing 152 on macOS arm64).
 
 ```sh
 npm ci
-npm run typecheck
-npm run build
-```
-
-Load **`dist/extension/`** in Chrome. Chrome executes the generated JavaScript, not `.ts` source files. Initial sources remain in `code/`; step 2 moves them to `extension/` without changing the loaded output path.
-
-The build clears stale output, compiles TypeScript and copies allowed static assets. A failed build must not leave a package presented as current. After edits, rebuild, reload the extension, then reopen/refresh its UI. No bundler or development server is required.
-
-TypeScript and type declarations are development tools; they are not shipped. The compiled extension remains usable offline. Initial dependency installation requires network access unless dependencies are already cached.
-
-Once architecture step 3 registers a worker, use its **service worker** inspection link on the extension card. Also test with DevTools closed to expose lifecycle issues.
-
-## Checks available today
-
-From the repository root:
-
-```sh
-node --check code/page.js
-node --check code/popup.js
-node --check code/background.js
-python3 -m json.tool code/manifest.json > /dev/null
-```
-
-These check syntax only. The current repository has no automated behavioral test suite. Known cleanup bugs are documented in the audit; syntax success does not establish safe deletion.
-
-## Planned automated tests — architecture step 3
-
-Write tests in `tests/*.test.ts`. `tsconfig.test.json` compiles tests and imported application modules into `.test-build/`; Node typings belong to this test configuration. Use Node's built-in test runner, without a test-framework dependency.
-
-```sh
 npm run typecheck
 npm test
 npm run build
 ```
 
-The test script compiles first and runs the emitted `.test-build/tests/*.test.js` files. Compilation failures fail the command; test output never enters `dist/extension/`. These scripts are planned, not available in the current checkout.
+1. Use a separate Chrome profile with disposable bookmarks and data; keep sync off.
+2. Open `chrome://extensions`, enable **Developer mode**, select **Load unpacked**.
+3. Select **`dist/extension/`**, then click the extension toolbar icon.
+4. Allow cookie/site access in Site data when needed. Visit dates request history separately.
 
-Required cases:
+After edits: rebuild, reload the extension card, then reload/reopen its app tab. Inspect the app with DevTools; inspect **service worker** on the extension card for background jobs. Also test with DevTools closed.
 
-- Two selected bookmarks sharing a URL; deselecting one preserves the other target.
-- HTTP/HTTPS parsing, ports and invalid schemes; no empty-origin deletion calls.
-- Failed data cleanup cannot trigger dependent bookmark deletion; folders wait for children.
-- Missing history preserves data rows; latest visit is aggregated correctly; year/date grouping and equal-date ties are deterministic.
-- Permission denial and incomplete scans remain distinct from empty data.
-- Cookie partitions and stores remain distinct; retry targets only reviewed failures.
-- View changes and worker interruption cannot turn incomplete jobs into success.
+Chrome executes generated JavaScript. Do not load `extension/` directly or open `app.html` as a normal file. No development server, bundler or internet access is needed to use the built UI; initial dependency installation needs network access or a populated npm cache.
 
-## Real-browser acceptance tests
+## Automated tests
 
-Use controlled local fixture pages/API-created cookies in the separate test profile. Inspect stored values before and after cleanup; a successful callback alone is insufficient.
+`npm test` compiles `tests/*.test.ts` and imported modules into `.test-build/`, then uses Node's built-in test runner. It covers origin validation, duplicate selections, data-first inventory, partition identity, partial failures, bookmark/folder sequencing and interrupted job handling.
 
-| Test | Expected result |
-|---|---|
-| Cookie with no history | Appears in supported inventory; no fabricated visit date |
-| Storage-only site | Discovery limitation is documented; no completeness claim |
-| Partitioned cookies for two top-level sites | Targeted cleanup preserves the unrelated partition |
-| Known origin with IndexedDB | Requested database data removed; control origin remains |
-| No host/history permission | Clear explanation and usable allowed functionality |
-| Duplicate selection / no selection | Correct target set / deletion disabled |
-| API failure or worker interruption | Honest failure/unverified state; no dependent bookmark removal |
-| Refresh and deletion | Labeled loading feedback; no duplicate submissions |
-| Metadata selection | No target-page navigation or remote preview request |
-| Offline, keyboard and narrow window | Local workflows usable; focus and feedback accessible |
+`npm run typecheck` checks the DOM and service-worker contexts separately. `npm run build` removes stale output, compiles both and copies allowed static assets. Failure removes the generated extension directory. Test output and development dependencies are never packaged.
 
-Test the three product journeys in [the rebranding plan](rebranding-plan.md). Before release, repeat browser tests on the declared minimum Chrome version and current stable, in a normal window with DevTools closed.
+## Real-browser tests
 
-## Package a release
+Install a compatible [Chrome for Testing](https://googlechromelabs.github.io/chrome-for-testing/) binary, then set its absolute executable path:
 
-After migration, run `npm ci`, `npm run typecheck`, `npm test` and `npm run build`, then package the contents of `dist/extension/`, with `manifest.json` at the archive root. Exclude TypeScript sources, type declarations, node_modules, tests, documentation, browser profiles, fixture data and unused vendor files. Load the extracted package once more before submitting it to the Web Store.
+```sh
+export CHROME_BIN='/absolute/path/to/Google Chrome for Testing'
+npm run build
+npm run test:browser
+```
 
-Reference: [Chrome extension development basics](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world), [Node test runner](https://nodejs.org/api/test.html), [TypeScript module configuration](https://www.typescriptlang.org/docs/handbook/modules/guides/choosing-compiler-options.html), [Fail builds on type errors](https://www.typescriptlang.org/tsconfig/noEmitOnError.html).
+Each script creates and removes a fresh temporary profile. Never point these scripts at your normal profile. The harness requires Chrome for Testing's unpacked-extension debugging support.
+
+- `permissions-smoke`: unmodified manifest, optional access gate, single app tab.
+- `cleanup-smoke`: selected partition removed; another partition and unrelated cookies preserved; no cookie values in inventory state.
+- `storage-smoke`: known-origin Local Storage, IndexedDB, CacheStorage and workers removed; control origin preserved.
+- `ui-smoke`: dashboard/routes, folders, indeterminate and duplicate selection, metadata, validation, bookmark-only and site-cookie cleanup, timeline, narrow layouts and offline reload. Screenshots go to ignored `dist/screenshots/`.
+
+Cleanup/storage/UI tests copy the package into their temporary profile and grant optional permissions **in that test copy only** to seed fixtures without browser prompts. The permission test uses the real manifest. These are controlled integration tests, not complete browser compatibility coverage.
+
+## Manual release checks
+
+- Grant and decline real permission prompts; revoke access while the app is open.
+- Keyboard-only navigation, dialog focus/return, long/deep trees and narrow-window details/return.
+- Verify refreshed results after cleanup, partial failures and retries limited to failed categories.
+- Close the app during cleanup; reopen and inspect status. Stop the worker mid-job; verify unverified status and no automatic replay.
+- Repeat on minimum supported Chrome and current stable with DevTools closed.
+
+Incognito is disabled. Enterprise policies, other operating systems, the minimum Chrome version, every HTTP-cache/file-system variant and all browser shutdown timings remain release checks.
+
+## Package
+
+Run all checks above, then zip the **contents** of `dist/extension/` with `manifest.json` at archive root. Load the extracted package once before submitting it. The public name/icon still need a branding decision; no store upload is part of this implementation.
