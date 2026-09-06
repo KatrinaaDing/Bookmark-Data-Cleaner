@@ -1,9 +1,10 @@
-import type {
-  CleanupOptions,
-  CleanupPlan,
-  FolderRef,
-  Outcome,
-  SiteRecord,
+import {
+  noCleanup,
+  type CleanupOptions,
+  type CleanupPlan,
+  type FolderRef,
+  type Outcome,
+  type SiteRecord,
 } from "./types.js";
 import {
   cookieIdentity,
@@ -75,25 +76,32 @@ export async function executeCleanup(
   const removed = new Set<string>();
   for (const [index, site] of plan.sites.entries()) {
     let dataSucceeded = true;
-    if (hasData(plan.options)) {
-      try {
-        await operations.removeData(site, plan.options);
-        outcomes.push({
-          target: site.host,
-          kind: "data",
-          status: "completed",
-          message: "Selected cleanup requests completed.",
-        });
-      } catch (error) {
-        dataSucceeded = false;
-        outcomes.push({
-          target: site.host,
-          kind: "data",
-          status: "failed",
-          message: errorMessage(error),
-        });
+    const categories = [
+      ["cookies", "Cookies and sign-in data"],
+      ["savedData", "Saved site data"],
+      ["cache", "Cached resources"],
+      ["workers", "Background workers"],
+    ] as const;
+    for (const [category, label] of categories)
+      if (plan.options[category]) {
+        try {
+          await operations.removeData(site, { ...noCleanup, [category]: true });
+          outcomes.push({
+            target: site.host,
+            kind: "data",
+            status: "completed",
+            message: `${label}: cleanup request completed.`,
+          });
+        } catch (error) {
+          dataSucceeded = false;
+          outcomes.push({
+            target: site.host,
+            kind: "data",
+            status: "failed",
+            message: `${label}: ${errorMessage(error)}`,
+          });
+        }
       }
-    }
     if (plan.options.bookmarks)
       for (const bookmark of site.bookmarks) {
         if (removed.has(bookmark.id)) continue;

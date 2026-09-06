@@ -78,3 +78,35 @@ test("bookmark-only cleanup never calls browsing-data APIs", async () => {
   );
   assert.deepEqual(calls, ["ok.test"]);
 });
+
+test("mixed-category failure reports each category and keeps dependent bookmarks", async () => {
+  const calls: string[] = [];
+  const result = await executeCleanup(
+    buildCleanupPlan([site("example.test", "1")], {
+      ...noCleanup,
+      cookies: true,
+      cache: true,
+      bookmarks: true,
+    }),
+    {
+      removeData: async (_, options) => {
+        if (options.cookies) {
+          calls.push("cookies");
+        }
+        if (options.cache) {
+          calls.push("cache");
+          throw Error("Cache failed");
+        }
+      },
+      removeBookmark: async () => {
+        calls.push("bookmark");
+      },
+      removeFolder: async () => {},
+    },
+  );
+  assert.deepEqual(
+    result.filter((o) => o.kind === "data").map((o) => o.status),
+    ["completed", "failed"],
+  );
+  assert.deepEqual(calls, ["cookies", "cache"]);
+});
