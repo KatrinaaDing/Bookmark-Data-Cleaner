@@ -1,0 +1,19 @@
+{
+  "name": "bookmark-data-cleaner",
+  "version": "3.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/test.mjs"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@types/chrome": "0.2.9",
+    "@types/node": "26.4.1",
+    "typescript": "7.0.2"
+  }
+}

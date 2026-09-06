@@ -1,21 +1,27 @@
+export {};
+function element<T extends HTMLElement = HTMLElement>(id: string): T {
+  const node = document.getElementById(id);
+  if (!node) throw new Error(`Missing element: ${id}`);
+  return node as T;
+}
 // global variable
-let selectedOrigins = [];
-let selectedBookmarks = [];
-let selectedFolder = [];
+let selectedOrigins: string[] = [];
+let selectedBookmarks: string[] = [];
+let selectedFolder: string[] = [];
 
 // html elements
-const deleteAllBtn = document.getElementById('deleteAll');
-const selectAllBtn = document.getElementById('selectAll-all');
-const container = document.getElementById('container');
-const detail = document.getElementById('detail');
-const bannerTitle = document.getElementById('banner-title')
-const lastVisit = document.getElementById('last-visit');
-const link = document.getElementById('link');
-const removeForm = document.getElementById('remove-form');
-const background = document.getElementById('background');
-const waitingWindow = document.getElementById('waiting-window');
-const waitingText =  document.getElementById('waiting-window').children[0];
-const doneBtn = document.getElementById('waiting-window').children[1];
+const deleteAllBtn = element('deleteAll');
+const selectAllBtn = element('selectAll-all');
+const container = element('container');
+const detail = element('detail');
+const bannerTitle = element('banner-title')
+const lastVisit = element('last-visit');
+const link = element<HTMLAnchorElement>('link');
+const removeForm = element<HTMLFormElement>('remove-form');
+const background = element('background');
+const waitingWindow = element('waiting-window');
+const waitingText =  element('waiting-window').children[0] as HTMLElement;
+const doneBtn = element('waiting-window').children[1] as HTMLElement;
 
 const removeCache = ["appcache", "cacheStorage"];
 let removeBookmark = false;
@@ -25,7 +31,7 @@ let removeBookmark = false;
  * @param {html node} node The html node to add classes on
  * @param {array} classlist The list of classes to add
  */
-function addClasses(node, classlist) {
+function addClasses(node: HTMLElement, classlist: string[]) {
     if (typeof(node) !== 'object') alert("ERROR adding classes")
     classlist.forEach(e => node.classList.add(e));
 }
@@ -37,7 +43,7 @@ function addClasses(node, classlist) {
  * @param {string} id  the bookmark id 
  * @return the div node with url
  */
-function wrapListItem(url, title, id) {
+function wrapListItem(url: string | undefined, title: string, id: string) {
     if (typeof url == 'undefined')
         throw "wrapListItem: <"+title+"> is a folder";
     
@@ -76,7 +82,7 @@ function wrapListItem(url, title, id) {
  * @param {string} id the bookmark id of the folder
  * @return the div node with folder title
  */
-function wrapListFolder(title, id){
+function wrapListFolder(title: string, id: string){
     let item = document.createElement('div');
     let titleElement = document.createElement('div');   // the item of folder title
     let checkbox = document.createElement('input');
@@ -121,7 +127,7 @@ function wrapListFolder(title, id){
  * @param {string} url the url of the bookmark 
  * @param {string} title the displayed title of the bookmark
  */
-async function popUpDetail(id, url, title){
+async function popUpDetail(id: string, url: string, title: string){
     await emptyDetail();
 
     bannerTitle.innerText = title;
@@ -130,7 +136,7 @@ async function popUpDetail(id, url, title){
     chrome.history.getVisits({ "url": url }, res => {
         if (res.length > 0) {
             let item = res.slice(-1)[0];
-            let time = new Date(item.visitTime);
+            let time = new Date(item.visitTime ?? 0);
             lastVisit.innerText = time.toString().split(' ', 5).join(' ');
         } else {
             lastVisit.innerText = '<no history found>';
@@ -149,11 +155,11 @@ async function popUpDetail(id, url, title){
         url2 = url.replace(/http/, 'https');
     }
 
-    let originList = [url];
+    let originList: [string, ...string[]] = [url];
     if (url2)
         originList.push(url2);
 
-    document.getElementById('submit-btn').onclick = ((event) => {
+    element('submit-btn').onclick = ((event) => {
         event.preventDefault();
 
         // collect what data to delete
@@ -167,14 +173,14 @@ async function popUpDetail(id, url, title){
                 "origins": originList
             }, 
             obj, 
-            function(res) {
+            function() {
                 waitingText.style.display = 'none';
                 doneBtn.style.display = 'block';
                 // remove bookmark if it's ticked
                 if (removeBookmark) {
                     chrome.bookmarks.remove(id, () => {
                         console.log("Successfully remove bookmark <" + title + ">");
-                        document.getElementById(id).parentNode.removeChild(document.getElementById(id));
+                        element(id).remove();
                     })
                 }
             }
@@ -188,7 +194,7 @@ async function popUpDetail(id, url, title){
  * @param {string} text 
  * @return if title is valid, return text; else return '<unnamed>'
  */
-function validateTitle(text) {
+function validateTitle(text: string) {
     if (/\S+/.test(text))
         return text;
     else
@@ -210,12 +216,11 @@ function emptyDetail(){
  * @param {html element} node the folder node to be reverse status 
  * @return A boolean value indicating the folder is now set to open (true) or close (false)
  */
-function reverseFolderStatus(node){
-    let titleNode = node.firstChild.firstChild.nextSibling;
-    let title = titleNode.innerText;
+function reverseFolderStatus(node: HTMLElement){
+
 
     const curState = node.getAttribute("open");
-    node.setAttribute("open", !curState);
+    node.setAttribute("open", String(!curState));
 
     return node.getAttribute("open");
 }
@@ -224,24 +229,24 @@ function reverseFolderStatus(node){
  * parse a folder and display on page
  * @param {string} id the id of the bookmark folder 
  */
-async function parseFolder(id){
+async function parseFolder(id: string){
     // append all the children to this folder element
     chrome.bookmarks.getChildren(id, (children) => {
         children.forEach((child) => {
-            let parent = document.getElementById(id);
+            let parent = element(id);
             if (child != undefined) {
-                let element = undefined;
+                let childElement: HTMLElement;
                 // try to wrap the item as single url. If fails, parse as folder
                 try {
-                    element = wrapListItem(child.url, child.title, child.id);
+                    childElement = wrapListItem(child.url, child.title, child.id);
                 } catch (err) {
-                    element = wrapListFolder(child.title, child.id);
+                    childElement = wrapListFolder(child.title, child.id);
                     parseFolder(child.id);
                 } finally {
                     // increment indent level, hide all children by default
-                    element.style.marginLeft = '30px';
+                    childElement!.style.marginLeft = '30px';
                     // append child item into container
-                    document.getElementById(`children${id}`).appendChild(element);
+                    element(`children${id}`).appendChild(childElement!);
                 }
             } 
         });
@@ -253,12 +258,12 @@ async function parseFolder(id){
  * @param {string} id the id of the folder element
  * @param {boolean} value the value that wants to set in the checkbox
  */
-function selectAll(id, value) {
-    let checkbox = document.getElementById(id).firstChild.firstChild;
+function selectAll(id: string, value: boolean) {
+    let checkbox = element(id).firstElementChild!.firstElementChild as HTMLInputElement;
     checkbox.checked = value;
  
     updateOriginalList(checkbox);
-    let children = document.getElementById(`children${id}`).children;
+    let children = element(`children${id}`).children;
     for (let i = 0; i < children.length; i++) {
         // recursively select nested folder
         if(children[i].classList.contains('folder')){
@@ -266,8 +271,8 @@ function selectAll(id, value) {
         
         // add href into list
         } else {
-            children[i].firstChild.checked = value;
-            updateOriginalList(children[i].firstChild);
+            (children[i].firstElementChild as HTMLInputElement).checked = value;
+            updateOriginalList(children[i].firstElementChild as HTMLInputElement);
         }
     };
 }
@@ -276,8 +281,8 @@ function selectAll(id, value) {
  * Push the url and it's bookmark id into list if checked. Remove them if unchecked.
  * @param {html node} checkbox the checkbox clicked by user
  */
-function updateOriginalList(checkbox){
-    let href = checkbox.nextSibling.getAttribute('href');
+function updateOriginalList(checkbox: HTMLInputElement){
+    let href = checkbox.nextElementSibling!.getAttribute('href');
 
     // if it's an item
     if (href){
@@ -322,8 +327,8 @@ function updateOriginalList(checkbox){
  * @param {string} value 
  * @param {array} list 
  */
-function removeFromList(value, list){
-    let i = list.indexOf(value);
+function removeFromList(value: string | undefined, list: string[]){
+    let i = value === undefined ? -1 : list.indexOf(value);
     if (i >= 0)
         list.splice(i, 1);
 }
@@ -333,9 +338,10 @@ function removeFromList(value, list){
  * @param {html node} parent the parent node of the checkboxes
  * @return return the checked option as object
  */
-function collectChecked(parent){
-    let obj = {};
+function collectChecked(parent: HTMLFormElement){
+    let obj: Record<string, boolean> = {};
     for(var el of parent.elements){
+        if (!(el instanceof HTMLInputElement)) continue;
         if (el.name == 'remove-bookmark'){
             removeBookmark = el.checked;
           
@@ -373,57 +379,60 @@ function getRoot() {
  * Event handler for checkBox
  * @param {event} event checkbox event
  */
-function checkBoxHandler(event){
-    updateOriginalList(event.target);
+function checkBoxHandler(event: Event){
+    if (event.target instanceof HTMLInputElement) updateOriginalList(event.target);
 }
 
 /**
  * Event handler for 'delete all' button
  * @param {event} event click event
  */
-function deleteAll(event){
-    var selectedBanner = document.getElementById('delete-selected-banner');
+function deleteAll(event: MouseEvent){
+    var selectedBanner = element<HTMLFormElement>('delete-selected-banner');
     
     // collect what data to delete
     let obj = collectChecked(selectedBanner);
+
+    if (!selectedOrigins.length) return;
+    const origins: [string, ...string[]] = [selectedOrigins[0], ...selectedOrigins.slice(1)];
 
     // setting background
     background.classList.add('waiting-bg');
     waitingWindow.style.display = 'flex';
     
-    selectedOrigins.sort((a, b) => b-a);
+    selectedOrigins.sort((a, b) => Number(b)-Number(a));
 
     // remove selected item
     chrome.browsingData.remove(
-        { "origins": selectedOrigins }, 
+        { "origins": origins }, 
         obj, 
-        function(res) {
+        function() {
             // remove bookmark if it's ticked, remove bookmark and html node
             if (removeBookmark) {
                 selectedBookmarks.forEach((b) => {
                     chrome.bookmarks.remove(b, () => {
                         console.log("successfully removed ", b);
-                        document.getElementById(b).parentNode.removeChild(document.getElementById(b));
+                        element(b).remove();
                     });
                 })
             }
             
             // remove ticked empty bookmark if "remove bookmark" is ticked
             if (removeBookmark) {
-                selectedFolder.sort((a, b) => b-a);
+                selectedFolder.sort((a, b) => Number(b)-Number(a));
                 
                 // remove selected empty folders (if any)
                 selectedFolder.forEach((f) => 
                     chrome.bookmarks.remove(f, () => {
                         console.log("Successfully remove empty folder " + f);
-                        document.getElementById(f).parentNode.removeChild(document.getElementById(f));
+                        element(f).remove();
                     })
                 );
             }
 
             // empty all checkbox
             for(let el of selectedBanner.elements)
-                el.checked = false;
+                if (el instanceof HTMLInputElement) el.checked = false;
             
             // empty all lists 
             if (removeBookmark) {
@@ -443,10 +452,10 @@ function deleteAll(event){
  * Event handler for 'select all' button for "delete all" function
  * @param {event} event click event
  */
-function selectAllData(e) {
-    const ch = document.getElementById('delete-all-options').children;
+function selectAllData(e: MouseEvent) {
+    const ch = element('delete-all-options').children;
     for (let i = 0; i < ch.length; i++)
-        ch[i].children[0].checked = true;
+        (ch[i].children[0] as HTMLInputElement).checked = true;
 }
 
 

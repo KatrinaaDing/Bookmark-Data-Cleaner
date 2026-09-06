@@ -3,6 +3,13 @@ A Chrome extension that delete all cache, browser data before deleting a bookmar
 
 
 
+## Development and rebranding
+
+- [Stage 1 rebranding plan](docs/rebranding-plan.md)
+- [Run and test the extension](docs/development.md)
+
+The overview below describes the legacy release. The plan documents the proposed replacement and updated cleanup categories.
+
 ## Google Chrome Extension Page
 
 [Download the extension here](https://chrome.google.com/webstore/detail/bookmark-data-cleaner/fgbajdlddblimpajlokkmkdngpnmmaja?hl=en-GB&authuser=0)

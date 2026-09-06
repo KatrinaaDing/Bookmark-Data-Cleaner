@@ -1,11 +1,10 @@
 
-function focusOrCreateTab(url) {
+function focusOrCreateTab(url: string) {
     chrome.windows.getAll({ "populate": true }, function (windows) {
         var existing_tab = null;
         for (var i in windows) {
             var tabs = windows[i].tabs;
-            for (var j in tabs) {
-                var tab = tabs[j];
+            for (const tab of tabs ?? []) {
                 if (tab.url == url) {
                     existing_tab = tab;
                     break;
@@ -13,14 +12,14 @@ function focusOrCreateTab(url) {
             }
         }
         if (existing_tab) {
-            chrome.tabs.update(existing_tab.id, { "selected": true });
+            chrome.tabs.update(existing_tab.id!, { "active": true });
         } else {
-            chrome.tabs.create({ "url": url, "selected": true });
+            chrome.tabs.create({ "url": url, "active": true });
         }
     });
 }
 
 chrome.action.onClicked.addListener(function (tab) {
-    var manager_url = chrome.extension.getURL("page.html");
+    var manager_url = chrome.runtime.getURL("page.html");
     focusOrCreateTab(manager_url);
 });
