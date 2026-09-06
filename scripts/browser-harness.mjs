@@ -6,7 +6,7 @@ export const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 export async function launch({ grantTestPermissions = false } = {}) {
   if (!process.env.CHROME_BIN)
     throw Error(
-      "Set CHROME_BIN to Chrome for Testing. Only disposable profiles are used.",
+      "Set CHROME_BIN to Chrome for Testing or a compatible Edge executable. Only disposable profiles are used.",
     );
   const profile = await mkdtemp(join(tmpdir(), "bookmark-cleaner-test-"));
   const proc = spawn(

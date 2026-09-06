@@ -102,6 +102,10 @@ try {
   );
   await run(`location.hash='sites'`);
   await pause(250);
+  // Edge may seed its own Bing/MSN cookies in a fresh profile. Filter through the UI to the reserved fixture domains.
+  await run(
+    `const search=document.querySelector('input[aria-label="Find a website"]');search.value='.test';search.dispatchEvent(new Event('input',{bubbles:true}));`,
+  );
   assert.equal(await run(`document.querySelectorAll('.site-row').length`), 3);
   assert.equal(
     await run(
@@ -183,7 +187,7 @@ try {
   }
   assert.deepEqual(
     await run(
-      `chrome.cookies.getAll({}).then(c=>c.map(item=>item.domain).sort())`,
+      `chrome.cookies.getAll({}).then(c=>c.filter(item=>item.domain.endsWith('.test')).map(item=>item.domain).sort())`,
     ),
     ["design.test", "orphan.test"],
   );

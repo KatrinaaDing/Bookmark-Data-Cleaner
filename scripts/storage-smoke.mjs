@@ -56,7 +56,7 @@ try {
     workers: 1,
   });
   console.log(
-    "Real Chrome storage: selected origin cleared Local Storage, IndexedDB, CacheStorage and workers; control origin preserved.",
+    "Browser storage: selected origin cleared Local Storage, IndexedDB, CacheStorage and workers; control origin preserved.",
   );
 } finally {
   await browser.close();
