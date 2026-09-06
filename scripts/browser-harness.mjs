@@ -1,9 +1,9 @@
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, cp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 export const pause = ms => new Promise(r => setTimeout(r, ms));
-export async function launch() {
+export async function launch({ grantTestPermissions = false } = {}) {
   if (!process.env.CHROME_BIN) throw Error('Set CHROME_BIN to Chrome for Testing. Only disposable profiles are used.');
   const profile = await mkdtemp(join(tmpdir(), 'bookmark-cleaner-test-'));
   const proc = spawn(process.env.CHROME_BIN, [`--user-data-dir=${profile}`, '--headless=new', '--remote-debugging-port=0', '--enable-unsafe-extension-debugging', '--no-first-run', '--no-default-browser-check', '--disable-sync', '--disable-background-networking', '--no-proxy-server', 'about:blank'], { stdio: 'ignore' });
@@ -19,7 +19,18 @@ export async function launch() {
     ws = new WebSocket(`ws://127.0.0.1:${lines[0]}${lines[1]}`);
     await new Promise((r, j) => { ws.addEventListener('open', r, { once: true }); ws.addEventListener('error', j, { once: true }); });
     ws.addEventListener('message', event => { const message = JSON.parse(event.data); const task = pending.get(message.id); if (!task) return; pending.delete(message.id); clearTimeout(task.timer); message.error ? task.reject(Error(JSON.stringify(message.error))) : task.resolve(message.result); });
-    const { id } = await cmd('Extensions.loadUnpacked', { path: resolve('dist/extension'), enableInIncognito: false });
+    let extensionPath = resolve('dist/extension');
+    if (grantTestPermissions) {
+      extensionPath = join(profile, 'test-extension');
+      await cp(resolve('dist/extension'), extensionPath, { recursive: true });
+      const manifestPath = join(extensionPath, 'manifest.json');
+      const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+      manifest.permissions = [...new Set([...manifest.permissions, ...(manifest.optional_permissions ?? [])])];
+      manifest.host_permissions = manifest.optional_host_permissions;
+      delete manifest.optional_permissions; delete manifest.optional_host_permissions;
+      await writeFile(manifestPath, JSON.stringify(manifest));
+    }
+    const { id } = await cmd('Extensions.loadUnpacked', { path: extensionPath, enableInIncognito: false });
     return { cmd, evaluate, attach, close, id };
   } catch (error) { await close(); throw error; }
 }

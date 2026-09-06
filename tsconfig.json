@@ -19,5 +19,8 @@
   },
   "include": [
     "extension/**/*.ts"
+  ],
+  "exclude": [
+    "extension/background.ts"
   ]
 }
