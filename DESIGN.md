@@ -28,3 +28,9 @@ Folder expansion: 220ms, with a rotating chevron. All native disclosures animate
 The original refinement was independently reviewed. Follow-up interactions are checked in disposable Edge profiles. No real website previews or remote favicons are loaded.
 
 Entire bookmark, folder and site rows are clickable, with independent padded checkbox targets. Hover surfaces have inset spacing; unchecked checkboxes use a lighter neutral border, with native rendering retained in forced colors.
+
+## Typography and visual hierarchy
+
+Explicitly inherit the root font on `body`: Chromium extension defaults otherwise shrink task labels. Use 15px row titles, 14px supporting controls, 13px metadata, 24px details headings and 27–32px page headings. Folder labels are semibold; row labels are medium. Keep the existing system fonts and blue accent.
+
+The inspected row uses a quiet blue tint and `aria-current`, separate from cleanup checkboxes. Preserve this context after list refreshes. Details places close beside its heading and uses one divider between summary values and expandable sections. Site filters and cleanup selection actions form separate toolbar groups; clear selection appears only when applicable.
