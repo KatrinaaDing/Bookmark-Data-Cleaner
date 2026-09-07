@@ -3,6 +3,7 @@
 }
 body {
   margin: 0;
+  font: inherit;
 }
 [hidden] {
   display: none !important;
@@ -31,7 +32,7 @@ summary {
   cursor: pointer;
 }
 button {
-  font-weight: 550;
+  font-weight: 500;
 }
 button:hover:not(:disabled) {
   background: var(--tint);
@@ -77,7 +78,7 @@ h3 {
   text-wrap: balance;
 }
 h1 {
-  font-size: clamp(1.8rem, 3vw, 2.65rem);
+  font-size: var(--text-page);
   font-weight: 600;
   letter-spacing: -0.035em;
 }
@@ -126,7 +127,7 @@ nav a[aria-current="page"] {
 .local-label {
   margin-left: auto;
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: var(--text-meta);
   white-space: nowrap;
 }
 main {
@@ -147,7 +148,7 @@ main {
   color: var(--muted);
 }
 .fine {
-  font-size: 0.85rem;
+  font-size: var(--text-meta);
   line-height: 1.55;
 }
 .dashboard {
@@ -159,7 +160,7 @@ main {
   margin-bottom: 3rem;
 }
 .dashboard h1 {
-  font-size: clamp(2.2rem, 4.4vw, 3.5rem);
+  font-size: var(--text-page);
 }
 .feature-cards {
   display: grid;
@@ -187,7 +188,7 @@ main {
   border-color: var(--accent);
 }
 .feature-card h2 {
-  font-size: 1.6rem;
+  font-size: var(--text-detail);
 }
 .feature-card p {
   color: var(--muted);
@@ -213,7 +214,7 @@ main {
   border-top: 1px solid var(--line);
   padding: 1.3rem 3.5%;
   color: var(--muted);
-  font-size: 0.83rem;
+  font-size: var(--text-meta);
 }
 .toolbar {
   display: flex;
@@ -229,7 +230,7 @@ main {
 }
 .selection-count {
   margin-left: auto;
-  font-size: 0.9rem;
+  font-size: var(--text-control);
   font-variant-numeric: tabular-nums;
 }
 .primary {
@@ -286,7 +287,7 @@ button.danger:hover:not(:disabled) {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0.65rem;
-  font-size: 0.9rem;
+  font-size: var(--text-control);
 }
 .details dt {
   color: var(--muted);
@@ -298,7 +299,7 @@ button.danger:hover:not(:disabled) {
 }
 .url {
   display: block;
-  font-size: 0.82rem;
+  font-size: var(--text-meta);
   overflow-wrap: anywhere;
   margin: 0.3rem 0;
 }
@@ -308,7 +309,7 @@ button.danger:hover:not(:disabled) {
 .save-bookmark {
   display: grid;
   gap: 0.65rem;
-  font-size: 0.9rem;
+  font-size: var(--text-control);
 }
 .save-bookmark label {
   display: grid;
@@ -337,12 +338,14 @@ button.danger:hover:not(:disabled) {
   align-items: center;
   gap: 0.6rem;
   cursor: pointer;
-  font-size: 0.93rem;
+  font-size: var(--text-control);
 }
 .check:has(input:disabled) {
   cursor: not-allowed;
 }
 .row-title {
+  font-size: var(--text-body);
+  font-weight: 500;
   text-align: left;
   border: 0;
   background: none;
@@ -358,13 +361,14 @@ button.danger:hover:not(:disabled) {
 .row-host {
   margin-left: auto;
   color: var(--muted);
-  font-size: 0.78rem;
+  font-size: var(--text-meta);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 28%;
 }
 .folder-toggle {
+  font-weight: 600;
   text-align: left;
   background: none;
   border: 0;
@@ -386,13 +390,13 @@ button.danger:hover:not(:disabled) {
 }
 .count {
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
 .coverage {
   margin: -0.4rem 0 1.7rem;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: var(--text-control);
   max-width: 95ch;
 }
 .timeline-year {
@@ -403,6 +407,7 @@ button.danger:hover:not(:disabled) {
 }
 .timeline-year:not(:first-child) {
   margin-top: 1.2rem;
+
 }
 .site-row {
   display: grid;
@@ -413,7 +418,7 @@ button.danger:hover:not(:disabled) {
   border-bottom: 1px solid var(--line);
 }
 .timeline-date {
-  font-size: 0.82rem;
+  font-size: var(--text-meta);
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
@@ -424,7 +429,7 @@ button.danger:hover:not(:disabled) {
   min-width: 0;
 }
 .site-label .muted {
-  font-size: 0.8rem;
+  font-size: var(--text-meta);
 }
 .status {
   display: flex;
@@ -459,7 +464,7 @@ button.danger:hover:not(:disabled) {
 }
 .operation ul {
   padding-left: 1.2rem;
-  font-size: 0.85rem;
+  font-size: var(--text-meta);
   overflow-wrap: anywhere;
 }
 .error {
@@ -636,7 +641,7 @@ button.danger:hover:not(:disabled) {
 
 .help-disclosure {
   margin: 0 0 1.25rem;
-  font-size: 0.85rem;
+  font-size: var(--text-meta);
   color: var(--muted);
 }
 .help-disclosure summary {
@@ -648,16 +653,16 @@ button.danger:hover:not(:disabled) {
 .local-note {
   margin: 1.6rem 0 0.8rem;
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: var(--text-control);
 }
 .page-heading {
   margin-bottom: 1.2rem;
 }
 .page-heading p {
-  font-size: 0.95rem;
+  font-size: var(--text-control);
 }
 .dashboard h1 {
-  font-size: clamp(2rem, 3vw, 2.6rem);
+  font-size: var(--text-page);
 }
 .dashboard .page-heading {
   margin-bottom: 2rem;

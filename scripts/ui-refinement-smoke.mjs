@@ -18,6 +18,8 @@ try {
     `document.querySelectorAll('.folder-toggle').forEach(b=>{if(b.getAttribute('aria-expanded')==='false')b.click();})`,
   );
   await pause(300);
+  assert.equal(await run(`parseFloat(getComputedStyle(document.querySelector('.bookmark-row .row-title')).fontSize) >= 15`), true, "Extension UA styles must not shrink primary row text");
+  assert.equal(await run(`parseFloat(getComputedStyle(document.querySelector('.row-host')).fontSize) < parseFloat(getComputedStyle(document.querySelector('.row-title')).fontSize)`), true, "Metadata is secondary to the row title");
   await run(`document.querySelector('.bookmark-row').click()`);
   await pause(300);
   assert.equal(

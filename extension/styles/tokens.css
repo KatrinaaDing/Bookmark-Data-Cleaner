@@ -12,6 +12,11 @@
   --warning: #fff2d9;
   --focus: #0b5ed7;
   --radius: 8px;
+  --text-meta: 0.866667rem;
+  --text-control: 0.933333rem;
+  --text-body: 1rem;
+  --text-detail: 1.6rem;
+  --text-page: clamp(1.8rem, 2.5vw, 2.133333rem);
   font:
     15px/1.55 -apple-system,
     BlinkMacSystemFont,
