@@ -14,7 +14,7 @@ Use short page instructions. Refresh, clear selection and other familiar seconda
 - Workspaces: a full-width list with compact controls. The page owns scrolling.
 - Bookmark folders: nested selection and animated expansion/collapse. Closed folders are inert and hidden from assistive technology.
 - Site timeline: compact date groups; missing history stays separate.
-- Details: a shared, right-sliding section that takes half the workspace. It shows visit/cookie/bookmark summaries first; URLs, storage scope and forms expand on demand.
+- Details: a shared, right-sliding section that uses a 3:2 list-to-details split. It shows visit/cookie/bookmark summaries first; URLs, storage scope and forms expand on demand.
 - The list shrinks as the section opens and remains interactive. Both share page scrolling; narrow windows stack details below the list. Close by button or Escape. Focus returns to the source row, including its replacement after a list refresh.
 
 ## Motion

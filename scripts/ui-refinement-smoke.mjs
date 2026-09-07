@@ -43,6 +43,7 @@ try {
     false,
     "Save form is disclosed on demand",
   );
+  assert.equal(await run(`Math.abs(document.querySelector('.workspace-list').getBoundingClientRect().width / document.querySelector('.details-rail').getBoundingClientRect().width - 1.5) < .02`), true, "List and details use a 3:2 split");
   assert.equal(await run(`document.querySelector('.bookmark-row .row-title').getAttribute('aria-current')`), 'true', "The inspected row is marked separately from cleanup selection");
   await run(`document.querySelectorAll('.bookmark-row')[1].click()`);
   assert.equal(await run(`document.querySelectorAll('[data-focus-key][aria-current="true"]').length`), 1, "Only the current inspected row is marked");

@@ -5,7 +5,7 @@ html { scrollbar-gutter: stable; }
   transition: grid-template-columns 240ms ease-out, column-gap 240ms ease-out;
 }
 .workspace.has-details {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   column-gap: 24px;
 }
 .details-rail { min-width: 0; overflow: clip; }
