@@ -4,6 +4,35 @@ import { webOrigin } from "../helpers/sites.js";
 import { iconButton } from "./icons.js";
 import { dateText, el, status } from "./dom.js";
 let captionId = 0;
+function sectionSummary(label: string, text: string): HTMLElement {
+  const summary = el("summary", "detail-summary", label);
+  const info = el("span", "detail-info");
+  const caption = el("span", "detail-tooltip", text);
+  caption.id = `site-caption-${++captionId}`;
+  caption.setAttribute("role", "tooltip");
+  const infoButton = iconButton("info", `About ${label.toLowerCase()}`, () => {
+    info.classList.remove("is-dismissed");
+  });
+  infoButton.removeAttribute("title");
+  infoButton.setAttribute("aria-describedby", caption.id);
+  info.addEventListener("pointerenter", () => info.classList.remove("is-dismissed"));
+  info.addEventListener("focusin", () => info.classList.remove("is-dismissed"));
+  info.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      info.classList.add("is-dismissed");
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  });
+  // The info control must not toggle its surrounding disclosure.
+  info.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+  });
+  info.append(infoButton, caption);
+  summary.append(info);
+  return summary;
+}
 export function siteDetails(
   site?: SiteRecord,
   onSaved: () => void = () => {},
@@ -21,34 +50,7 @@ export function siteDetails(
     );
     return panel;
   }
-  const heading = el("div", "details-heading");
-  const info = el("span", "detail-info");
-  const caption = el(
-    "span",
-    "detail-tooltip",
-    site.bookmarks.length === 1
-      ? site.bookmarks[0].title || "Untitled bookmark"
-      : "Saved website details",
-  );
-  caption.id = `site-caption-${++captionId}`;
-  caption.setAttribute("role", "tooltip");
-  const infoButton = iconButton("info", "About this site", () => {
-    info.classList.remove("is-dismissed");
-  });
-  infoButton.removeAttribute("title");
-  infoButton.setAttribute("aria-describedby", caption.id);
-  info.addEventListener("pointerenter", () => info.classList.remove("is-dismissed"));
-  info.addEventListener("focusin", () => info.classList.remove("is-dismissed"));
-  info.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      info.classList.add("is-dismissed");
-      event.preventDefault();
-      event.stopPropagation();
-    }
-  });
-  info.append(infoButton, caption);
-  heading.append(el("h2", "", site.host), info);
-  panel.append(heading);
+  panel.append(el("h2", "", site.host));
   const list = el("dl");
   for (const [label, value] of [
     ["Last recorded visit", dateText(site.lastVisit)],
@@ -58,23 +60,12 @@ export function siteDetails(
     list.append(el("dt", "", label), el("dd", "", value));
   panel.append(list);
   const storage = el("details", "detail-disclosure");
-  storage.append(
-    el("summary", "", "Storage scope"),
-    el(
-      "p",
-      "fine",
-      "Cookie counts are detected data. Other storage is not measured.",
-    ),
-  );
+  const storageNote = "Cookie counts are detected data. Other storage is not measured." +
+    (site.cookies.some((cookie) => cookie.partitionKey)
+      ? " Includes third-party cookies under this site's partition. Other partitions stay separate."
+      : "");
+  storage.append(sectionSummary("Storage scope", storageNote));
   for (const origin of site.origins) storage.append(el("p", "url", origin));
-  if (site.cookies.some((cookie) => cookie.partitionKey))
-    storage.append(
-      el(
-        "p",
-        "fine",
-        "Includes third-party cookies under this site's partition. Other partitions stay separate.",
-      ),
-    );
   panel.append(storage);
   if (site.bookmarks.length) {
     const bookmarks = el("details", "detail-disclosure");
@@ -92,10 +83,8 @@ export function siteDetails(
   if (site.urls.length) {
     const links = el("details", "detail-disclosure");
     links.append(
-      el("summary", "", `Known URLs (${site.urls.length})`),
-      el(
-        "p",
-        "fine",
+      sectionSummary(
+        `Known URLs (${site.urls.length})`,
         "Opening a URL visits the site and can create browsing data.",
       ),
     );

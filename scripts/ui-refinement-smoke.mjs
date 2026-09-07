@@ -45,6 +45,10 @@ try {
   );
   assert.equal(await run(`Math.abs(document.querySelector('.workspace-list').getBoundingClientRect().width / document.querySelector('.details-rail').getBoundingClientRect().width - 1.5) < .02`), true, "List and details use a 3:2 split");
   assert.equal(await run(`getComputedStyle(document.querySelector('.detail-tooltip')).visibility`), 'hidden');
+  assert.equal(await run(`document.querySelectorAll('.detail-summary .detail-info').length`), 2, "Storage scope and Known URLs each have an info icon");
+  assert.equal(await run(`!!document.querySelector('.details h2 .detail-info, .details-heading .detail-info')`), false, "Site title has no info icon");
+  await run(`document.querySelector('.detail-info button').click()`);
+  assert.equal(await run(`document.querySelector('.detail-info').closest('details').open`), false, "Info clicks do not expand the section");
   const infoPoint = await run(`(()=>{const r=document.querySelector('.detail-info button').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);
   await browser.cmd("Input.dispatchMouseEvent", {type:"mouseMoved", ...infoPoint}, page.sessionId);
   assert.equal(await run(`getComputedStyle(document.querySelector('.detail-tooltip')).visibility`), 'visible', "Caption appears on hover");

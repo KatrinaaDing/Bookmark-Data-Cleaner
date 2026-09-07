@@ -84,16 +84,9 @@ html { scrollbar-gutter: stable; }
 
 .details > .muted { font-size: var(--text-control); }
 
-.details-heading {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding-right: 40px;
-}
-.details-heading h2 { min-width: 0; padding-right: 0; }
-.detail-info { display: inline-flex; flex-shrink: 0; }
-.detail-info .icon-button { color: var(--muted); border-color: transparent; }
+.detail-summary { position: relative; }
+.detail-info { display: inline-flex; vertical-align: middle; margin-left: 4px; }
+.detail-info .icon-button { width: 30px; height: 30px; color: var(--muted); border-color: transparent; }
 .detail-tooltip {
   position: absolute;
   top: 100%;
