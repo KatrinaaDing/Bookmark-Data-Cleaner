@@ -10,14 +10,15 @@ html { scrollbar-gutter: stable; }
 }
 .details-rail { min-width: 0; overflow: clip; }
 .details-drawer {
+  position: relative;
   min-width: 0;
   margin: 0;
-  padding: 0 24px 24px;
+  padding: 24px;
   border: 1px solid var(--line);
   border-radius: 14px;
   color: var(--ink);
   background: var(--surface);
-  box-shadow: 0 8px 36px rgb(32 45 67 / 7%);
+  box-shadow: 0 4px 20px rgb(32 45 67 / 4%);
 }
 @media (max-width: 760px) {
   .workspace, .workspace.has-details { grid-template-columns: minmax(0, 1fr); gap: 16px; }
@@ -26,20 +27,17 @@ html { scrollbar-gutter: stable; }
   .workspace { transition: none; }
 }
 .drawer-header {
-  position: sticky;
-  top: 0;
-  display: flex;
-  justify-content: flex-end;
-  padding: 16px 0 8px;
-  background: var(--surface);
-  z-index: 1;
+  position: absolute;
+  top: 16px;
+  right: 16px;
 }
 .details {
   border: 0;
   padding: 0;
 }
 .details h2 {
-  font-size: 1.6rem;
+  font-size: var(--text-detail);
+  padding-right: 40px;
   overflow-wrap: anywhere;
 }
 .details h3 {
@@ -48,7 +46,9 @@ html { scrollbar-gutter: stable; }
 .details dl {
   grid-template-columns: 1fr auto;
   gap: 1rem;
-  margin: 1.5rem 0;
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
 }
 .details dd {
   max-width: 30ch;
@@ -69,15 +69,17 @@ html { scrollbar-gutter: stable; }
   flex-shrink: 0;
 }
 .detail-disclosure {
-  border-top: 1px solid var(--line);
-  padding: 14px 0;
+  padding: 3px 0;
 }
 .detail-disclosure summary {
-  font-weight: 550;
+  font-size: var(--text-control);
+  font-weight: 500;
 }
 .detail-disclosure[open] > :not(summary) {
-  margin-top: 12px;
+  margin: 8px 12px 12px;
 }
 .details > .muted {
   overflow-wrap: anywhere;
 }
+
+.details > .muted { font-size: var(--text-control); }

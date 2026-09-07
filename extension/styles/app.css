@@ -407,15 +407,16 @@ button.danger:hover:not(:disabled) {
 }
 .timeline-year:not(:first-child) {
   margin-top: 1.2rem;
-
+  border-top: 1px solid var(--line);
+  padding-top: 1.2rem;
 }
 .site-row {
   display: grid;
-  grid-template-columns: 125px 20px minmax(0, 1fr);
+  grid-template-columns: 125px 30px minmax(0, 1fr);
   gap: 0.75rem;
   padding: 0.85rem 0.6rem;
   align-items: center;
-  border-bottom: 1px solid var(--line);
+  border-radius: 6px;
 }
 .timeline-date {
   font-size: var(--text-meta);
@@ -579,7 +580,7 @@ button.danger:hover:not(:disabled) {
     flex-direction: column;
   }
   .site-row {
-    grid-template-columns: 20px minmax(0, 1fr);
+    grid-template-columns: 30px minmax(0, 1fr);
   }
   .timeline-date {
     grid-column: 1/-1;
@@ -609,7 +610,7 @@ button.danger:hover:not(:disabled) {
   font-weight: 500;
 }
 .workspace-list {
-  box-shadow: 0 8px 36px rgb(32 45 67 / 7%);
+  box-shadow: 0 4px 20px rgb(32 45 67 / 4%);
   border-radius: 14px;
 }
 
