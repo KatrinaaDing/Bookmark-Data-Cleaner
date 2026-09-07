@@ -1,7 +1,9 @@
 import type { SiteRecord } from "../core/types.js";
 import { saveBookmark } from "../browser/bookmarks.js";
 import { webOrigin } from "../helpers/sites.js";
+import { iconButton } from "./icons.js";
 import { dateText, el, status } from "./dom.js";
+let captionId = 0;
 export function siteDetails(
   site?: SiteRecord,
   onSaved: () => void = () => {},
@@ -19,16 +21,34 @@ export function siteDetails(
     );
     return panel;
   }
-  panel.append(
-    el("h2", "", site.host),
-    el(
-      "p",
-      "muted",
-      site.bookmarks.length === 1
-        ? site.bookmarks[0].title
-        : "Saved website details",
-    ),
+  const heading = el("div", "details-heading");
+  const info = el("span", "detail-info");
+  const caption = el(
+    "span",
+    "detail-tooltip",
+    site.bookmarks.length === 1
+      ? site.bookmarks[0].title || "Untitled bookmark"
+      : "Saved website details",
   );
+  caption.id = `site-caption-${++captionId}`;
+  caption.setAttribute("role", "tooltip");
+  const infoButton = iconButton("info", "About this site", () => {
+    info.classList.remove("is-dismissed");
+  });
+  infoButton.removeAttribute("title");
+  infoButton.setAttribute("aria-describedby", caption.id);
+  info.addEventListener("pointerenter", () => info.classList.remove("is-dismissed"));
+  info.addEventListener("focusin", () => info.classList.remove("is-dismissed"));
+  info.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      info.classList.add("is-dismissed");
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  });
+  info.append(infoButton, caption);
+  heading.append(el("h2", "", site.host), info);
+  panel.append(heading);
   const list = el("dl");
   for (const [label, value] of [
     ["Last recorded visit", dateText(site.lastVisit)],

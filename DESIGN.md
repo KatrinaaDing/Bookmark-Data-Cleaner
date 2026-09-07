@@ -34,3 +34,5 @@ Entire bookmark, folder and site rows are clickable, with independent padded che
 Explicitly inherit the root font on `body`: Chromium extension defaults otherwise shrink task labels. Use 15px row titles, 14px supporting controls, 13px metadata, 24px details headings and 27–32px page headings. Folder labels are semibold; row labels are medium. Keep the existing system fonts and blue accent.
 
 The inspected row uses a quiet blue tint and `aria-current`, separate from cleanup checkboxes. Preserve this context after list refreshes. Details places close beside its heading and uses one divider between summary values and expandable sections. Site filters and cleanup selection actions form separate toolbar groups; clear selection appears only when applicable.
+
+The details caption appears in an info tooltip beside its title, on hover or keyboard focus. Escape dismisses the tooltip without closing details.

@@ -44,6 +44,17 @@ try {
     "Save form is disclosed on demand",
   );
   assert.equal(await run(`Math.abs(document.querySelector('.workspace-list').getBoundingClientRect().width / document.querySelector('.details-rail').getBoundingClientRect().width - 1.5) < .02`), true, "List and details use a 3:2 split");
+  assert.equal(await run(`getComputedStyle(document.querySelector('.detail-tooltip')).visibility`), 'hidden');
+  const infoPoint = await run(`(()=>{const r=document.querySelector('.detail-info button').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);
+  await browser.cmd("Input.dispatchMouseEvent", {type:"mouseMoved", ...infoPoint}, page.sessionId);
+  assert.equal(await run(`getComputedStyle(document.querySelector('.detail-tooltip')).visibility`), 'visible', "Caption appears on hover");
+  await browser.cmd("Input.dispatchMouseEvent", {type:"mouseMoved", x:0, y:0}, page.sessionId);
+  await run(`document.querySelector('.detail-info button').focus()`);
+  assert.equal(await run(`getComputedStyle(document.querySelector('.detail-tooltip')).visibility`), 'visible', "Caption is available on keyboard focus");
+  await run(`document.querySelector('.detail-info button').dispatchEvent(new KeyboardEvent('keydown', {key:'Escape',bubbles:true}))`);
+  assert.equal(await run(`getComputedStyle(document.querySelector('.detail-tooltip')).visibility`), 'hidden');
+  assert.equal(await run(`!!document.querySelector('.details-drawer')`), true, "Dismissing the tooltip keeps details open");
+  await run(`document.querySelector('.detail-info button').blur()`);
   assert.equal(await run(`document.querySelector('.bookmark-row .row-title').getAttribute('aria-current')`), 'true', "The inspected row is marked separately from cleanup selection");
   await run(`document.querySelectorAll('.bookmark-row')[1].click()`);
   assert.equal(await run(`document.querySelectorAll('[data-focus-key][aria-current="true"]').length`), 1, "Only the current inspected row is marked");
