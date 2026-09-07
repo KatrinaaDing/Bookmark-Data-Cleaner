@@ -88,6 +88,9 @@ function animateDisclosure(details: HTMLDetailsElement): void {
 
 /** Forward empty row space to its native button, preserving independent controls. */
 export function clickableRow(row: HTMLElement, action: HTMLButtonElement): void {
+  // Lists can be rebuilt while the same site remains open for inspection.
+  const inspected = document.querySelector<HTMLElement>(".details-drawer")?.dataset.inspectionKey;
+  if (inspected && inspected === action.dataset.focusKey) action.setAttribute("aria-current", "true");
   row.addEventListener("click", (event) => {
     if (event.target instanceof Element &&
         !event.target.closest("button, input, label, a, select, textarea")) action.click();

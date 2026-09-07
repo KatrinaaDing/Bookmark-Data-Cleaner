@@ -23,7 +23,15 @@ export function detailsDrawer(): DetailsDrawer {
   rail.append(dialog);
   let opened = false;
   const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function markInspected(source?: HTMLElement) {
+    document.querySelectorAll('[data-focus-key][aria-current="true"]').forEach((node) => node.removeAttribute("aria-current"));
+    if (source?.dataset.focusKey) {
+      dialog.dataset.inspectionKey = source.dataset.focusKey;
+      source.setAttribute("aria-current", "true");
+    } else delete dialog.dataset.inspectionKey;
+  }
   function finishClose() {
+    markInspected();
     const finished = motion;
     motion = undefined;
     opened = false;
@@ -79,6 +87,7 @@ export function detailsDrawer(): DetailsDrawer {
     open(content, source) {
       request++;
       trigger = source;
+      markInspected(source);
       closing = false;
       rail.closest(".workspace")?.classList.add("has-details");
       motion?.cancel();

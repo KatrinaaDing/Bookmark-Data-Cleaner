@@ -43,7 +43,9 @@ try {
     false,
     "Save form is disclosed on demand",
   );
+  assert.equal(await run(`document.querySelector('.bookmark-row .row-title').getAttribute('aria-current')`), 'true', "The inspected row is marked separately from cleanup selection");
   await run(`document.querySelectorAll('.bookmark-row')[1].click()`);
+  assert.equal(await run(`document.querySelectorAll('[data-focus-key][aria-current="true"]').length`), 1, "Only the current inspected row is marked");
   await pause(350);
   assert.equal(await run(`document.querySelector('.details-drawer').textContent.includes('Reference 1')`), true, "Main list remains interactive");
   await run(`document.querySelector('.bookmark-row').click()`);
@@ -76,6 +78,7 @@ try {
     `const form=document.querySelector('.details-drawer .save-bookmark');form.closest('details').open=true;form.requestSubmit();`,
   );
   await pause(350);
+  assert.equal(await run(`document.querySelector('.bookmark-row .row-title').getAttribute('aria-current')`), 'true', "Inspected row survives list refresh");
   await run(
     `document.querySelector('.details-drawer [aria-label="Close details"]').click()`,
   );
@@ -86,6 +89,7 @@ try {
     "Closing after save returns focus to the refreshed source row",
   );
   assert.equal(await run(`document.activeElement.textContent`), "Reference 0");
+  assert.equal(await run(`document.querySelectorAll('[data-focus-key][aria-current="true"]').length`), 0, "Closing clears the inspected state");
   // A delayed details request must not reopen the card after the user closes it.
   await run(
     `(async()=>{const {detailsDrawer}=await import('./components/details-drawer.js');window.testDrawer=detailsDrawer();const token=window.testDrawer.open(document.createElement('section'),document.querySelector('.row-title'));window.testDrawer.close();await new Promise(r=>setTimeout(r,350));window.testDrawer.update(document.createElement('section'),token);})()`,
