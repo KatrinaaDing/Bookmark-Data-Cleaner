@@ -716,3 +716,17 @@ input[type="checkbox"]:disabled { opacity: .45; }
   box-shadow: inset 0 0 0 1px #c8daf5;
 }
 .row-title[aria-current="true"] { color: var(--accent); font-weight: 600; }
+
+.toolbar-filters, .toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .55rem;
+  min-width: 0;
+}
+.toolbar-filters { flex: 1 1 520px; }
+.toolbar-actions { margin-left: auto; }
+.toolbar-actions .selection-count { margin: 0 .35rem; }
+@media (max-width: 760px) {
+  .toolbar-actions { margin-left: 0; }
+}

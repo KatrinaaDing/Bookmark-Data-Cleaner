@@ -129,8 +129,15 @@ export function sitesPage(onStarted: (job: Job) => void): {
         ),
       );
   });
-  toolbar.append(search, order, bookmarked.label, refresh);
-  toolbar.append(all, clear, history, count, clean);
+  const filters = el("div", "toolbar-filters");
+  filters.setAttribute("role", "group");
+  filters.setAttribute("aria-label", "Filter sites");
+  filters.append(search, order, bookmarked.label, refresh, history);
+  const actions = el("div", "toolbar-actions");
+  actions.setAttribute("role", "group");
+  actions.setAttribute("aria-label", "Cleanup selection");
+  actions.append(all, clear, count, clean);
+  toolbar.append(filters, actions);
   page.append(toolbar, access, feedback);
   const workspace = el("div", "workspace");
   workspace.append(list);
@@ -156,7 +163,7 @@ export function sitesPage(onStarted: (job: Job) => void): {
   function changed() {
     count.textContent = `${selection.ids.size} selected`;
     count.hidden = selection.ids.size === 0;
-    clear.disabled = selection.ids.size === 0;
+    clear.hidden = selection.ids.size === 0;
     clean.disabled = busy || !selection.ids.size;
   }
   function render() {
