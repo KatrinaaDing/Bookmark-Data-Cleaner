@@ -36,3 +36,5 @@ Explicitly inherit the root font on `body`: Chromium extension defaults otherwis
 The inspected row uses a quiet blue tint and `aria-current`, separate from cleanup checkboxes. Preserve this context after list refreshes. Details places close beside its heading and uses one divider between summary values and expandable sections. Site filters and cleanup selection actions form separate toolbar groups; clear selection appears only when applicable.
 
 Storage scope and Known URLs show their explanatory text in info tooltips beside the section labels, on hover or keyboard focus. Tooltip clicks do not expand/collapse the section; Escape dismisses the tooltip without closing details. The site title has no info icon.
+
+Details sections share 44px minimum header rows, thin animated chevrons and right-aligned help controls. Expanded content aligns with the section label. Tooltips use a compact dark surface; the close control stays visually quiet.

@@ -4,8 +4,10 @@ import { webOrigin } from "../helpers/sites.js";
 import { iconButton } from "./icons.js";
 import { dateText, el, status } from "./dom.js";
 let captionId = 0;
-function sectionSummary(label: string, text: string): HTMLElement {
-  const summary = el("summary", "detail-summary", label);
+function sectionSummary(label: string, text?: string): HTMLElement {
+  const summary = el("summary", "detail-summary");
+  summary.append(el("span", "detail-section-label", label));
+  if (!text) return summary;
   const info = el("span", "detail-info");
   const caption = el("span", "detail-tooltip", text);
   caption.id = `site-caption-${++captionId}`;
@@ -69,7 +71,7 @@ export function siteDetails(
   panel.append(storage);
   if (site.bookmarks.length) {
     const bookmarks = el("details", "detail-disclosure");
-    bookmarks.append(el("summary", "", "Bookmark locations"));
+    bookmarks.append(sectionSummary("Bookmark locations"));
     for (const bookmark of site.bookmarks)
       bookmarks.append(
         el(
@@ -140,11 +142,7 @@ export function siteDetails(
   });
   const save = el("details", "detail-disclosure");
   save.append(
-    el(
-      "summary",
-      "",
-      site.bookmarks.length ? "Save another bookmark" : "Save bookmark",
-    ),
+    sectionSummary(site.bookmarks.length ? "Save another bookmark" : "Save bookmark"),
     form,
   );
   panel.append(save);

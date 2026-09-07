@@ -69,41 +69,73 @@ html { scrollbar-gutter: stable; }
   flex-shrink: 0;
 }
 .detail-disclosure {
-  padding: 3px 0;
+  padding: 2px 0;
 }
 .detail-disclosure summary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 8px;
+  list-style: none;
   font-size: var(--text-control);
   font-weight: 500;
 }
+.detail-disclosure summary::-webkit-details-marker { display: none; }
+.detail-disclosure summary::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: rotate(-45deg);
+  transition: transform 180ms ease-out;
+}
+.detail-disclosure[open] > summary::before { transform: rotate(45deg); }
+.detail-section-label { flex: 1; min-width: 0; }
 .detail-disclosure[open] > :not(summary) {
-  margin: 8px 12px 12px;
+  margin: 2px 8px 6px 26px;
 }
-.details > .muted {
-  overflow-wrap: anywhere;
+.detail-disclosure .url {
+  padding: 6px 0;
+  line-height: 1.5;
 }
-
-.details > .muted { font-size: var(--text-control); }
-
-.detail-summary { position: relative; }
-.detail-info { display: inline-flex; vertical-align: middle; margin-left: 4px; }
-.detail-info .icon-button { width: 30px; height: 30px; color: var(--muted); border-color: transparent; }
+.detail-disclosure .save-bookmark { margin-top: 10px; margin-bottom: 14px; }
+.details > .muted { font-size: var(--text-control); overflow-wrap: anywhere; }
+.detail-info { display: inline-flex; flex-shrink: 0; }
+.detail-info .icon-button {
+  width: 28px;
+  height: 28px;
+  color: var(--muted);
+  border: 0;
+  background: transparent;
+}
+.detail-info .icon { width: 16px; height: 16px; }
+.detail-info .icon-button:hover { color: var(--accent); background: var(--surface); }
 .detail-tooltip {
   position: absolute;
   top: 100%;
-  left: 0;
+  right: 0;
   z-index: 3;
-  width: max-content;
-  max-width: 100%;
+  width: min(300px, 100%);
   padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: 0 4px 16px rgb(32 45 67 / 12%);
-  color: var(--ink);
-  font-size: var(--text-control);
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--surface);
+  box-shadow: 0 4px 12px rgb(32 45 67 / 12%);
+  font-size: var(--text-meta);
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
   overflow-wrap: anywhere;
   visibility: hidden;
 }
 .detail-info:not(.is-dismissed):is(:hover, :focus-within) .detail-tooltip {
   visibility: visible;
+}
+.drawer-header .icon-button { border-color: transparent; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) {
+  .detail-disclosure summary::before { transition: none; }
 }
