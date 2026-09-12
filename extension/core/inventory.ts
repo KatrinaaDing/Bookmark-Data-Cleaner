@@ -1,8 +1,8 @@
 import type { BookmarkRef, CookieRef, SiteRecord } from "./types.js";
 import {
+  cookieAppliesToUrl,
   cookieIdentity,
   cookieOwner,
-  domainMatches,
   unique,
 } from "../helpers/sites.js";
 
@@ -151,10 +151,8 @@ export function sitesFromBookmarks(
     site.urls.push(bookmark.url);
     if (origin && host) {
       site.origins.push(origin, `https://${host}`, `http://${host}`);
-      site.cookies = (cookies ?? []).filter((c) =>
-        c.partitionKey
-          ? !!cookieOwner(c) && domainMatches(host, cookieOwner(c)!)
-          : domainMatches(host, c.domain),
+      site.cookies = (cookies ?? []).filter((cookie) =>
+        cookieAppliesToUrl(cookie, bookmark.url),
       );
       site.lastVisit = latestByHost.get(host);
       site.origins.push(...(originsByHost.get(host) ?? []));

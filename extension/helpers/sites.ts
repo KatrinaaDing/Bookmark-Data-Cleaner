@@ -15,6 +15,39 @@ export function domainMatches(host: string, domain: string): boolean {
   const bare = domain.replace(/^\./, "").toLowerCase();
   return host === bare || host.endsWith(`.${bare}`);
 }
+export function cookieAppliesToHost(
+  cookie: CookieRef,
+  host: string,
+): boolean {
+  const normalizedHost = host.toLowerCase();
+  const cookieHost = cookie.domain.replace(/^\./, "").toLowerCase();
+  const hostOnly = cookie.hostOnly ?? !cookie.domain.startsWith(".");
+  return hostOnly
+    ? normalizedHost === cookieHost
+    : domainMatches(normalizedHost, cookieHost);
+}
+export function cookieAppliesToUrl(cookie: CookieRef, value: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+  if (!cookie.partitionKey) return cookieAppliesToHost(cookie, url.hostname);
+  const topLevelSite = cookie.partitionKey.topLevelSite;
+  if (!topLevelSite) return false;
+  let partition: URL;
+  try {
+    partition = new URL(topLevelSite);
+  } catch {
+    return false;
+  }
+  return (
+    url.protocol === partition.protocol &&
+    domainMatches(url.hostname, partition.hostname)
+  );
+}
 export function cookieIdentity(cookie: CookieRef): string {
   return JSON.stringify([
     cookie.storeId,

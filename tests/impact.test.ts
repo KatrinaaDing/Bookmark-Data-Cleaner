@@ -183,3 +183,152 @@ test("explicit saved-data options do not report cookie-only domain effects", () 
     "same-origin",
   ]);
 });
+
+test("cookie-only impact keeps host-only cookies on their exact host", () => {
+  const hostOnlyTarget: SiteRecord = {
+    ...target,
+    origins: [],
+    cookies: [
+      {
+        name: "host-only",
+        domain: "example.test",
+        hostOnly: true,
+        path: "/",
+        secure: true,
+        storeId: "0",
+      },
+    ],
+  };
+  const cookieOnly: CleanupOptions = {
+    cookies: true,
+    savedData: false,
+    cache: false,
+    workers: false,
+    bookmarks: false,
+  };
+  const exactHost = {
+    id: "exact-host",
+    title: "Exact host",
+    url: "https://example.test/account",
+    path: "Work",
+  };
+  const subdomain = {
+    id: "subdomain",
+    title: "Subdomain",
+    url: "https://app.example.test/account",
+    path: "Work",
+  };
+  const result = analyzeImpact(
+    [hostOnlyTarget],
+    [selected, exactHost, subdomain],
+    [],
+    cookieOnly,
+  );
+  assert.deepEqual(result.relatedBookmarks.map(({ id }) => id), [
+    "exact-host",
+  ]);
+});
+
+test("cookie-only impact uses the domain prefix when hostOnly metadata is absent", () => {
+  const legacyDomainTarget: SiteRecord = {
+    ...target,
+    origins: [],
+    cookies: [
+      {
+        name: "legacy-domain",
+        domain: ".example.test",
+        path: "/",
+        secure: true,
+        storeId: "0",
+      },
+    ],
+  };
+  const cookieOnly: CleanupOptions = {
+    cookies: true,
+    savedData: false,
+    cache: false,
+    workers: false,
+    bookmarks: false,
+  };
+  const subdomain = {
+    id: "subdomain",
+    title: "Subdomain",
+    url: "https://app.example.test/account",
+    path: "Work",
+  };
+  const result = analyzeImpact(
+    [legacyDomainTarget],
+    [selected, subdomain],
+    [],
+    cookieOnly,
+  );
+  assert.deepEqual(result.relatedBookmarks.map(({ id }) => id), [
+    "subdomain",
+  ]);
+});
+
+test("partition impact preserves the top-level site scheme", () => {
+  const partitionTarget: SiteRecord = {
+    ...target,
+    origins: [],
+    cookies: [
+      {
+        name: "partitioned",
+        domain: "third-party.test",
+        hostOnly: true,
+        path: "/",
+        secure: true,
+        storeId: "0",
+        partitionKey: {
+          topLevelSite: "https://example.test",
+          hasCrossSiteAncestor: true,
+        },
+      },
+    ],
+  };
+  const cookieOnly: CleanupOptions = {
+    cookies: true,
+    savedData: false,
+    cache: false,
+    workers: false,
+    bookmarks: false,
+  };
+  const httpsBookmark = {
+    id: "https-partition",
+    title: "HTTPS partition",
+    url: "https://app.example.test/account",
+    path: "Work",
+  };
+  const httpBookmark = {
+    id: "http-partition",
+    title: "HTTP partition",
+    url: "http://app.example.test/account",
+    path: "Work",
+  };
+  const httpsSite: SiteRecord = {
+    id: "https-site",
+    host: "app.example.test",
+    origins: ["https://app.example.test"],
+    urls: [],
+    cookies: [],
+    bookmarks: [],
+  };
+  const httpSite: SiteRecord = {
+    id: "http-site",
+    host: "app.example.test",
+    origins: ["http://app.example.test"],
+    urls: [],
+    cookies: [],
+    bookmarks: [],
+  };
+  const result = analyzeImpact(
+    [partitionTarget],
+    [selected, httpsBookmark, httpBookmark],
+    [httpsSite, httpSite],
+    cookieOnly,
+  );
+  assert.deepEqual(result.relatedBookmarks.map(({ id }) => id), [
+    "https-partition",
+  ]);
+  assert.deepEqual(result.relatedSites.map(({ id }) => id), ["https-site"]);
+});

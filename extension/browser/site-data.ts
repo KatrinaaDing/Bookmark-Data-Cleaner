@@ -34,14 +34,17 @@ export async function readCookies(): Promise<CookieRef[]> {
     )
   ).flat();
   return unique(
-    cookies.map(({ name, domain, path, secure, storeId, partitionKey }) => ({
-      name,
-      domain,
-      path,
-      secure,
-      storeId,
-      ...(partitionKey ? { partitionKey } : {}),
-    })),
+    cookies.map(
+      ({ name, domain, hostOnly, path, secure, storeId, partitionKey }) => ({
+        name,
+        domain,
+        hostOnly,
+        path,
+        secure,
+        storeId,
+        ...(partitionKey ? { partitionKey } : {}),
+      }),
+    ),
     cookieIdentity,
   );
 }

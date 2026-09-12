@@ -42,7 +42,21 @@ try {
         } catch {
           invalidRejected = true;
         }
-        await chrome.bookmarks.remove(created.id);
+        await bookmarks.removeBookmark(created.id);
+        const bookmarkRemoved = await chrome.bookmarks
+          .get(created.id)
+          .then(
+            () => false,
+            () => true,
+          );
+        await bookmarks.removeEmptyFolder(source.id);
+        await bookmarks.removeEmptyFolder(destination.id);
+        const foldersRemoved = await Promise.all([source.id, destination.id])
+          .then((ids) => Promise.all(ids.map((id) => chrome.bookmarks.get(id))))
+          .then(
+            () => false,
+            () => true,
+          );
         return {
           createdId: created.id,
           updatedId: updated.id,
@@ -52,6 +66,8 @@ try {
           destinationId: destination.id,
           path: saved?.path,
           invalidRejected,
+          bookmarkRemoved,
+          foldersRemoved,
         };
       } finally {
         await chrome.bookmarks.remove(source.id).catch(() => {});
@@ -65,8 +81,10 @@ try {
   assert.equal(result.parentId, result.destinationId);
   assert.match(result.path, /Bookmark Cleaner mutation destination$/);
   assert.equal(result.invalidRejected, true);
+  assert.equal(result.bookmarkRemoved, true);
+  assert.equal(result.foldersRemoved, true);
   console.log(
-    "Browser bookmarks: create, update, move, metadata refresh and URL rejection passed in a disposable profile.",
+    "Browser bookmarks: create, update, move, metadata refresh, validation and deletion helpers passed in a disposable profile.",
   );
 } finally {
   await browser.close();

@@ -2,6 +2,8 @@ import { afterEach, test } from "node:test";
 import assert from "node:assert/strict";
 import {
   readBookmarks,
+  removeBookmark,
+  removeEmptyFolder,
   saveBookmark,
   updateBookmark,
 } from "../extension/browser/bookmarks.js";
@@ -52,6 +54,11 @@ function installBookmarks(nodes: chrome.bookmarks.BookmarkTreeNode[]) {
       const node = byId.get(id)!;
       node.parentId = destination.parentId;
       return node;
+    },
+    getChildren: async (id: string) =>
+      [...byId.values()].filter((node) => node.parentId === id),
+    remove: async (id: string) => {
+      byId.delete(id);
     },
   };
   Object.defineProperty(globalThis, "chrome", {
@@ -115,6 +122,13 @@ function fixtureTree(): chrome.bookmarks.BookmarkTreeNode[] {
                 },
               ],
             },
+            {
+              id: "30",
+              parentId: "1",
+              title: "Empty",
+              syncing: false,
+              children: [],
+            },
           ],
         },
       ],
@@ -140,6 +154,7 @@ test("bookmark reads include folder breadcrumbs, metadata, and inherited protect
       path: "Bookmarks bar / Managed / Child",
       unmodifiable: true,
     },
+    { id: "30", title: "Empty", path: "Bookmarks bar / Empty" },
   ]);
   assert.deepEqual(result.bookmarks, [
     {
@@ -205,4 +220,21 @@ test("bookmark update preserves identity, moves folders, and rejects protected s
     }),
     /managed/i,
   );
+});
+
+test("bookmark deletion rejects managed ancestry and removes writable bookmarks", async () => {
+  installBookmarks(fixtureTree());
+  await assert.rejects(removeBookmark("managed-saved"), /managed/i);
+  assert.equal((await chrome.bookmarks.get("managed-saved")).length, 1);
+  await removeBookmark("saved");
+  assert.equal((await chrome.bookmarks.get("saved")).length, 0);
+});
+
+test("empty-folder deletion rejects managed and nonempty folders before removing a writable folder", async () => {
+  installBookmarks(fixtureTree());
+  await assert.rejects(removeEmptyFolder("21"), /managed/i);
+  await assert.rejects(removeEmptyFolder("10"), /still contains bookmarks/i);
+  assert.equal((await chrome.bookmarks.get("10")).length, 1);
+  await removeEmptyFolder("30");
+  assert.equal((await chrome.bookmarks.get("30")).length, 0);
 });

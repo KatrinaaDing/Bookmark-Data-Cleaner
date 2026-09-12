@@ -71,6 +71,7 @@ test("site scan emits basic cookie and bookmark inventory before history enrichm
   const finalPending = scanSites(receiveBasic);
   const basic = await basicReceived;
   assert.equal(basic.sites[0].cookiesAvailable, true);
+  assert.equal(basic.sites[0].cookies[0].hostOnly, false);
   assert.equal(basic.sites[0].lastVisit, undefined);
   assert.deepEqual(basic.sites[0].urls, ["https://example.test/saved"]);
 

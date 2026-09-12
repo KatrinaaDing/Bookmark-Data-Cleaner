@@ -1,6 +1,7 @@
 export interface CookieRef {
   name: string;
   domain: string;
+  hostOnly?: boolean;
   path: string;
   secure: boolean;
   storeId: string;

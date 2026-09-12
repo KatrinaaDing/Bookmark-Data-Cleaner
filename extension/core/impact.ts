@@ -5,8 +5,8 @@ import type {
   SiteRecord,
 } from "./types.js";
 import {
-  cookieOwner,
-  domainMatches,
+  cookieAppliesToHost,
+  cookieAppliesToUrl,
   hostOf,
   webOrigin,
 } from "../helpers/sites.js";
@@ -27,17 +27,6 @@ function hasWebsiteData(options?: CleanupOptions): boolean {
   );
 }
 
-function cookieScopeHost(cookie: CookieRef): string | undefined {
-  return cookie.partitionKey
-    ? cookieOwner(cookie)
-    : cookie.domain.replace(/^\./, "").toLowerCase();
-}
-
-function hostInCookieScope(host: string, cookie: CookieRef): boolean {
-  const scope = cookieScopeHost(cookie);
-  return !!scope && domainMatches(host, scope);
-}
-
 function siteHosts(site: SiteRecord): Set<string> {
   const hosts = new Set<string>();
   if (hostOf(`https://${site.host}`)) hosts.add(site.host.toLowerCase());
@@ -50,6 +39,18 @@ function siteHosts(site: SiteRecord): Set<string> {
     if (host) hosts.add(host);
   }
   return hosts;
+}
+
+function cookieAffectsSite(cookie: CookieRef, site: SiteRecord): boolean {
+  if (!cookie.partitionKey)
+    return [...siteHosts(site)].some((host) =>
+      cookieAppliesToHost(cookie, host),
+    );
+  return [
+    ...site.origins,
+    ...site.urls,
+    ...site.bookmarks.map((bookmark) => bookmark.url),
+  ].some((value) => cookieAppliesToUrl(cookie, value));
 }
 
 export function analyzeImpact(
@@ -92,7 +93,7 @@ export function analyzeImpact(
       (includesOriginEffects && !!origin && selectedOrigins.has(origin)) ||
       (includesCookieEffects &&
         !!host &&
-        selectedCookies.some((cookie) => hostInCookieScope(host, cookie)))
+        selectedCookies.some((cookie) => cookieAppliesToUrl(cookie, url)))
     );
   };
   const duplicateIds = new Set(duplicates.map((bookmark) => bookmark.id));
@@ -109,12 +110,11 @@ export function analyzeImpact(
       site.origins.some((origin) => selectedOrigins.has(origin))
     )
       return true;
-    for (const host of siteHosts(site))
-      if (
-        includesCookieEffects &&
-        selectedCookies.some((cookie) => hostInCookieScope(host, cookie))
-      )
-        return true;
+    if (
+      includesCookieEffects &&
+      selectedCookies.some((cookie) => cookieAffectsSite(cookie, site))
+    )
+      return true;
     return false;
   });
   return { duplicates, relatedBookmarks, relatedSites };

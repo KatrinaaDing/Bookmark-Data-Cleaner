@@ -75,11 +75,12 @@ async function requireWritable(
   return selected;
 }
 export async function removeBookmark(id: string): Promise<void> {
+  await requireWritable(id, "bookmark");
   await chrome.bookmarks.remove(id);
 }
 export async function removeEmptyFolder(id: string): Promise<void> {
-  const [node] = await chrome.bookmarks.get(id);
-  if (!node.parentId || node.parentId === "0" || node.unmodifiable)
+  const node = await requireWritable(id, "folder");
+  if (!node.parentId || node.parentId === "0")
     throw Error("Browser-managed folders cannot be removed.");
   if ((await chrome.bookmarks.getChildren(id)).length)
     throw Error("Folder kept because it still contains bookmarks.");
