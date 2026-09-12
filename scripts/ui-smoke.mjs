@@ -37,7 +37,7 @@ try {
   await pause(150);
   assert.equal(
     await run(`document.querySelector('.details h2').textContent`),
-    "design.test",
+    "Design notes",
   );
   await run(
     `document.querySelector('.details-drawer [aria-label="Close details"]').click()`,
@@ -61,7 +61,7 @@ try {
   );
   await pause(80);
   await run(
-    `Array.from(document.querySelectorAll('dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
+    `Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
   );
   await pause(50);
   assert.equal(
@@ -71,7 +71,7 @@ try {
     true,
   );
   await run(
-    `Array.from(document.querySelectorAll('dialog label')).find(l=>l.textContent==='Remove selected bookmarks').querySelector('input').click(); Array.from(document.querySelectorAll('dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
+    `Array.from(document.querySelectorAll('dialog.cleanup-dialog label')).find(l=>l.textContent==='Remove selected bookmarks').querySelector('input').click(); Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
   );
   await pause(80);
   assert.equal(
@@ -79,7 +79,7 @@ try {
     "Review this cleanup",
   );
   await run(
-    `Array.from(document.querySelectorAll('dialog button')).find(b=>b.textContent==='Confirm cleanup').click()`,
+    `Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Confirm cleanup').click()`,
   );
   await pause(300);
   assert.equal(
@@ -170,11 +170,11 @@ try {
   );
   await pause(80);
   await run(
-    `Array.from(document.querySelectorAll('dialog label')).find(l=>l.textContent==='Cookies and sign-in data').querySelector('input').click(); Array.from(document.querySelectorAll('dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
+    `Array.from(document.querySelectorAll('dialog.cleanup-dialog label')).find(l=>l.textContent==='Cookies and sign-in data').querySelector('input').click(); Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
   );
   await pause(80);
   await run(
-    `Array.from(document.querySelectorAll('dialog button')).find(b=>b.textContent==='Confirm cleanup').click()`,
+    `Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Confirm cleanup').click()`,
   );
   for (let i = 0; i < 50; i++) {
     await pause(100);

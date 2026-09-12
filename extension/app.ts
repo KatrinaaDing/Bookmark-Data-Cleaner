@@ -45,6 +45,11 @@ async function checkJob() {
 const bookmarks = bookmarksPage(showJob),
   sites = sitesPage(showJob),
   home = dashboard();
+document.addEventListener("bookmarks-changed", (event) => {
+  const source = (event as CustomEvent<string>).detail;
+  if (source !== "bookmarks") bookmarks.invalidate();
+  if (source !== "sites") sites.invalidate();
+});
 pages.append(home, bookmarks.element, sites.element);
 function route() {
   const current = location.hash.slice(1) || "home";

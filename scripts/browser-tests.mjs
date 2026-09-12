@@ -5,6 +5,8 @@ for (const test of [
   "storage",
   "ui",
   "folder-motion",
+  "bookmark-mutation",
+  "bookmark-management",
   "ui-refinement",
 ]) {
   execFileSync(process.execPath, [`scripts/${test}-smoke.mjs`], {

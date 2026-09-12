@@ -514,6 +514,31 @@ button.danger:hover:not(:disabled) {
   margin: 1rem 0 0.35rem;
   overflow-wrap: anywhere;
 }
+.duplicate-choices,
+.related-warning {
+  margin: 1rem 0;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #f4f8ff;
+}
+.duplicate-choices legend {
+  padding: 0 0.35rem;
+  font-weight: 650;
+}
+.duplicate-choices .check {
+  display: flex;
+  margin-top: 0.65rem;
+  align-items: flex-start;
+}
+.related-warning h3 { margin-bottom: 0.35rem; }
+.related-warning .affected-entry,
+.selected-bookmark {
+  margin-top: 0.55rem;
+  overflow-wrap: anywhere;
+  font-size: var(--text-meta);
+}
+.selected-categories { margin: 0.8rem 0; }
 .warning {
   padding: 0.9rem;
   background: var(--warning);

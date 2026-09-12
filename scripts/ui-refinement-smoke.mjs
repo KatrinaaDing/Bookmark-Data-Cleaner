@@ -23,12 +23,8 @@ try {
   await run(`document.querySelector('.bookmark-row').click()`);
   await pause(300);
   assert.equal(
-    await run(`!!document.querySelector('aside.details-drawer')`),
+    await run(`!!document.querySelector('.details-drawer[open]')`),
     true,
-  );
-  assert.equal(
-    await run(`getComputedStyle(document.documentElement).overflowY === "hidden"`),
-    false,
   );
   assert.equal(
     await run(
@@ -38,27 +34,14 @@ try {
   );
   assert.equal(
     await run(
-      `document.querySelector('aside.details-drawer .save-bookmark').checkVisibility()`,
+      `document.querySelector('.details-drawer .bookmark-editor').checkVisibility()`,
     ),
     false,
-    "Save form is disclosed on demand",
+    "Edit form is disclosed on demand",
   );
   assert.equal(await run(`Math.abs(document.querySelector('.workspace-list').getBoundingClientRect().width / document.querySelector('.details-rail').getBoundingClientRect().width - 1.5) < .02`), true, "List and details use a 3:2 split");
-  assert.equal(await run(`getComputedStyle(document.querySelector('.detail-tooltip')).visibility`), 'hidden');
-  assert.equal(await run(`document.querySelectorAll('.detail-summary .detail-info').length`), 2, "Storage scope and Known URLs each have an info icon");
-  assert.equal(await run(`!!document.querySelector('.details h2 .detail-info, .details-heading .detail-info')`), false, "Site title has no info icon");
-  await run(`document.querySelector('.detail-info button').click()`);
-  assert.equal(await run(`document.querySelector('.detail-info').closest('details').open`), false, "Info clicks do not expand the section");
-  const infoPoint = await run(`(()=>{const r=document.querySelector('.detail-info button').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);
-  await browser.cmd("Input.dispatchMouseEvent", {type:"mouseMoved", ...infoPoint}, page.sessionId);
-  assert.equal(await run(`getComputedStyle(document.querySelector('.detail-tooltip')).visibility`), 'visible', "Caption appears on hover");
-  await browser.cmd("Input.dispatchMouseEvent", {type:"mouseMoved", x:0, y:0}, page.sessionId);
-  await run(`document.querySelector('.detail-info button').focus()`);
-  assert.equal(await run(`getComputedStyle(document.querySelector('.detail-tooltip')).visibility`), 'visible', "Caption is available on keyboard focus");
-  await run(`document.querySelector('.detail-info button').dispatchEvent(new KeyboardEvent('keydown', {key:'Escape',bubbles:true}))`);
-  assert.equal(await run(`getComputedStyle(document.querySelector('.detail-tooltip')).visibility`), 'hidden');
-  assert.equal(await run(`!!document.querySelector('.details-drawer')`), true, "Dismissing the tooltip keeps details open");
-  await run(`document.querySelector('.detail-info button').blur()`);
+  assert.deepEqual(await run(`Array.from(document.querySelectorAll('.detail-card > h3')).map((heading) => heading.textContent)`), ["Basic information", "Bookmark", "Website data"], "Details use the three approved sections");
+  assert.equal(await run(`document.querySelector('.details-drawer').textContent.includes('Refinement fixtures')`), true, "Saved folder is recognizable");
   assert.equal(await run(`document.querySelector('.bookmark-row .row-title').getAttribute('aria-current')`), 'true', "The inspected row is marked separately from cleanup selection");
   await run(`document.querySelectorAll('.bookmark-row')[1].click()`);
   assert.equal(await run(`document.querySelectorAll('[data-focus-key][aria-current="true"]').length`), 1, "Only the current inspected row is marked");
@@ -84,14 +67,14 @@ try {
   );
   await pause(350);
   assert.equal(
-    await run(`!!document.querySelector('aside.details-drawer')`),
+    await run(`!!document.querySelector('.details-drawer[open]')`),
     false,
   );
   assert.equal(await run(`document.activeElement.textContent`), "Reference 0");
   await run(`document.querySelector('.bookmark-row .row-title').click()`);
   await pause(150);
   await run(
-    `const form=document.querySelector('.details-drawer .save-bookmark');form.closest('details').open=true;form.requestSubmit();`,
+    `const form=document.querySelector('.details-drawer .edit-bookmark .bookmark-editor');form.closest('details').open=true;form.requestSubmit();`,
   );
   await pause(350);
   assert.equal(await run(`document.querySelector('.bookmark-row .row-title').getAttribute('aria-current')`), 'true', "Inspected row survives list refresh");
@@ -111,7 +94,7 @@ try {
     `(async()=>{const {detailsDrawer}=await import('./components/details-drawer.js');window.testDrawer=detailsDrawer();const token=window.testDrawer.open(document.createElement('section'),document.querySelector('.row-title'));window.testDrawer.close();await new Promise(r=>setTimeout(r,350));window.testDrawer.update(document.createElement('section'),token);})()`,
   );
   assert.equal(
-    await run(`!!document.querySelector('aside.details-drawer')`),
+    await run(`!!document.querySelector('.details-drawer[open]')`),
     false,
   );
   await browser.cmd(
@@ -123,12 +106,12 @@ try {
   await pause(100);
   assert.equal(
     await run(
-      `document.querySelector('aside.details-drawer').getAnimations().length`,
+      `document.querySelector('.details-drawer').getAnimations().length`,
     ),
     0,
   );
   await run(
-    `document.querySelector('aside.details-drawer [aria-label="Close details"]').click()`,
+    `document.querySelector('.details-drawer [aria-label="Close details"]').click()`,
   );
   await pause(50);
   await browser.cmd(
@@ -161,15 +144,16 @@ try {
   await run(`document.querySelector('.bookmark-row .row-title').click()`);
   await capture("details", 1360, 900);
   await capture("details-narrow", 390, 844);
+  assert.equal(await run(`document.querySelector('.details-drawer').matches(':modal')`), true, "Narrow details use a native modal");
   await run(`location.hash='home'`);
   await pause(350);
   assert.equal(
-    await run(`!!document.querySelector('aside.details-drawer')`),
+    await run(`!!document.querySelector('.details-drawer[open]')`),
     false,
   );
   await capture("home", 1360, 900);
   console.log(
-    "Refinement: animated folders, drawer dismissal/focus, one scroll surface, progressive disclosure, reduced motion and route cleanup passed.",
+    "Refinement: animated folders, three detail sections, editor disclosure, responsive modal, focus, reduced motion and route cleanup passed.",
   );
 } finally {
   await browser.close();

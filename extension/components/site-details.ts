@@ -1,45 +1,62 @@
-import type { SiteRecord } from "../core/types.js";
-import { saveBookmark } from "../browser/bookmarks.js";
-import { webOrigin } from "../helpers/sites.js";
-import { iconButton } from "./icons.js";
-import { dateText, el, status } from "./dom.js";
-let captionId = 0;
-function sectionSummary(label: string, text?: string): HTMLElement {
-  const summary = el("summary", "detail-summary");
-  summary.append(el("span", "detail-section-label", label));
-  if (!text) return summary;
-  const info = el("span", "detail-info");
-  const caption = el("span", "detail-tooltip", text);
-  caption.id = `site-caption-${++captionId}`;
-  caption.setAttribute("role", "tooltip");
-  const infoButton = iconButton("info", `About ${label.toLowerCase()}`, () => {
-    info.classList.remove("is-dismissed");
-  });
-  infoButton.removeAttribute("title");
-  infoButton.setAttribute("aria-describedby", caption.id);
-  info.addEventListener("pointerenter", () => info.classList.remove("is-dismissed"));
-  info.addEventListener("focusin", () => info.classList.remove("is-dismissed"));
-  info.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      info.classList.add("is-dismissed");
-      event.preventDefault();
-      event.stopPropagation();
-    }
-  });
-  // The info control must not toggle its surrounding disclosure.
-  info.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-  });
-  info.append(infoButton, caption);
-  summary.append(info);
-  return summary;
+import type {
+  BookmarkFolder,
+  BookmarkRef,
+  SiteRecord,
+} from "../core/types.js";
+import { analyzeImpact } from "../core/impact.js";
+import { dateText, el } from "./dom.js";
+import { affectedBookmarks } from "./affected-bookmarks.js";
+import {
+  bookmarkEditor,
+  type BookmarkMutation,
+} from "./bookmark-editor.js";
+
+export interface DetailsSnapshot {
+  site: SiteRecord;
+  inspectedBookmark?: BookmarkRef;
+  allBookmarks: BookmarkRef[];
+  folders: BookmarkFolder[];
+  detectedSites: SiteRecord[];
 }
+
+export interface SiteDetailsOptions {
+  inspectedBookmark?: BookmarkRef;
+  allBookmarks?: BookmarkRef[];
+  folders?: BookmarkFolder[];
+  detectedSites?: SiteRecord[];
+  loadingDates?: boolean;
+  notice?: string;
+  onCleanup?: (site: SiteRecord, bookmark?: BookmarkRef) => void;
+  onMutation?: (
+    id: string | undefined,
+    result: BookmarkMutation,
+  ) => Promise<DetailsSnapshot | undefined>;
+}
+
+function detailCard(title: string): HTMLElement {
+  const card = el("section", "detail-card");
+  card.append(el("h3", "", title));
+  return card;
+}
+
+function valueRow(label: string, value: string): HTMLElement {
+  const row = el("div", "detail-value");
+  row.append(el("span", "detail-label", label), el("span", "", value));
+  return row;
+}
+
+function addressDisclosure(urls: string[]): HTMLElement {
+  const details = el("details", "detail-disclosure address-disclosure");
+  details.append(el("summary", "", urls.length === 1 ? "Address" : "Addresses"));
+  for (const url of urls) details.append(el("p", "url", url));
+  return details;
+}
+
 export function siteDetails(
   site?: SiteRecord,
-  onSaved: () => void = () => {},
+  options: SiteDetailsOptions = {},
 ): HTMLElement {
-  const panel = el("aside", "details");
+  const panel = el("section", "details");
   panel.setAttribute("aria-label", "Site details");
   if (!site) {
     panel.append(
@@ -52,99 +69,146 @@ export function siteDetails(
     );
     return panel;
   }
-  panel.append(el("h2", "", site.host));
-  const list = el("dl");
-  for (const [label, value] of [
-    ["Last recorded visit", dateText(site.lastVisit)],
-    ["Detected cookies", String(site.cookies.length)],
-    ["Bookmarks", String(site.bookmarks.length)],
-  ])
-    list.append(el("dt", "", label), el("dd", "", value));
-  panel.append(list);
-  const storage = el("details", "detail-disclosure");
-  const storageNote = "Cookie counts are detected data. Other storage is not measured." +
-    (site.cookies.some((cookie) => cookie.partitionKey)
-      ? " Includes third-party cookies under this site's partition. Other partitions stay separate."
-      : "");
-  storage.append(sectionSummary("Storage scope", storageNote));
-  for (const origin of site.origins) storage.append(el("p", "url", origin));
-  panel.append(storage);
-  if (site.bookmarks.length) {
-    const bookmarks = el("details", "detail-disclosure");
-    bookmarks.append(sectionSummary("Bookmark locations"));
-    for (const bookmark of site.bookmarks)
-      bookmarks.append(
-        el(
-          "p",
-          "wrap",
-          `${bookmark.title || "Untitled"} · ${bookmark.path || "Bookmarks"}`,
+
+  const inspected = options.inspectedBookmark;
+  const allBookmarks = options.allBookmarks ?? site.bookmarks;
+  const folders = options.folders ?? [];
+  const detectedSites = options.detectedSites ?? [];
+  const title = inspected?.title || site.host;
+  panel.append(el("h2", "", title));
+  if (options.notice) panel.append(el("p", "mutation-notice", options.notice));
+
+  const basic = detailCard("Basic information");
+  basic.append(
+    valueRow("Website", site.host),
+    inspected
+      ? valueRow(
+          "Bookmark last opened",
+          inspected.dateLastUsed ? dateText(inspected.dateLastUsed) : "Not recorded",
+        )
+      : valueRow(
+          "Website last visited",
+          options.loadingDates ? "Loading visit dates…" : dateText(site.lastVisit),
         ),
-      );
-    panel.append(bookmarks);
-  }
-  if (site.urls.length) {
-    const links = el("details", "detail-disclosure");
-    links.append(
-      sectionSummary(
-        `Known URLs (${site.urls.length})`,
-        "Opening a URL visits the site and can create browsing data.",
+  );
+  if (inspected)
+    basic.append(
+      valueRow(
+        "Website last visited",
+        options.loadingDates ? "Loading visit dates…" : dateText(site.lastVisit),
       ),
     );
-    for (const url of site.urls) {
-      const link = el("a", "url", url);
-      if (webOrigin(url)) {
-        link.href = url;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-      }
-      links.append(link);
-    }
-    panel.append(links);
+  basic.append(addressDisclosure(inspected ? [inspected.url] : site.urls));
+  const openUrl = inspected?.url ?? site.urls[0];
+  if (openUrl) {
+    const open = el("a", "open-page", "Open page");
+    open.href = openUrl;
+    open.target = "_blank";
+    open.rel = "noopener noreferrer";
+    basic.append(open);
   }
-  const form = el("form", "save-bookmark");
-  const title = el("input"),
-    url = el("input");
-  title.value = site.host;
-  url.type = "url";
-  url.required = true;
-  url.value =
-    site.urls.find((value) => webOrigin(value)) ??
-    `${site.origins.find((value) => value.startsWith("https:")) ?? site.origins[0] ?? ""}/`;
-  const titleLabel = el("label", "", "Bookmark title");
-  titleLabel.append(title);
-  const urlLabel = el("label", "", "URL to save");
-  urlLabel.append(url);
-  const submit = el("button", "", "Save bookmark");
-  submit.type = "submit";
-  const feedback = el("div");
-  form.append(titleLabel, urlLabel, submit, feedback);
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
-    if (!webOrigin(url.value)) {
-      feedback.replaceChildren(status("Enter an HTTP or HTTPS URL."));
-      return;
+
+  const bookmark = detailCard("Bookmark");
+  const rerenderAfterMutation = async (result: BookmarkMutation) => {
+    const snapshot = await options.onMutation?.(result.id, result);
+    if (!snapshot || !panel.isConnected) return;
+    const destination = snapshot.inspectedBookmark?.path;
+    const notice = result.error
+      ? `${result.error} Current browser state is shown.`
+      : result.created
+        ? `Copy created in ${destination || "the selected folder"}.`
+        : `Saved in ${destination || "the selected folder"}.`;
+    panel.replaceWith(
+      siteDetails(snapshot.site, {
+        ...options,
+        ...snapshot,
+        notice,
+        inspectedBookmark: options.inspectedBookmark
+          ? result.created
+            ? options.inspectedBookmark
+            : snapshot.inspectedBookmark
+          : undefined,
+      }),
+    );
+  };
+  if (inspected) {
+    bookmark.append(valueRow("Saved in", inspected.path || "Bookmarks"));
+    const edit = el("details", "detail-disclosure edit-bookmark");
+    edit.append(el("summary", "", "Edit or move"));
+    edit.append(
+      bookmarkEditor({
+        bookmark: inspected,
+        folders,
+        title: inspected.title,
+        url: inspected.url,
+        onSettled: rerenderAfterMutation,
+      }),
+    );
+    bookmark.append(edit);
+  } else if (site.bookmarks.length) {
+    const list = el("ul", "saved-pages");
+    for (const saved of site.bookmarks) {
+      const item = el("li", "saved-page");
+      const heading = el("div", "saved-page-heading");
+      heading.append(
+        el("span", "affected-title", saved.title || "Untitled"),
+        el("span", "fine", saved.path || "Bookmarks"),
+      );
+      const edit = el("details", "detail-disclosure edit-bookmark");
+      edit.append(el("summary", "", "Edit"));
+      edit.append(
+        bookmarkEditor({
+          bookmark: saved,
+          folders,
+          title: saved.title,
+          url: saved.url,
+          onSettled: rerenderAfterMutation,
+        }),
+      );
+      item.append(heading, edit);
+      list.append(item);
     }
-    submit.disabled = true;
-    void saveBookmark(title.value, url.value)
-      .then(
-        () => {
-          feedback.replaceChildren(status("Bookmark saved."));
-          onSaved();
-        },
-        () =>
-          feedback.replaceChildren(
-            status("Could not save the bookmark. Try again."),
-          ),
-      )
-      .finally(() => {
-        submit.disabled = false;
-      });
-  });
-  const save = el("details", "detail-disclosure");
-  save.append(
-    sectionSummary(site.bookmarks.length ? "Save another bookmark" : "Save bookmark"),
-    form,
+    bookmark.append(list);
+  } else {
+    bookmark.append(el("p", "fine", "No saved pages for this website."));
+  }
+  const create = el("details", "detail-disclosure create-bookmark");
+  create.append(el("summary", "", "Create copy"));
+  create.append(
+    bookmarkEditor({
+      folders,
+      title,
+      url: inspected?.url ?? site.urls[0] ?? `${site.origins[0] ?? `https://${site.host}`}/`,
+      onSettled: rerenderAfterMutation,
+    }),
   );
-  panel.append(save);
+  bookmark.append(create);
+
+  const target = inspected
+    ? { ...site, bookmarks: [inspected] }
+    : { ...site, bookmarks: [] };
+  const impact = analyzeImpact([target], allBookmarks, detectedSites);
+  const websiteData = detailCard("Website data");
+  websiteData.append(
+    valueRow(
+      "Detected cookies",
+      site.cookiesAvailable === false
+        ? "Not checked"
+        : String(site.cookies.length),
+    ),
+    el(
+      "p",
+      "fine",
+      "Cleanup can sign you out or remove offline and unsynced website data. You will review each category before anything is removed.",
+    ),
+    affectedBookmarks(impact),
+  );
+  if (options.onCleanup) {
+    const clean = el("button", "danger detail-cleanup", "Clean up");
+    clean.type = "button";
+    clean.addEventListener("click", () => options.onCleanup?.(site, inspected));
+    websiteData.append(clean);
+  }
+  panel.append(basic, bookmark, websiteData);
   return panel;
 }

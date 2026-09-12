@@ -14,16 +14,16 @@ Use short page instructions. Refresh, clear selection and other familiar seconda
 - Workspaces: a full-width list with compact controls. The page owns scrolling.
 - Bookmark folders: nested selection and animated expansion/collapse. Closed folders are inert and hidden from assistive technology.
 - Site timeline: compact date groups; missing history stays separate.
-- Details: a shared, right-sliding section that uses a 3:2 list-to-details split. It shows visit/cookie/bookmark summaries first; URLs, storage scope and forms expand on demand.
-- The list shrinks as the section opens and remains interactive. Both share page scrolling; narrow windows stack details below the list. Close by button or Escape. Focus returns to the source row, including its replacement after a list refresh.
+- Details: a shared, right-sliding section that uses a 3:2 list-to-details split. Three softly tinted cards show Basic information, Bookmark and Website data. Addresses and edit/create forms expand on demand.
+- The desktop list shrinks as the sticky, viewport-constrained section opens and remains interactive. At 760px and below, details becomes a native modal with its own scrolling. Close by button or Escape. Focus returns to the source row, including its replacement after a list refresh.
 
 ## Motion
 
-Folder expansion: 220ms, with a rotating chevron. All native disclosures animate in both directions (220ms). Details entrance and exit: 240ms. Interrupted interactions must settle on the latest state. Reduced-motion preferences remove spatial transitions while retaining clear state changes.
+Folder expansion: 220ms, with a rotating chevron. All native disclosures animate in both directions (220ms). Details entrance and exit: 240ms on desktop. Resizing preserves the inspected item while switching modes. Interrupted interactions must settle on the latest state. Reduced-motion preferences remove spatial transitions while retaining clear state changes.
 
 ## Validation
 
-`folder-motion-smoke.mjs` checks collapse timing, rapid toggles and reduced motion. `ui-refinement-smoke.mjs` checks the drawer, progressive disclosure, dismissal/focus, save-refresh-focus recovery, stale requests, route cleanup and narrow windows. Captures live in ignored `dist/refinement/`.
+`folder-motion-smoke.mjs` checks collapse timing, rapid toggles and reduced motion. `bookmark-management-smoke.mjs` checks editing/moving identity, direct reviewed cleanup, duplicate opt-in, selection isolation, sticky details, native modal resizing and focus. `ui-refinement-smoke.mjs` retains motion, disclosure, dismissal/focus, stale request, route and narrow-window coverage. Captures live in ignored `dist/audit/` and `dist/refinement/`.
 
 The original refinement was independently reviewed. Follow-up interactions are checked in disposable Edge profiles. No real website previews or remote favicons are loaded.
 
@@ -35,6 +35,6 @@ Explicitly inherit the root font on `body`: Chromium extension defaults otherwis
 
 The inspected row uses a quiet blue tint and `aria-current`, separate from cleanup checkboxes. Preserve this context after list refreshes. Details places close beside its heading and uses one divider between summary values and expandable sections. Site filters and cleanup selection actions form separate toolbar groups; clear selection appears only when applicable.
 
-Storage scope and Known URLs show their explanatory text in info tooltips beside the section labels, on hover or keyboard focus. Tooltip clicks do not expand/collapse the section; Escape dismisses the tooltip without closing details. The site title has no info icon.
+Cleanup review lists actual selected bookmark paths and category-specific related effects. Exact URL copies are unchecked additions; changing one prepares a fresh immutable snapshot before confirmation. Bookmark-only cleanup omits website-data warnings.
 
-Details sections share 44px minimum header rows, thin animated chevrons and right-aligned help controls. Expanded content aligns with the section label. Tooltips use a compact dark surface; the close control stays visually quiet.
+Detail disclosures use thin animated chevrons and aligned content. The close control stays visually quiet. The Open page action is explicit because visiting a page can create browsing data.

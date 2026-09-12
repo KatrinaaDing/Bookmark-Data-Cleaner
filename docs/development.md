@@ -42,7 +42,9 @@ Each script creates and removes a fresh temporary profile. Never point these scr
 - `cleanup-smoke`: selected partition removed; another partition and unrelated cookies preserved; no cookie values in inventory state.
 - `storage-smoke`: known-origin Local Storage, IndexedDB, CacheStorage and workers removed; control origin preserved.
 - `folder-motion-smoke`: animated collapse, rapid toggles and reduced-motion expansion.
-- `ui-refinement-smoke`: sliding details card, one scroll surface, disclosures, dismissal/focus, focus after saving, stale requests and narrow windows. Captures go to `dist/refinement/`.
+- `bookmark-mutation-smoke`: browser-backed bookmark create, update, move, delete and folder validation.
+- `bookmark-management-smoke`: ID-preserving edit/move, cross-route refresh, isolated direct cleanup, explicit duplicate inclusion, sticky desktop details, native narrow modal, resize/focus and unavailable-cookie copy. Audit captures go to `dist/audit/`.
+- `ui-refinement-smoke`: sliding details, the three cards, editor disclosure, dismissal/focus, stale requests, reduced motion and narrow modal behavior. Captures go to `dist/refinement/`.
 - `ui-smoke`: dashboard/routes, folders, indeterminate and duplicate selection, metadata, validation, bookmark-only and site-cookie cleanup, timeline, narrow layouts and offline reload. Screenshots go to ignored `dist/screenshots/`.
 
 Cleanup/storage/UI tests copy the package into their temporary profile and grant optional permissions **in that test copy only** to seed fixtures without browser prompts. The permission test uses the real manifest. These are controlled integration tests, not complete browser compatibility coverage.
