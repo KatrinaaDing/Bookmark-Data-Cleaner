@@ -124,3 +124,41 @@ test("bookmark inventory distinguishes unread cookies from a successful empty re
   assert.equal(sitesFromBookmarks([bookmark], [])[0].cookiesAvailable, true);
   assert.equal(inventoryFromCookies([], [], []).length, 0);
 });
+
+test("same-host bookmark groups retain matching partition cookies in either URL-scheme order", () => {
+  const partitioned: CookieRef = {
+    name: "partitioned",
+    domain: "third-party.test",
+    hostOnly: true,
+    path: "/",
+    secure: true,
+    storeId: "0",
+    partitionKey: {
+      topLevelSite: "https://example.test",
+      hasCrossSiteAncestor: true,
+    },
+  };
+  const httpsBookmark = {
+    id: "https",
+    title: "Secure page",
+    url: "https://example.test/secure",
+    path: "Work",
+  };
+  const httpBookmark = {
+    id: "http",
+    title: "Plain page",
+    url: "http://example.test/plain",
+    path: "Work",
+  };
+  for (const bookmarks of [
+    [httpsBookmark, httpBookmark],
+    [httpBookmark, httpsBookmark],
+  ]) {
+    const [site] = sitesFromBookmarks(bookmarks, [partitioned]);
+    assert.deepEqual(
+      site.bookmarks.map(({ id }) => id),
+      bookmarks.map(({ id }) => id),
+    );
+    assert.deepEqual(site.cookies.map(({ name }) => name), ["partitioned"]);
+  }
+});

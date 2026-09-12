@@ -151,8 +151,10 @@ export function sitesFromBookmarks(
     site.urls.push(bookmark.url);
     if (origin && host) {
       site.origins.push(origin, `https://${host}`, `http://${host}`);
-      site.cookies = (cookies ?? []).filter((cookie) =>
-        cookieAppliesToUrl(cookie, bookmark.url),
+      site.cookies.push(
+        ...(cookies ?? []).filter((cookie) =>
+          cookieAppliesToUrl(cookie, bookmark.url),
+        ),
       );
       site.lastVisit = latestByHost.get(host);
       site.origins.push(...(originsByHost.get(host) ?? []));
