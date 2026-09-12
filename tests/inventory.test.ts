@@ -1,6 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { inventoryFromCookies } from "../extension/core/inventory.js";
+import {
+  inventoryFromCookies,
+  sitesFromBookmarks,
+} from "../extension/core/inventory.js";
 import { webOrigin, cookieIdentity } from "../extension/helpers/sites.js";
 import type { CookieRef } from "../extension/core/types.js";
 const cookie: CookieRef = {
@@ -68,7 +71,6 @@ test("partitioned cookie belongs to its top-level site and keeps distinct partit
 });
 
 test("bookmarked subdomain includes cookies partitioned under its registrable top-level site", async () => {
-  const { sitesFromBookmarks } = await import("../extension/core/inventory.js");
   const sites = sitesFromBookmarks(
     [{ id: "1", title: "App", url: "https://app.example.test/", path: "" }],
     [
@@ -83,4 +85,42 @@ test("bookmarked subdomain includes cookies partitioned under its registrable to
     ],
   );
   assert.equal(sites[0].cookies.length, 1);
+});
+
+test("inventory indexes repeated history hosts while preserving latest dates and known ports", () => {
+  const sites = inventoryFromCookies(
+    [cookie],
+    [
+      { id: "1", url: "https://example.test:8443/old", lastVisitTime: 10 },
+      { id: "2", url: "https://example.test:8443/new", lastVisitTime: 30 },
+      { id: "3", url: "http://example.test/plain", lastVisitTime: 20 },
+    ],
+    [
+      {
+        id: "saved",
+        title: "Saved page",
+        url: "https://example.test/saved?keep=yes",
+        path: "Work",
+      },
+    ],
+  );
+  assert.equal(sites[0].lastVisit, 30);
+  assert.deepEqual(sites[0].origins.sort(), [
+    "http://example.test",
+    "https://example.test",
+    "https://example.test:8443",
+  ]);
+  assert.deepEqual(sites[0].urls, ["https://example.test/saved?keep=yes"]);
+});
+
+test("bookmark inventory distinguishes unread cookies from a successful empty read", () => {
+  const bookmark = {
+    id: "1",
+    title: "Saved page",
+    url: "https://example.test/page",
+    path: "Work",
+  };
+  assert.equal(sitesFromBookmarks([bookmark])[0].cookiesAvailable, false);
+  assert.equal(sitesFromBookmarks([bookmark], [])[0].cookiesAvailable, true);
+  assert.equal(inventoryFromCookies([], [], []).length, 0);
 });

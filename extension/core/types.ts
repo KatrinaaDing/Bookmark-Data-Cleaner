@@ -11,6 +11,17 @@ export interface BookmarkRef {
   title: string;
   url: string;
   path: string;
+  parentId?: string;
+  index?: number;
+  dateAdded?: number;
+  dateLastUsed?: number;
+  unmodifiable?: boolean;
+}
+export interface BookmarkFolder {
+  id: string;
+  title: string;
+  path: string;
+  unmodifiable?: boolean;
 }
 export interface SiteRecord {
   id: string;
@@ -20,6 +31,7 @@ export interface SiteRecord {
   cookies: CookieRef[];
   bookmarks: BookmarkRef[];
   lastVisit?: number;
+  cookiesAvailable?: boolean;
 }
 export interface ScanResult {
   sites: SiteRecord[];

@@ -3,10 +3,59 @@ import {
   cookieIdentity,
   cookieOwner,
   domainMatches,
-  hostOf,
   unique,
-  webOrigin,
 } from "../helpers/sites.js";
+
+interface ParsedWebItem<T> {
+  item: T;
+  host: string;
+  origin: string;
+}
+
+function parseWebUrl(
+  value: string,
+): { host: string; origin: string } | undefined {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "http:" && url.protocol !== "https:")
+      return undefined;
+    return { host: url.hostname, origin: url.origin };
+  } catch {
+    return undefined;
+  }
+}
+
+function parseWebItems<T>(
+  items: T[],
+  urlOf: (item: T) => string | undefined,
+): ParsedWebItem<T>[] {
+  const parsed: ParsedWebItem<T>[] = [];
+  for (const item of items) {
+    const value = urlOf(item);
+    if (!value) continue;
+    const location = parseWebUrl(value);
+    if (!location) continue;
+    parsed.push({ item, ...location });
+  }
+  return parsed;
+}
+
+function matchingGroups(
+  host: string,
+  groups: Map<string, SiteRecord>,
+): SiteRecord[] {
+  const matches: SiteRecord[] = [];
+  let candidate = host;
+  while (candidate) {
+    const group = groups.get(candidate);
+    if (group) matches.push(group);
+    const dot = candidate.indexOf(".");
+    if (dot < 0) break;
+    candidate = candidate.slice(dot + 1);
+  }
+  return matches;
+}
+
 export function inventoryFromCookies(
   cookies: CookieRef[],
   history: chrome.history.HistoryItem[],
@@ -25,46 +74,64 @@ export function inventoryFromCookies(
         urls: [],
         cookies: [],
         bookmarks: [],
+        cookiesAvailable: true,
       };
       groups.set(host, site);
     }
     site.cookies.push(cookie);
   }
-  for (const site of groups.values()) {
+  for (const site of groups.values())
     site.cookies = unique(site.cookies, cookieIdentity);
-    for (const item of history) {
-      const host = hostOf(item.url ?? "");
-      if (!host || !domainMatches(host, site.host)) continue;
+  for (const { item, host, origin } of parseWebItems(
+    history,
+    (entry) => entry.url,
+  ))
+    for (const site of matchingGroups(host, groups)) {
       if (item.lastVisitTime)
         site.lastVisit = Math.max(site.lastVisit ?? 0, item.lastVisitTime);
-      site.urls.push(item.url!);
-      site.origins.push(webOrigin(item.url!)!);
+      site.origins.push(origin);
     }
-    site.bookmarks = bookmarks.filter((item) => {
-      const host = hostOf(item.url);
-      return host !== undefined && domainMatches(host, site.host);
-    });
-    site.urls = [
-      ...new Set([...site.urls, ...site.bookmarks.map((b) => b.url)]),
-    ];
-    site.origins = [
-      ...new Set([
-        ...site.origins,
-        ...site.bookmarks.map((b) => webOrigin(b.url)!),
-      ]),
-    ];
+  for (const { item, host, origin } of parseWebItems(
+    bookmarks,
+    (entry) => entry.url,
+  ))
+    for (const site of matchingGroups(host, groups)) {
+      site.bookmarks.push(item);
+      site.urls.push(item.url);
+      site.origins.push(origin);
+    }
+  for (const site of groups.values()) {
+    site.urls = [...new Set(site.urls)];
+    site.origins = [...new Set(site.origins)];
   }
   return [...groups.values()];
 }
 export function sitesFromBookmarks(
   bookmarks: BookmarkRef[],
-  cookies: CookieRef[] = [],
+  cookies?: CookieRef[],
   history: chrome.history.HistoryItem[] = [],
 ): SiteRecord[] {
   const groups = new Map<string, SiteRecord>();
+  const parsedHistory = parseWebItems(history, (visit) => visit.url);
+  const latestByHost = new Map<string, number>();
+  const originsByHost = new Map<string, Set<string>>();
+  for (const { item, host, origin } of parsedHistory) {
+    if (item.lastVisitTime)
+      latestByHost.set(
+        host,
+        Math.max(latestByHost.get(host) ?? 0, item.lastVisitTime),
+      );
+    let origins = originsByHost.get(host);
+    if (!origins) {
+      origins = new Set();
+      originsByHost.set(host, origins);
+    }
+    origins.add(origin);
+  }
   for (const bookmark of bookmarks) {
-    const origin = webOrigin(bookmark.url),
-      host = hostOf(bookmark.url);
+    const location = parseWebUrl(bookmark.url),
+      origin = location?.origin,
+      host = location?.host;
     // Non-web bookmarks can be removed independently but never become data targets.
     const id = host ?? `bookmark:${bookmark.id}`;
     let site = groups.get(id);
@@ -76,6 +143,7 @@ export function sitesFromBookmarks(
         urls: [],
         cookies: [],
         bookmarks: [],
+        cookiesAvailable: cookies !== undefined,
       };
       groups.set(id, site);
     }
@@ -83,18 +151,18 @@ export function sitesFromBookmarks(
     site.urls.push(bookmark.url);
     if (origin && host) {
       site.origins.push(origin, `https://${host}`, `http://${host}`);
-      site.cookies = cookies.filter((c) =>
+      site.cookies = (cookies ?? []).filter((c) =>
         c.partitionKey
           ? !!cookieOwner(c) && domainMatches(host, cookieOwner(c)!)
           : domainMatches(host, c.domain),
       );
-      for (const visit of history)
-        if (hostOf(visit.url ?? "") === host && visit.lastVisitTime)
-          site.lastVisit = Math.max(site.lastVisit ?? 0, visit.lastVisitTime);
+      site.lastVisit = latestByHost.get(host);
+      site.origins.push(...(originsByHost.get(host) ?? []));
     }
   }
   return [...groups.values()].map((site) => ({
     ...site,
     origins: [...new Set(site.origins)],
+    cookies: unique(site.cookies, cookieIdentity),
   }));
 }

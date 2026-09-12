@@ -45,12 +45,22 @@ export async function readCookies(): Promise<CookieRef[]> {
     cookieIdentity,
   );
 }
-export async function scanSites(): Promise<ScanResult> {
-  const [cookies, visits, bookmarks] = await Promise.all([
-    readCookies(),
-    readHistory(),
-    readBookmarks(),
+export async function scanSites(
+  onBasic?: (result: ScanResult) => void,
+): Promise<ScanResult> {
+  const cookiesPromise = readCookies();
+  const bookmarksPromise = readBookmarks();
+  const historyPromise = readHistory();
+  const [cookies, bookmarks] = await Promise.all([
+    cookiesPromise,
+    bookmarksPromise,
   ]);
+  onBasic?.({
+    sites: inventoryFromCookies(cookies, [], bookmarks.bookmarks),
+    coverage,
+    warnings: [],
+  });
+  const visits = await historyPromise;
   return {
     sites: inventoryFromCookies(cookies, visits.history, bookmarks.bookmarks),
     coverage,
