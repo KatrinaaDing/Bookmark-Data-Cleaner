@@ -118,13 +118,23 @@ html { scrollbar-gutter: stable; }
 }
 .bookmark-editor {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 0.7rem;
   padding: 0.5rem 0 0.8rem;
   font-size: var(--text-control);
 }
 .bookmark-editor label {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 0.3rem;
+}
+.bookmark-editor input,
+.bookmark-editor select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 .bookmark-editor button { justify-self: start; }
 .saved-pages,
