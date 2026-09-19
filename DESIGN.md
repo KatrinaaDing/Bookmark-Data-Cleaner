@@ -40,3 +40,5 @@ Cleanup review lists actual selected bookmark paths and category-specific relate
 Both workspaces offer Clear selection only while a selection exists. Bookmark clearing includes collapsed descendants and empty folders, resets mixed parent checkboxes, and preserves the inspected row/details independently.
 
 Detail disclosures use thin animated chevrons and aligned content. The close control stays visually quiet. The Open page action is explicit because visiting a page can create browsing data.
+
+Bookmark editor grid tracks and native controls shrink within the details card, including long folder options. Website data puts general cleanup and shared-data explanations behind the info button beside its heading; the button exposes its expanded state to assistive technology. Affected items stay visible, and final cleanup review retains its scope warnings.

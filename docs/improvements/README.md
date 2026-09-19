@@ -22,6 +22,7 @@ The current goal is **public adoption first, portfolio value second**, confirmed
 | 2026-09-19 | [Current evaluation](evaluations/2026-09-19-extension-evaluation.md) | Reassessment of `ad45d365d2924d1be79848a7ee8ff3730a4afd39`; public growth and portfolio focus |
 | 2026-09-19 | [Public-release implementation plan](plans/2026-09-19-public-release-plan.md) | Active work tracker; R02/R03/R05 implemented, R01 corrected on tested Edge with browser compatibility gate remaining |
 | 2026-09-19 | [Release foundations](history/2026-09-19-release-foundations.md) | First implementation tranche, focused commits, 40 unit tests and 11 browser suites |
+| 2026-09-19 | [Details form and help refinement](history/2026-09-19-details-refinement.md) | Constrained long editor fields and on-demand website-data explanations |
 
 ## Interpreting old findings
 
