@@ -79,9 +79,9 @@ try {
     "The selection count hides after clearing",
   );
   assert.equal(
-    await run(`Array.from(document.querySelectorAll('.toolbar button')).find((button) => button.textContent === 'Review cleanup').disabled`),
+    await run(`Array.from(document.querySelectorAll('.toolbar button')).find((button) => button.textContent === 'Clean up data').disabled`),
     true,
-    "Review cleanup is disabled after clearing",
+    "Clean up data is disabled after clearing",
   );
   assert.equal(
     await run(`(() => {

@@ -219,3 +219,21 @@ html { scrollbar-gutter: stable; }
   .workspace { transition: none; }
   .detail-disclosure summary::before { transition: none; }
 }
+
+.bookmark-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.saved-page-description { display: grid; min-width: 0; gap: 0.1rem; }
+.bookmark-edit-action {
+  flex-shrink: 0;
+  padding: 0.3rem 0.6rem;
+  font-size: var(--text-meta);
+  color: var(--accent);
+  border-color: transparent;
+  background: transparent;
+}
+.bookmark-edit-action:hover { background: var(--tint); border-color: var(--accent); }
+.empty-folder { padding: 0.5rem 0.75rem; }

@@ -95,8 +95,8 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   }
 
   function deferEnrichmentUpdate() {
-    const opened = document.querySelectorAll<HTMLDetailsElement>(
-      ".details-drawer :is(.edit-bookmark, .create-bookmark)[open]",
+    const opened = document.querySelectorAll<HTMLElement>(
+      ".details-drawer .edit-bookmark:not([hidden]), .details-drawer .create-bookmark[open]",
     );
     for (const disclosure of opened)
       disclosure.addEventListener(
@@ -104,7 +104,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
         () => {
           if (
             !document.querySelector(
-              ".details-drawer :is(.edit-bookmark, .create-bookmark)[open]",
+              ".details-drawer .edit-bookmark:not([hidden]), .details-drawer .create-bookmark[open]",
             )
           )
             updateOpenDetails(undefined, true);
@@ -118,7 +118,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     if (
       optionalEnrichment &&
       document.querySelector(
-        ".details-drawer :is(.edit-bookmark, .create-bookmark)[open]",
+        ".details-drawer .edit-bookmark:not([hidden]), .details-drawer .create-bookmark[open]",
       )
     ) {
       deferEnrichmentUpdate();
@@ -219,7 +219,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   }
 
   const clean = button(
-    "Review cleanup",
+    "Clean up data",
     () => {
       const ids = new Set(selection.ids);
       const selectedFolders = treeView?.folders() ?? [];

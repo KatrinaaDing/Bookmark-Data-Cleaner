@@ -4,7 +4,7 @@ import type {
   SiteRecord,
 } from "../core/types.js";
 import { analyzeImpact } from "../core/impact.js";
-import { dateText, el } from "./dom.js";
+import { button, dateText, el } from "./dom.js";
 import { affectedBookmarks } from "./affected-bookmarks.js";
 import { iconButton } from "./icons.js";
 import {
@@ -44,13 +44,6 @@ function valueRow(label: string, value: string): HTMLElement {
   const row = el("div", "detail-value");
   row.append(el("span", "detail-label", label), el("span", "", value));
   return row;
-}
-
-function addressDisclosure(urls: string[]): HTMLElement {
-  const details = el("details", "detail-disclosure address-disclosure");
-  details.append(el("summary", "", urls.length === 1 ? "Address" : "Addresses"));
-  for (const url of urls) details.append(el("p", "url", url));
-  return details;
 }
 
 export function siteDetails(
@@ -99,7 +92,6 @@ export function siteDetails(
         options.loadingDates ? "Loading visit dates…" : dateText(site.lastVisit),
       ),
     );
-  basic.append(addressDisclosure(inspected ? [inspected.url] : site.urls));
   const openUrl = inspected?.url ?? site.urls[0];
   if (openUrl) {
     const open = el("a", "open-page", "Open page");
@@ -132,52 +124,57 @@ export function siteDetails(
       }),
     );
   };
+  function addEditor(container: HTMLElement, heading: HTMLElement, saved: BookmarkRef) {
+    const editor = el("div", "edit-bookmark");
+    editor.id = `bookmark-editor-${saved.id}`;
+    editor.hidden = true;
+    editor.append(bookmarkEditor({
+      bookmark: saved, folders, title: saved.title, url: saved.url,
+      onSettled: rerenderAfterMutation,
+    }));
+    const edit = button("Edit", () => {
+      editor.hidden = !editor.hidden;
+      edit.textContent = editor.hidden ? "Edit" : "Close edit";
+      edit.setAttribute("aria-expanded", String(!editor.hidden));
+      edit.setAttribute("aria-label", `${editor.hidden ? "Edit" : "Close editor for"} ${saved.title || "bookmark"}`);
+      if (!editor.hidden) editor.querySelector("input")?.focus();
+      editor.dispatchEvent(new Event("toggle"));
+    }, "bookmark-edit-action");
+    edit.setAttribute("aria-label", `Edit ${saved.title || "bookmark"}`);
+    edit.setAttribute("aria-expanded", "false");
+    edit.setAttribute("aria-controls", editor.id);
+    heading.classList.add("bookmark-heading");
+    heading.append(edit);
+    container.append(editor);
+  }
   if (inspected) {
     bookmark.append(valueRow("Saved in", inspected.path || "Bookmarks"));
-    const edit = el("details", "detail-disclosure edit-bookmark");
-    edit.append(el("summary", "", "Edit or move"));
-    edit.append(
-      bookmarkEditor({
-        bookmark: inspected,
-        folders,
-        title: inspected.title,
-        url: inspected.url,
-        onSettled: rerenderAfterMutation,
-      }),
-    );
-    bookmark.append(edit);
+    addEditor(bookmark, bookmark.querySelector("h3")!, inspected);
   } else if (site.bookmarks.length) {
     const list = el("ul", "saved-pages");
     for (const saved of site.bookmarks) {
       const item = el("li", "saved-page");
       const heading = el("div", "saved-page-heading");
-      heading.append(
+      const description = el("div", "saved-page-description");
+      description.append(
         el("span", "affected-title", saved.title || "Untitled"),
         el("span", "fine", saved.path || "Bookmarks"),
       );
-      const edit = el("details", "detail-disclosure edit-bookmark");
-      edit.append(el("summary", "", "Edit"));
-      edit.append(
-        bookmarkEditor({
-          bookmark: saved,
-          folders,
-          title: saved.title,
-          url: saved.url,
-          onSettled: rerenderAfterMutation,
-        }),
-      );
-      item.append(heading, edit);
+      heading.append(description);
+      item.append(heading);
+      addEditor(item, heading, saved);
       list.append(item);
     }
     bookmark.append(list);
   } else {
-    bookmark.append(el("p", "fine", "No saved pages for this website."));
+    bookmark.append(el("p", "fine", "No bookmarks saved for this website. Use Save bookmark to add one."));
   }
   const create = el("details", "detail-disclosure create-bookmark");
-  create.append(el("summary", "", "Create copy"));
+  create.append(el("summary", "", site.bookmarks.length ? "Create copy" : "Save bookmark"));
   create.append(
     bookmarkEditor({
       folders,
+      createLabel: site.bookmarks.length ? "Create copy" : "Save bookmark",
       title,
       url: inspected?.url ?? site.urls[0] ?? `${site.origins[0] ?? `https://${site.host}`}/`,
       onSettled: rerenderAfterMutation,
@@ -223,7 +220,7 @@ export function siteDetails(
     affectedBookmarks(impact),
   );
   if (options.onCleanup) {
-    const clean = el("button", "primary detail-cleanup", "Review cleanup");
+    const clean = el("button", "primary detail-cleanup", "Clean up data");
     clean.type = "button";
     clean.addEventListener("click", () => options.onCleanup?.(site, inspected));
     websiteData.append(clean);

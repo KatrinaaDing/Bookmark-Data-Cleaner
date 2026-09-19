@@ -116,6 +116,8 @@ export function bookmarkTree(
       item.append(row, children);
       for (const child of node.children ?? [])
         render(child, content, depth + 1, protectedNode);
+      if (!node.children?.length)
+        content.append(el("p", "fine empty-folder", "This folder is empty."));
     }
     parent.append(item);
   }

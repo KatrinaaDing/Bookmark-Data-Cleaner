@@ -143,8 +143,8 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
   }
 
   function deferEnrichmentUpdate() {
-    const opened = document.querySelectorAll<HTMLDetailsElement>(
-      ".details-drawer :is(.edit-bookmark, .create-bookmark)[open]",
+    const opened = document.querySelectorAll<HTMLElement>(
+      ".details-drawer .edit-bookmark:not([hidden]), .details-drawer .create-bookmark[open]",
     );
     for (const disclosure of opened)
       disclosure.addEventListener(
@@ -152,7 +152,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
         () => {
           if (
             !document.querySelector(
-              ".details-drawer :is(.edit-bookmark, .create-bookmark)[open]",
+              ".details-drawer .edit-bookmark:not([hidden]), .details-drawer .create-bookmark[open]",
             )
           )
             updateOpenDetails(true);
@@ -166,7 +166,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     if (
       optionalEnrichment &&
       document.querySelector(
-        ".details-drawer :is(.edit-bookmark, .create-bookmark)[open]",
+        ".details-drawer .edit-bookmark:not([hidden]), .details-drawer .create-bookmark[open]",
       )
     ) {
       deferEnrichmentUpdate();
@@ -246,7 +246,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     cleanupDialog((options) => prepareSites(ids, options), false, onStarted);
   }
 
-  const clean = button("Review cleanup", () => {
+  const clean = button("Clean up data", () => {
     const ids = new Set(selection.ids);
     cleanupDialog((options) => prepareSites(ids, options), false, onStarted);
   }, "primary");

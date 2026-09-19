@@ -16,6 +16,7 @@ export function bookmarkEditor(options: {
   bookmark?: BookmarkRef;
   folders: BookmarkFolder[];
   title: string;
+  createLabel?: string;
   url: string;
   onSettled: (result: BookmarkMutation) => Promise<void> | void;
 }): HTMLFormElement {
@@ -52,11 +53,13 @@ export function bookmarkEditor(options: {
   const submit = el(
     "button",
     options.bookmark ? "primary" : "",
-    options.bookmark ? "Save changes" : "Create copy",
+    options.bookmark ? "Save changes" : options.createLabel ?? "Create copy",
   );
   submit.type = "submit";
   submit.disabled = !!options.bookmark?.unmodifiable || !folder.value;
   const feedback = el("div", "editor-feedback");
+  if (!folder.value)
+    feedback.append(status("No writable bookmark folders available. Create a folder in your browser, then refresh."));
   form.append(titleLabel, urlLabel, folderLabel, feedback, submit);
   form.addEventListener("submit", (event) => {
     event.preventDefault();
