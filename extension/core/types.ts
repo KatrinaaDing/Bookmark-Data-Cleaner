@@ -4,6 +4,7 @@ export interface CookieRef {
   hostOnly?: boolean;
   path: string;
   secure: boolean;
+  httpOnly?: boolean;
   storeId: string;
   partitionKey?: chrome.cookies.CookiePartitionKey;
 }

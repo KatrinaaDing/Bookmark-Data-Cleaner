@@ -1,6 +1,7 @@
 import { afterEach, test } from "node:test";
 import assert from "node:assert/strict";
-import { scanSites } from "../extension/browser/site-data.js";
+import { scanSites, removeData } from "../extension/browser/site-data.js";
+import { noCleanup } from "../extension/core/types.js";
 import type { ScanResult } from "../extension/core/types.js";
 
 const originalChrome = globalThis.chrome;
@@ -72,6 +73,8 @@ test("site scan emits basic cookie and bookmark inventory before history enrichm
   const basic = await basicReceived;
   assert.equal(basic.sites[0].cookiesAvailable, true);
   assert.equal(basic.sites[0].cookies[0].hostOnly, false);
+  assert.equal(basic.sites[0].cookies[0].httpOnly, false);
+  assert.equal("value" in basic.sites[0].cookies[0], false);
   assert.equal(basic.sites[0].lastVisit, undefined);
   assert.deepEqual(basic.sites[0].urls, ["https://example.test/saved"]);
 
@@ -88,4 +91,18 @@ test("site scan emits basic cookie and bookmark inventory before history enrichm
     enriched.sites[0].origins.includes("https://example.test:8443"),
     true,
   );
+});
+
+test("unsupported cookie scope prevents all data mutations for that site request", async () => {
+  let mutations = 0;
+  Object.defineProperty(globalThis, "chrome", { configurable: true, value: {
+    permissions: { contains: async () => true },
+    cookies: { set: async () => { mutations++; } },
+    browsingData: { remove: async () => { mutations++; } },
+  } });
+  await assert.rejects(removeData({
+    id: "example.test", host: "example.test", origins: ["https://example.test"], urls: [], bookmarks: [],
+    cookies: [{ name: "session", domain: "example.test", hostOnly: true, secure: true, httpOnly: false, path: "/a?b", storeId: "0" }],
+  }, { ...noCleanup, cookies: true, savedData: true, cache: true, workers: true }), /path would be normalized/);
+  assert.equal(mutations, 0);
 });

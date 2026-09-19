@@ -8,6 +8,7 @@ import { inventoryFromCookies } from "../core/inventory.js";
 import { readBookmarks } from "./bookmarks.js";
 import { readHistory } from "./history.js";
 import { cookieIdentity, unique } from "../helpers/sites.js";
+import { removeSelectedCookies } from "./cookie-removal.js";
 const access: chrome.permissions.Permissions = {
   permissions: ["cookies"],
   origins: ["http://*/*", "https://*/*"],
@@ -35,12 +36,13 @@ export async function readCookies(): Promise<CookieRef[]> {
   ).flat();
   return unique(
     cookies.map(
-      ({ name, domain, hostOnly, path, secure, storeId, partitionKey }) => ({
+      ({ name, domain, hostOnly, path, secure, httpOnly, storeId, partitionKey }) => ({
         name,
         domain,
         hostOnly,
         path,
         secure,
+        httpOnly,
         storeId,
         ...(partitionKey ? { partitionKey } : {}),
       }),
@@ -79,28 +81,7 @@ export async function removeData(
   if (options.cookies) {
     if (!(await hasSiteAccess()))
       throw Error("Cookie access is required. Bookmarks have been kept.");
-    for (const cookie of site.cookies) {
-      try {
-        const details: chrome.cookies.CookieDetails = {
-          url: `${cookie.secure ? "https" : "http"}://${cookie.domain.replace(/^\./, "")}${cookie.path}`,
-          name: cookie.name,
-          storeId: cookie.storeId,
-          ...(cookie.partitionKey ? { partitionKey: cookie.partitionKey } : {}),
-        };
-        await chrome.cookies.remove(details);
-        // Removal can return null when the cookie was already absent. Verify by exact identity.
-        const remaining = await chrome.cookies.getAll({
-          domain: cookie.domain,
-          name: cookie.name,
-          storeId: cookie.storeId,
-          partitionKey: cookie.partitionKey ?? {},
-        });
-        if (remaining.some((c) => cookieIdentity(c) === cookieIdentity(cookie)))
-          throw Error("A selected cookie could not be removed.");
-      } catch {
-        errors.push(`Could not remove a cookie for ${cookie.domain}.`);
-      }
-    }
+    await removeSelectedCookies(site.cookies);
   }
   const data: chrome.browsingData.DataTypeSet = {};
   if (options.savedData)
