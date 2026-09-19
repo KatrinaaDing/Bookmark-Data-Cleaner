@@ -1,6 +1,6 @@
 # Public-release improvement plan — 19 September 2026
 
-**Status:** planned; documentation organization complete, application implementation not started.
+**Status:** implementation started on 19 September 2026. R02, R03 and R05 are implemented; the R01 scope correction and remaining compatibility gate are recorded in the [first refinement](../history/2026-09-19-release-foundations.md). The overall release and remaining phases are not complete.
 
 **Branch:** `codex/public-release-improvements`, created from `codex/rebrand-stage-1` at `ad45d365d2924d1be79848a7ee8ff3730a4afd39`.
 
@@ -17,20 +17,20 @@
 - Make one focused intent per implementation commit, with its relevant tests. Separate data semantics, UI changes, performance, and documentation. The commit suggestions below describe future work; no application commits are implied by this plan.
 - Test proportionately. Add regression tests for destructive boundaries and meaningful state behavior; do not add tests that merely mirror wording or styling. Run broader checks at phase/release boundaries, not after every cosmetic edit.
 - Read applicable current UI skill guidance when actual interface implementation begins. This document creates no requirement for unavailable historical skills or old worktree paths.
-- Prepare reviewable store assets and research materials locally. Publication, external outreach, or account changes occur only under explicit authorization; the current request authorizes documentation and planning, not those external actions.
+- Prepare reviewable store assets and research materials locally. Publication, external outreach, or account changes occur only under explicit authorization; implementation was authorized on 19 September 2026; external actions remain outside that instruction.
 
 ## Phase 1 — Establish deletion correctness (release gate)
 
 ### R01. Cookie identity and concurrent-change safety
 
-- [ ] Turn the preserved [probe](../evidence/2026-09-19/README.md) into meaningful browser regression cases with explicit target and unrelated-cookie assertions.
-- [ ] Cover host-only/domain collisions, parent/child domains, overlapping paths, already-absent targets, cookies introduced after review, duplicate identities across selected sites, stores, and complete partition keys.
+- [x] Turn the preserved [probe](../evidence/2026-09-19/README.md) into meaningful browser regression cases with explicit target and unrelated-cookie assertions.
+- [x] Cover host-only/domain collisions, parent/child domains, overlapping paths, already-absent targets, cookies introduced after review, duplicate identities across selected sites, stores, and complete partition keys.
 - [ ] Check actual behavior on available current Chrome and Edge. Consult current official API documentation/implementation before selecting a deletion strategy.
-- [ ] Investigate identity-preserving removal/expiry, including all metadata it requires and any scope broadening. Do not assume `cookies.set` expiry is safe without testing domain, path, secure/HttpOnly, and partition behavior.
-- [ ] Define supported scope explicitly. If exact removal cannot be established, conservatively block that case or present the supported broader scope for fresh review. Never silently widen scope or repeatedly remove URL/name matches until the target disappears.
-- [ ] Skip absent targets without deleting a different matching cookie. Recheck plans when required, but do not claim that a check-then-delete sequence eliminates races.
-- [ ] Ensure failures/unsupported cases produce actionable results and retain dependent bookmarks. Do not report exact-scope success based solely on selected-target absence.
-- [ ] Update architecture/help wording to match proven guarantees and documented limits.
+- [x] Investigate identity-preserving removal/expiry, including all metadata it requires and any scope broadening. Do not assume `cookies.set` expiry is safe without testing domain, path, secure/HttpOnly, and partition behavior.
+- [x] Define supported scope explicitly. If exact removal cannot be established, conservatively block that case or present the supported broader scope for fresh review. Never silently widen scope or repeatedly remove URL/name matches until the target disappears.
+- [x] Skip absent targets without deleting a different matching cookie. Recheck plans when required, but do not claim that a check-then-delete sequence eliminates races.
+- [x] Ensure failures/unsupported cases produce actionable results and retain dependent bookmarks. Do not report exact-scope success based solely on selected-target absence.
+- [x] Update architecture/help wording to match proven guarantees and documented limits.
 
 **Likely files:** `extension/browser/site-data.ts`, `extension/helpers/sites.ts`, `extension/core/types.ts`, `extension/core/cleanup.ts`, `tests/cleanup.test.ts`, `tests/site-data.test.ts`, `scripts/cleanup-smoke.mjs` or a dedicated scope suite.
 
@@ -38,13 +38,15 @@
 
 **Commit units:** scope regression fixtures → safe removal strategy with corresponding regressions → user-facing unsupported/changed-scope handling → documentation of verified guarantees. Do not leave an intentionally failing test commit as the final branch state.
 
+**Implementation evidence:** `1b19f13`; 26 scope/refusal cases pass on Edge 153. Current/minimum Chrome and real secondary-store coverage remain open; this release gate is not fully closed. See the [refinement record](../history/2026-09-19-release-foundations.md).
+
 ## Phase 2 — Low-cost interaction improvements
 
 ### R02. Consistent cleanup entry and deliberate confirmation
 
-- [ ] Change details to blue **Review cleanup**; reserve red for final confirmation.
-- [ ] Focus the review heading/summary, with usable keyboard continuation and focus restoration; avoid automatic destructive-button focus.
-- [ ] Disable review when no available category is selected, including while permission checks change availability.
+- [x] Change details to blue **Review cleanup**; reserve red for final confirmation.
+- [x] Focus the review heading/summary, with usable keyboard continuation and focus restoration; avoid automatic destructive-button focus.
+- [x] Disable review when no available category is selected, including while permission checks change availability.
 
 **Files:** `components/site-details.ts`, `components/cleanup-dialog.ts`, relevant styles and browser interaction tests under `extension/` / `scripts/`.
 
@@ -52,8 +54,8 @@
 
 ### R03. Selection correction
 
-- [ ] Add Clear selection to Bookmarks, visible only when useful.
-- [ ] Reset all selected IDs, including collapsed/filtered descendants and empty-folder selections; update parent mixed states and review availability.
+- [x] Add Clear selection to Bookmarks, visible only when useful.
+- [x] Reset all selected IDs, including collapsed/filtered descendants and empty-folder selections; update parent mixed states and review availability.
 
 **Acceptance:** inspection remains independent; selections clear in one action; no stale selected folder can enter a later plan. Use a focused behavior check, not a label-only test.
 
@@ -71,14 +73,16 @@
 
 ### R05. Indexed bookmark/cookie matching
 
-- [ ] Add a reproducible diagnostic fixture for 1,000 and 5,000 bookmarks against 5,000 cookies, including repeated hosts, parent domains, mixed schemes, and partitions.
-- [ ] Parse bookmark URLs once; index cookie candidates; reuse scheme/host matching where semantics permit. Keep history/origin enrichment and unknown dates correct.
-- [ ] Benchmark baseline and implementation in the same environment after warmup. Record medians and browser/version; keep timing thresholds out of ordinary unit tests.
-- [ ] Profile the actual large-library page after indexing; only introduce rendering complexity if measured stalls remain.
+- [x] Add a reproducible diagnostic fixture for 1,000 and 5,000 bookmarks against 5,000 cookies, including repeated hosts, parent domains, mixed schemes, and partitions.
+- [x] Parse bookmark URLs once; index cookie candidates; reuse scheme/host matching where semantics permit. Keep history/origin enrichment and unknown dates correct.
+- [x] Benchmark baseline and implementation in the same environment after warmup. Record medians and browser/version; keep timing thresholds out of ordinary unit tests.
+- [x] Profile the actual large-library page after indexing; only introduce rendering complexity if measured stalls remain.
 
 **Files:** `core/inventory.ts`, `helpers/sites.ts`, inventory/impact tests, a small diagnostic script.
 
 **Acceptance:** record a material reduction from the same-machine baseline, aiming for at least 5× on the 5,000/5,000 fixture; browser profiling shows whether any remaining blocking task warrants work. Exact matching/partition/origin correctness is mandatory even if the performance target needs revision. No workers, virtualization, or framework migration without new evidence.
+
+**Implementation evidence:** `307a29d`; matching equivalence, same-machine median benchmarks and an actual-workspace diagnostic passed. See the [refinement record](../history/2026-09-19-release-foundations.md) for fixture-specific results and limits.
 
 ### R06. Bookmark search with safe selection
 
@@ -166,7 +170,7 @@
 ### R15. Small CI and release matrix
 
 - [ ] Add a CI workflow using the project's supported Node version: locked install, typecheck, unit tests, build. Avoid a large platform matrix initially.
-- [ ] Register new meaningful browser regressions in the existing runner; keep synthetic profiles and fixtures.
+- [x] Register new meaningful browser regressions in the existing runner; keep synthetic profiles and fixtures.
 - [ ] Complete minimum Chrome 130, current stable Chrome, and available Edge checks, including real permission prompts, DevTools-closed worker interruption, browser restart, and the final extracted package.
 - [ ] Record actual browser/OS versions, dates, failures, unavailable environments, and enterprise-policy coverage. Revisit the declared minimum only if evidence justifies it; do not silently treat untested support as verified.
 

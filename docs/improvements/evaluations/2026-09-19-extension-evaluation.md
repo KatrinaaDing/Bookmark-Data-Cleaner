@@ -1,5 +1,7 @@
 # Extension evaluation — 19 September 2026
 
+> Assessment snapshot before implementation. See the [subsequent refinement record](../history/2026-09-19-release-foundations.md) for fixes, measurements and remaining release gates; the findings below retain their original assessed checkout.
+
 **Verdict:** Bookmark Data Cleaner has a credible niche and a solid foundation, but a confirmed deletion-scope bug blocks release of the reviewed version. After that, the best investments are bookmark search, large-library performance, clearer cleanup interactions, and stronger store presentation. A substantial visual redesign offers less value.
 
 Goal confirmed by the owner: **public adoption first, portfolio value second**. This supersedes the earlier personal-use prioritization. Complexity includes ongoing maintenance and support, not just initial implementation time.
