@@ -16,11 +16,6 @@ export function affectedBookmarks(impact: CleanupImpact): HTMLElement {
   if (impact.duplicates.length) {
     content.append(
       el("h4", "", "Exact copies"),
-      el(
-        "p",
-        "fine",
-        "These save the same complete address. They stay unless you add them during review.",
-      ),
     );
     const list = el("ul");
     for (const bookmark of impact.duplicates) list.append(bookmarkLine(bookmark));
@@ -29,11 +24,6 @@ export function affectedBookmarks(impact: CleanupImpact): HTMLElement {
   if (impact.relatedBookmarks.length || impact.relatedSites.length) {
     content.append(
       el("h4", "", "Shared website data"),
-      el(
-        "p",
-        "fine",
-        "Removing website data can affect these saved pages or detected sites even though their bookmarks stay.",
-      ),
     );
     if (impact.relatedBookmarks.length) {
       const list = el("ul");

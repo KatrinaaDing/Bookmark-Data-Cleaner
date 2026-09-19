@@ -76,6 +76,20 @@ html { scrollbar-gutter: stable; }
   font-size: 1rem;
 }
 .detail-card > .fine { color: #536474; }
+.detail-card > h3:has(.detail-info) {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.detail-info {
+  width: 32px;
+  height: 32px;
+  border-color: transparent;
+  color: #536474;
+  background: transparent;
+}
+.website-data-help { margin-bottom: 0.8rem; }
+.website-data-help p + p { margin-top: 0.6rem; }
 .detail-value {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);

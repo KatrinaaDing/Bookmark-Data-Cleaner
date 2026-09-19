@@ -122,11 +122,12 @@ try {
   const out = "dist/refinement";
   await mkdir(out, { recursive: true });
   async function capture(name, width, height) {
-    await browser.cmd(
-      "Emulation.setDeviceMetricsOverride",
-      { width, height, deviceScaleFactor: 1, mobile: false },
-      page.sessionId,
-    );
+    if (await run(`innerWidth !== ${width} || innerHeight !== ${height}`))
+      await browser.cmd(
+        "Emulation.setDeviceMetricsOverride",
+        { width, height, deviceScaleFactor: 1, mobile: false },
+        page.sessionId,
+      );
     await pause(300);
     assert.equal(
       await run("document.documentElement.scrollWidth > innerWidth"),
@@ -145,6 +146,37 @@ try {
   await capture("details", 1360, 900);
   await capture("details-narrow", 390, 844);
   assert.equal(await run(`document.querySelector('.details-drawer').matches(':modal')`), true, "Narrow details use a native modal");
+  // Reproduce the Sites editor with long bookmark values and a long folder option.
+  await run(`(async()=>{
+    const {siteDetails}=await import('./components/site-details.js');
+    const saved={id:'fixture',parentId:'folder',title:'Long saved page 标题 '.repeat(8),url:'https://example.test/'+ 'long-address/'.repeat(20),path:'Saved / '+ 'Nested folder '.repeat(20)};
+    const site={id:'example.test',host:'example.test',origins:['https://example.test'],urls:[saved.url],cookies:[],bookmarks:[saved]};
+    document.querySelector('.drawer-content').replaceChildren(siteDetails(site,{folders:[{id:'folder',title:saved.path,path:saved.path}],onCleanup:()=>{}}));
+    document.querySelectorAll('.bookmark-editor').forEach(form=>form.closest('details').open=true);
+  })()`);
+  for (const width of [1360, 800, 390]) {
+    await browser.cmd('Emulation.setDeviceMetricsOverride', {width,height:900,deviceScaleFactor:1,mobile:false}, page.sessionId);
+    await pause(300);
+    assert.equal(await run(`Array.from(document.querySelectorAll('.bookmark-editor input, .bookmark-editor select')).every(field=>{
+      const rect=field.getBoundingClientRect(), form=field.closest('form').getBoundingClientRect(), card=field.closest('.detail-card').getBoundingClientRect();
+      return rect.width>0 && rect.left>=form.left-1 && rect.right<=form.right+1 && rect.right<card.right;
+    })`), true, 'Edit and create controls fit with long values at '+width+'px');
+    assert.equal(await run(`document.querySelector('.details-drawer').scrollWidth <= document.querySelector('.details-drawer').clientWidth`), true, 'Drawer has no horizontal overflow');
+    assert.equal(await run(`document.querySelector('.website-data-help').checkVisibility()`), false, 'Help starts collapsed');
+    await run(`document.querySelector('.detail-info').focus()`);
+    await browser.cmd('Input.dispatchKeyEvent', {type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:String.fromCharCode(13)}, page.sessionId);
+    await browser.cmd('Input.dispatchKeyEvent', {type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13}, page.sessionId);
+    assert.equal(await run(`document.querySelector('.website-data-help').checkVisibility() && document.querySelector('.detail-info').getAttribute('aria-expanded')==='true'`), true, 'Keyboard opens explanatory help');
+    await run(`document.querySelector('.detail-info').click()`);
+    assert.equal(await run(`document.querySelector('.website-data-help').hidden`), true, 'Click closes help');
+    if (width !== 800) {
+      await run(`document.querySelector('.bookmark-editor').scrollIntoView({block:'start'})`);
+      await capture('long-editor-'+width,width,900);
+      await run(`document.querySelector('.detail-info').click();document.querySelector('.detail-info').scrollIntoView({block:'center'})`);
+      await capture('website-help-'+width,width,900);
+      await run(`document.querySelector('.detail-info').click()`);
+    }
+  }
   await run(`location.hash='home'`);
   await pause(350);
   assert.equal(

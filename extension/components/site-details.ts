@@ -6,6 +6,7 @@ import type {
 import { analyzeImpact } from "../core/impact.js";
 import { dateText, el } from "./dom.js";
 import { affectedBookmarks } from "./affected-bookmarks.js";
+import { iconButton } from "./icons.js";
 import {
   bookmarkEditor,
   type BookmarkMutation,
@@ -189,17 +190,35 @@ export function siteDetails(
     : { ...site, bookmarks: [] };
   const impact = analyzeImpact([target], allBookmarks, detectedSites);
   const websiteData = detailCard("Website data");
+  const help = el("div", "website-data-help fine");
+  help.id = "website-data-help";
+  help.hidden = true;
+  help.append(
+    el("p", "", "Cleanup can sign you out or remove offline and unsynced website data. You will review each category before anything is removed."),
+  );
+  if (impact.duplicates.length)
+    help.append(
+      el("p", "", "Exact copies save the same complete address. They stay unless you add them during review."),
+    );
+  if (impact.relatedBookmarks.length || impact.relatedSites.length)
+    help.append(
+      el("p", "", "Removing website data can affect the saved pages or detected sites listed below even though their bookmarks stay."),
+    );
+  const info = iconButton("info", "About website data cleanup", () => {
+    help.hidden = !help.hidden;
+    info.setAttribute("aria-expanded", String(!help.hidden));
+  });
+  info.classList.add("detail-info");
+  info.setAttribute("aria-expanded", "false");
+  info.setAttribute("aria-controls", help.id);
+  websiteData.querySelector("h3")!.append(info);
   websiteData.append(
+    help,
     valueRow(
       "Detected cookies",
       site.cookiesAvailable === false
         ? "Not checked"
         : String(site.cookies.length),
-    ),
-    el(
-      "p",
-      "fine",
-      "Cleanup can sign you out or remove offline and unsynced website data. You will review each category before anything is removed.",
     ),
     affectedBookmarks(impact),
   );
