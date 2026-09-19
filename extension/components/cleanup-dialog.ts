@@ -1,7 +1,6 @@
 import { buildCleanupPlan, hasData } from "../core/cleanup.js";
 import type { CleanupImpact } from "../core/impact.js";
 import {
-  noCleanup,
   type BookmarkRef,
   type CleanupOptions,
   type CleanupPlan,
@@ -10,7 +9,7 @@ import {
   type SiteRecord,
 } from "../core/types.js";
 import { hasSiteAccess, requestSiteAccess } from "../browser/site-data.js";
-import { errorMessage } from "../helpers/sites.js";
+import { cookieIdentity, errorMessage } from "../helpers/sites.js";
 import { button, checkbox, el, status } from "./dom.js";
 
 export interface PreparedCleanup {
@@ -34,7 +33,7 @@ export function cleanupDialog(
   title.id = "cleanup-title";
   title.tabIndex = -1;
   const feedback = el("div", "cleanup-feedback");
-  const options = { ...noCleanup };
+  const options: CleanupOptions = { cookies: true, savedData: true, cache: true, workers: true, bookmarks: allowBookmarks };
   const extras = new Set<string>();
   const duplicateCandidates = new Map<string, BookmarkRef>();
   let busy = false;
@@ -87,7 +86,7 @@ export function cleanupDialog(
   }
 
   function renderChoices() {
-    revision++;
+    const current = ++revision;
     title.textContent = "Choose what to remove";
     body.replaceChildren(
       title,
@@ -97,6 +96,36 @@ export function cleanupDialog(
     activeControls = [];
     reviewAction = undefined;
     let cookieInput: HTMLInputElement | undefined;
+    const counts = new Map<keyof CleanupOptions, HTMLElement>();
+    const previewNotice = el("p", "fine", "Counts are a preview. The next step checks the current cleanup scope.");
+    let previewRevision = 0;
+    async function loadPreview(granted: boolean) {
+      const request = ++previewRevision;
+      for (const count of counts.values()) count.textContent = "Checking…";
+      try {
+        // Read all available categories so counts remain useful when a choice is off.
+        const prepared = await prepare(Object.freeze({
+          cookies: granted, savedData: true, cache: true, workers: true, bookmarks: allowBookmarks,
+        }), new Set());
+        if (current !== revision || request !== previewRevision || !dialog.open) return;
+        const cookies = new Set(prepared.sites.flatMap(site => site.cookies.map(cookieIdentity))).size;
+        const bookmarks = new Set(prepared.sites.flatMap(site => site.bookmarks.map(bookmark => bookmark.id))).size;
+        const origins = new Set(prepared.sites.flatMap(site => site.origins)).size;
+        const folders = new Set((prepared.folders ?? []).map(folder => folder.id)).size;
+        counts.get("cookies")!.textContent = granted
+          ? `${cookies} detected ${cookies === 1 ? "cookie" : "cookies"}` : "Access needed";
+        for (const key of ["savedData", "cache", "workers"] as const)
+          counts.get(key)!.textContent = `${origins} ${origins === 1 ? "origin" : "origins"} in scope`;
+        if (allowBookmarks)
+          counts.get("bookmarks")!.textContent = `${bookmarks} ${bookmarks === 1 ? "bookmark" : "bookmarks"}${folders ? ` · ${folders} ${folders === 1 ? "folder" : "folders"} if empty` : ""}`;
+        previewNotice.textContent = "Storage, cache and worker counts show website origins to check, not detected items or bytes. The next step refreshes the scope.";
+      } catch {
+        if (current !== revision || request !== previewRevision || !dialog.open) return;
+        for (const count of counts.values()) count.textContent = "Count unavailable";
+        if (!granted) counts.get("cookies")!.textContent = "Access needed";
+        previewNotice.textContent = "Could not load preview counts. Review cleanup will retry before you can confirm.";
+      }
+    }
     for (const [key, label, description] of choices) {
       const choice = checkbox(label, (value) => {
         options[key] = value;
@@ -106,7 +135,14 @@ export function cleanupDialog(
       if (key === "cookies") cookieInput = choice.input;
       choiceInputs.push(choice.input);
       const wrapper = el("div", "cleanup-choice");
-      wrapper.append(choice.label, el("p", "fine", description));
+      const count = el("span", "cleanup-count", "Checking…");
+      count.setAttribute("aria-live", "polite");
+      count.id = `cleanup-count-${key}`;
+      choice.input.setAttribute("aria-describedby", count.id);
+      counts.set(key, count);
+      const row = el("div", "cleanup-choice-row");
+      row.append(choice.label, count);
+      wrapper.append(row, el("p", "fine", description));
       body.append(wrapper);
     }
     function setCookieAccess(granted: boolean) {
@@ -122,7 +158,13 @@ export function cleanupDialog(
       setBusy(true);
       void requestSiteAccess().then(
         (granted) => {
+          if (current !== revision || !dialog.open) return;
           setCookieAccess(granted);
+          if (granted) {
+            options.cookies = true;
+            cookieInput!.checked = true;
+          }
+          void loadPreview(granted);
           if (granted) {
             accessButton.hidden = true;
             feedback.replaceChildren();
@@ -147,13 +189,15 @@ export function cleanupDialog(
     cookieInput!.disabled = true;
     void hasSiteAccess().then(
       (granted) => {
-        if (!body.contains(cookieInput!)) return;
+        if (current !== revision || !body.contains(cookieInput!)) return;
         setCookieAccess(granted);
         accessButton.hidden = granted;
+        void loadPreview(granted);
       },
       () => {
-        if (!body.contains(cookieInput!)) return;
+        if (current !== revision || !body.contains(cookieInput!)) return;
         setCookieAccess(false);
+        void loadPreview(false);
         accessButton.hidden = false;
         feedback.replaceChildren(
           status("Could not check cookie access. Try allowing access again."),
@@ -164,14 +208,14 @@ export function cleanupDialog(
     const review = button("Review cleanup", () => {
       extras.clear();
       duplicateCandidates.clear();
-      void reviewPlan({ ...options });
+      void reviewPlan({ ...options, cookies: options.cookies && cookieInput!.dataset.permission === "on" });
     }, "primary");
     reviewAction = review;
     activeControls = [close, review];
     updateReviewAvailability();
     const actions = el("div", "dialog-actions");
     actions.append(close, review);
-    body.append(accessButton, feedback, actions);
+    body.append(previewNotice, accessButton, feedback, actions);
     title.focus();
   }
 

@@ -755,3 +755,16 @@ input[type="checkbox"]:disabled { opacity: .45; }
 @media (max-width: 760px) {
   .toolbar-actions { margin-left: 0; }
 }
+
+.cleanup-choice-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+.cleanup-count {
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+}

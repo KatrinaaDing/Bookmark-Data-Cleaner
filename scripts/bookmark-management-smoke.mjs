@@ -33,7 +33,7 @@ try {
   await pause(250);
 
   assert.deepEqual(
-    await run(`Array.from(document.querySelectorAll('.details-drawer .detail-card > h3')).map((heading) => heading.textContent)`),
+    await run(`Array.from(document.querySelectorAll('.details-drawer .detail-card > h3')).map((heading) => heading.firstChild.textContent)`),
     ["Basic information", "Bookmark", "Website data"],
     "Details expose the three approved sections",
   );
@@ -63,7 +63,7 @@ try {
   const beforeCount = await run(`chrome.bookmarks.search({}).then((nodes) => nodes.filter((node) => node.url).length)`);
   await run(`(() => {
     const editor = document.querySelector('.details-drawer .edit-bookmark');
-    editor.open = true;
+    document.querySelector('.bookmark-edit-action').click();
     const form = editor.querySelector('form');
     form.elements.title.value = 'Moved detail bookmark';
     form.elements.parentId.value = ${JSON.stringify(fixtures.destination)};
@@ -108,7 +108,7 @@ try {
     1,
     "Direct cleanup opens the shared review flow",
   );
-  await run(`Array.from(document.querySelectorAll('dialog.cleanup-dialog label')).find((label) => label.textContent.includes('Remove selected bookmarks')).querySelector('input').click()`);
+  await run(`document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(!input.closest('label').textContent.includes('Remove selected bookmarks') && input.checked)input.click()})`);
   await run(`Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find((button) => button.textContent === 'Review cleanup').click()`);
   await pause(180);
   assert.equal(

@@ -21,6 +21,11 @@ try {
   await pause(100);
   const review = `Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button => button.textContent === 'Review cleanup')`;
   const category = (label) => `Array.from(document.querySelectorAll('.cleanup-dialog label')).find(label => label.textContent === ${JSON.stringify(label)}).querySelector('input')`;
+  assert.equal(await run(`Array.from(document.querySelectorAll('.cleanup-choice input')).every(input=>input.checked)`), true, "All available categories start selected");
+  assert.equal(await run(`document.querySelectorAll('.cleanup-count').length`), 5);
+  assert.equal(await run(`document.querySelector('.cleanup-count').textContent`), '0 detected cookies');
+  assert.equal(await run(`Array.from(document.querySelectorAll('.cleanup-count')).at(-1).textContent`), '1 bookmark');
+  await run(`document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(input.checked)input.click()}); window.prepared=[]`);
   assert.equal(await run(`${review}.disabled`), true, "No category means no review action");
   await run(`${review}.click()`);
   assert.equal(await run(`window.prepared.length`), 0, "Disabled review does not prepare a plan");
@@ -34,7 +39,7 @@ try {
   await pause(100);
   assert.equal(await run(`document.activeElement.id`), "cleanup-title", "Review starts on its summary heading, not Confirm");
   assert.equal(await run(`document.activeElement.textContent`), "Review this cleanup");
-  await browser.cmd("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 }, page.sessionId);
+  await browser.cmd("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13, text: String.fromCharCode(13) }, page.sessionId);
   await browser.cmd("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 }, page.sessionId);
   assert.equal(await run(`window.started`), 0, "Enter at review arrival does not start cleanup");
   assert.equal(await run(`document.querySelector('.cleanup-dialog').open`), true);
@@ -67,6 +72,35 @@ try {
   await pause(80);
   assert.equal(await run(`!!document.querySelector('.cleanup-dialog')`), false, "Escape dismisses review without cleanup");
   assert.equal(await run(`window.started`), 0);
+  // Preview counts deduplicate shared targets; origin counts never pretend to be stored items.
+  await run(`(async()=>{
+    chrome.permissions.contains=async()=>true;
+    const {cleanupDialog}=await import('./components/cleanup-dialog.js');
+    const cookie={name:'session',domain:'.preview.test',path:'/',storeId:'0',secure:true};
+    const bookmark={id:'same',title:'Preview bookmark',url:'https://preview.test/',path:'Saved'};
+    window.openPreview=()=>cleanupDialog(async()=>{
+      if(window.previewGate)await window.previewGate;
+      if(window.previewFailure)throw Error('Preview failed');
+      return {sites:[{id:'preview.test',host:'preview.test',origins:['https://preview.test','http://preview.test'],urls:[],cookies:[cookie,cookie],bookmarks:[bookmark,bookmark]}],folders:[{id:'folder',depth:1}]};
+    },true,()=>{window.started++});
+    window.openPreview();
+  })()`);
+  await pause(100);
+  assert.deepEqual(await run(`Array.from(document.querySelectorAll('.cleanup-count')).map(node=>node.textContent)`), ['1 detected cookie','2 origins in scope','2 origins in scope','2 origins in scope','1 bookmark · 1 folder if empty']);
+  for (const [name,width,height] of [['choices-desktop',1360,900],['choices-narrow',390,844]]) {
+    await browser.cmd('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false},page.sessionId);
+    assert.equal(await run(`document.querySelector('.cleanup-dialog').scrollWidth<=document.querySelector('.cleanup-dialog').clientWidth`),true);
+    const shot=await browser.cmd('Page.captureScreenshot',{format:'png'},page.sessionId);
+    await writeFile('dist/review/'+name+'.png',Buffer.from(shot.data,'base64'));
+  }
+  await run(`document.querySelector('.cleanup-dialog').close();window.previewFailure=true;window.openPreview()`);
+  await pause(100);
+  assert.equal(await run(`document.querySelector('.cleanup-count').textContent`),'Count unavailable','Read failure is not displayed as zero');
+  await run(`document.querySelector('.cleanup-dialog').close();window.previewFailure=false;window.previewGate=new Promise(resolve=>window.releasePreview=resolve);window.openPreview()`);
+  await pause(50);
+  await run(`document.querySelector('.cleanup-dialog').close();window.releasePreview()`);
+  await pause(50);
+  assert.equal(await run(`document.querySelector('.cleanup-dialog')===null`),true,'Late preview does not reopen a dismissed dialog');
   console.log("Cleanup review: category availability, frozen preparation, safe keyboard focus, Back, permission loss and Escape passed.");
 } finally {
   await browser.close();

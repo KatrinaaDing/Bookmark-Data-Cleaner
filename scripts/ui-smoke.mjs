@@ -57,18 +57,18 @@ try {
     `document.querySelector('input[aria-label="Select More design notes"]').click(); document.querySelector('input[aria-label="Select Design notes"]').click()`,
   );
   await run(
-    `Array.from(document.querySelectorAll('section:not([hidden]) button')).find(b=>b.textContent==='Review cleanup').click()`,
+    `Array.from(document.querySelectorAll('section:not([hidden]) button')).find(b=>b.textContent==='Clean up data').click()`,
   );
   await pause(80);
   assert.equal(
     await run(
       `Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').disabled`,
     ),
-    true,
-    "Review is unavailable until a cleanup category is selected",
+    false,
+    "Available cleanup categories are selected by default",
   );
   await run(
-    `Array.from(document.querySelectorAll('dialog.cleanup-dialog label')).find(l=>l.textContent==='Remove selected bookmarks').querySelector('input').click(); Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
+    `document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(!input.closest('label').textContent.includes('Remove selected bookmarks') && input.checked)input.click()}); Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
   );
   await pause(80);
   assert.equal(
@@ -163,11 +163,11 @@ try {
   await run(`location.hash='sites'`);
   await pause(50);
   await run(
-    `document.querySelector('input[aria-label="Select old.test"]').click(); Array.from(document.querySelectorAll('section:not([hidden]) button')).find(b=>b.textContent==='Review cleanup').click()`,
+    `document.querySelector('input[aria-label="Select old.test"]').click(); Array.from(document.querySelectorAll('section:not([hidden]) button')).find(b=>b.textContent==='Clean up data').click()`,
   );
   await pause(80);
   await run(
-    `Array.from(document.querySelectorAll('dialog.cleanup-dialog label')).find(l=>l.textContent==='Cookies and sign-in data').querySelector('input').click(); Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
+    `document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(!input.closest('label').textContent.includes('Cookies and sign-in data') && input.checked)input.click()}); Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
   );
   await pause(80);
   await run(
