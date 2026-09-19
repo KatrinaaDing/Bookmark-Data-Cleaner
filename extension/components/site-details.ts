@@ -204,7 +204,7 @@ export function siteDetails(
     affectedBookmarks(impact),
   );
   if (options.onCleanup) {
-    const clean = el("button", "danger detail-cleanup", "Clean up");
+    const clean = el("button", "primary detail-cleanup", "Review cleanup");
     clean.type = "button";
     clean.addEventListener("click", () => options.onCleanup?.(site, inspected));
     websiteData.append(clean);
