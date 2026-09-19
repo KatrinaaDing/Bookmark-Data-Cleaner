@@ -60,15 +60,12 @@ try {
     `Array.from(document.querySelectorAll('section:not([hidden]) button')).find(b=>b.textContent==='Review cleanup').click()`,
   );
   await pause(80);
-  await run(
-    `Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
-  );
-  await pause(50);
   assert.equal(
     await run(
-      `document.querySelector('dialog.cleanup-dialog').textContent.includes('Choose what to remove.')`,
+      `Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').disabled`,
     ),
     true,
+    "Review is unavailable until a cleanup category is selected",
   );
   await run(
     `Array.from(document.querySelectorAll('dialog.cleanup-dialog label')).find(l=>l.textContent==='Remove selected bookmarks').querySelector('input').click(); Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').click()`,

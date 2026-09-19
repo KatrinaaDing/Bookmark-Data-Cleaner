@@ -32,6 +32,7 @@ export function cleanupDialog(
   const body = el("div");
   const title = el("h2", "", "Choose what to remove");
   title.id = "cleanup-title";
+  title.tabIndex = -1;
   const feedback = el("div", "cleanup-feedback");
   const options = { ...noCleanup };
   const extras = new Set<string>();
@@ -40,6 +41,7 @@ export function cleanupDialog(
   let revision = 0;
   let choiceInputs: HTMLInputElement[] = [];
   let activeControls: HTMLButtonElement[] = [];
+  let reviewAction: HTMLButtonElement | undefined;
   const choices: [keyof CleanupOptions, string, string][] = [
     [
       "cookies",
@@ -69,10 +71,18 @@ export function cleanupDialog(
       "Bookmarks are kept if their selected data cleanup fails.",
     ]);
 
+  function updateReviewAvailability() {
+    if (reviewAction)
+      reviewAction.disabled = busy || !choiceInputs.some(
+        (input) => input.checked && input.dataset.permission !== "off",
+      );
+  }
+
   function setBusy(value: boolean) {
     busy = value;
     for (const input of choiceInputs) input.disabled = value || input.dataset.permission === "off";
     for (const control of activeControls) control.disabled = value;
+    updateReviewAvailability();
     dialog.setAttribute("aria-busy", String(value));
   }
 
@@ -85,10 +95,12 @@ export function cleanupDialog(
     );
     choiceInputs = [];
     activeControls = [];
+    reviewAction = undefined;
     let cookieInput: HTMLInputElement | undefined;
     for (const [key, label, description] of choices) {
       const choice = checkbox(label, (value) => {
         options[key] = value;
+        updateReviewAvailability();
       });
       choice.input.checked = options[key];
       if (key === "cookies") cookieInput = choice.input;
@@ -97,16 +109,24 @@ export function cleanupDialog(
       wrapper.append(choice.label, el("p", "fine", description));
       body.append(wrapper);
     }
+    function setCookieAccess(granted: boolean) {
+      cookieInput!.dataset.permission = granted ? "on" : "off";
+      cookieInput!.disabled = !granted || busy;
+      if (!granted) {
+        options.cookies = false;
+        cookieInput!.checked = false;
+      }
+      updateReviewAvailability();
+    }
     const accessButton = button("Allow cookie access", () => {
       setBusy(true);
       void requestSiteAccess().then(
         (granted) => {
+          setCookieAccess(granted);
           if (granted) {
-            cookieInput!.dataset.permission = "on";
             accessButton.hidden = true;
             feedback.replaceChildren();
           } else {
-            cookieInput!.dataset.permission = "off";
             feedback.replaceChildren(
               status(
                 "Cookie access was declined. You can still use the other cleanup options.",
@@ -115,7 +135,7 @@ export function cleanupDialog(
           }
         },
         () => {
-          cookieInput!.dataset.permission = "off";
+          setCookieAccess(false);
           feedback.replaceChildren(
             status("Could not request cookie access. Try again."),
           );
@@ -128,12 +148,12 @@ export function cleanupDialog(
     void hasSiteAccess().then(
       (granted) => {
         if (!body.contains(cookieInput!)) return;
-        cookieInput!.dataset.permission = granted ? "on" : "off";
-        cookieInput!.disabled = !granted || busy;
+        setCookieAccess(granted);
         accessButton.hidden = granted;
       },
       () => {
         if (!body.contains(cookieInput!)) return;
+        setCookieAccess(false);
         accessButton.hidden = false;
         feedback.replaceChildren(
           status("Could not check cookie access. Try allowing access again."),
@@ -146,11 +166,13 @@ export function cleanupDialog(
       duplicateCandidates.clear();
       void reviewPlan({ ...options });
     }, "primary");
+    reviewAction = review;
     activeControls = [close, review];
+    updateReviewAvailability();
     const actions = el("div", "dialog-actions");
     actions.append(close, review);
     body.append(accessButton, feedback, actions);
-    review.focus();
+    title.focus();
   }
 
   async function reviewPlan(snapshot: CleanupOptions) {
@@ -184,6 +206,7 @@ export function cleanupDialog(
     snapshot: CleanupOptions,
   ) {
     title.textContent = "Review this cleanup";
+    reviewAction = undefined;
     body.replaceChildren(title);
     choiceInputs = [];
     activeControls = [];
@@ -347,7 +370,7 @@ export function cleanupDialog(
     const footer = el("div", "dialog-actions");
     footer.append(back, cancel, confirm);
     body.append(result, footer);
-    confirm.focus();
+    title.focus();
   }
 
   dialog.append(body);
