@@ -233,6 +233,11 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     "primary",
   );
   clean.disabled = true;
+  const clear = iconButton("clear", "Clear selection", () => {
+    selection.ids.clear();
+    treeView?.update();
+  });
+  clear.hidden = true;
   const refresh = iconButton("refresh", "Refresh", () => void load(true));
   const history = iconButton("history", "Enable visit dates", () => {
     void requestHistory().then(
@@ -250,7 +255,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       () => feedback.replaceChildren(status("Could not request history access. Try again.")),
     );
   });
-  toolbar.append(refresh, history, count, clean);
+  toolbar.append(refresh, history, clear, count, clean);
   page.append(toolbar, feedback);
   const workspace = el("div", "workspace");
   workspace.append(list);
@@ -259,6 +264,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   function changed() {
     count.textContent = `${selection.ids.size} selected`;
     count.hidden = selection.ids.size === 0;
+    clear.hidden = selection.ids.size === 0;
     clean.disabled = busy || !selection.ids.size;
   }
 

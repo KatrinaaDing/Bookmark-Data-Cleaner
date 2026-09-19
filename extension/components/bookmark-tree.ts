@@ -4,6 +4,7 @@ import type { FolderRef } from "../core/types.js";
 export interface TreeView {
   element: HTMLElement;
   folders: () => FolderRef[];
+  update: () => void;
 }
 export function bookmarkTree(
   nodes: chrome.bookmarks.BookmarkTreeNode[],
@@ -122,6 +123,7 @@ export function bookmarkTree(
   update();
   return {
     element: root,
+    update,
     folders: () =>
       checks
         .filter((c) => c.folder && c.input.checked && !c.input.disabled)

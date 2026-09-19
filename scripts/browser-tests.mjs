@@ -7,6 +7,7 @@ for (const test of [
   "ui",
   "folder-motion",
   "bookmark-mutation",
+  "bookmark-selection",
   "bookmark-management",
   "ui-refinement",
 ]) {
