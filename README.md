@@ -31,7 +31,8 @@ npm run build
 Source lives in `extension/`: TypeScript, native HTML and custom CSS. Development dependencies are TypeScript and Chrome/Node typings. All shipped assets are local.
 
 - [Running and browser tests](docs/development.md)
-- [Rebranding plan and implementation status](docs/rebranding-plan.md)
+- [Evaluations, refinement history, and active implementation plan](docs/improvements/README.md)
+- [Rebranding plan and implementation status](docs/improvements/history/2026-09-06-rebranding-plan.md)
 - [Architecture and limits](docs/architecture.md)
 - [Stage 1 release notes](docs/release-notes.md)
 
