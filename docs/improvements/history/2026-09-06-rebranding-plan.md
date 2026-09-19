@@ -1,5 +1,7 @@
 # Rebranding — Stage 1 Plan
 
+> Historical record. Describes the original scope and evidence, not current implementation instructions. Use the [improvement index](../README.md) and [active plan](../plans/2026-09-19-public-release-plan.md) for current priorities. Original task checkboxes are not a current completion tracker.
+
 Status: implemented on `codex/rebrand-stage-1`; release checks and public naming remain. Updated: 2026-09-06.
 
 ## Product direction
@@ -144,7 +146,7 @@ Key contracts: `scanSites()` returns `{sites, coverage, warnings}`; `buildCleanu
 - [ ] Complete the manual release matrix in `docs/development.md`, including actual permission prompts, minimum Chrome and worker interruption with DevTools closed.
 - [ ] Finalize the public name and icon before release. Privacy copy, screenshots, manifest, README and release notes are updated; existing name/icon are retained for review.
 
-**Exit:** all three journeys are implemented and pass controlled Chrome 152 checks. Minimum-version, real permission-prompt, policy and full browser-shutdown checks remain before release. Follow [Running and testing](development.md).
+**Exit:** all three journeys are implemented and pass controlled Chrome 152 checks. Minimum-version, real permission-prompt, policy and full browser-shutdown checks remain before release. Follow [Running and testing](../../development.md).
 
 ## Deferred
 

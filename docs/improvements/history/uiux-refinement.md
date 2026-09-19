@@ -1,5 +1,7 @@
 # UI/UX refinement
 
+> Historical record. Describes the original scope and evidence, not current implementation instructions. Use the [improvement index](../README.md) and [active plan](../plans/2026-09-19-public-release-plan.md) for current priorities. Original task checkboxes are not a current completion tracker.
+
 Branch: `codex/uiux-refinement`.
 
 User direction: less text, original blue/white theme, familiar icons, animated folders, and a wider right-sliding details card. Preserve the app skeleton and make one-intent commits.
@@ -14,7 +16,7 @@ Implemented:
 
 The independent review found a save → refresh → close focus issue. A regression test reproduced it in Edge; the fix restores focus to the replacement row or main content. The reviewer verified the fix in Edge.
 
-See [development](development.md) for test commands. Naming, the rich toolbar popup and unrelated new features remain outside this pass.
+See [development](../../development.md) for test commands. Naming, the rich toolbar popup and unrelated new features remain outside this pass.
 
 ## Follow-up interaction polish
 

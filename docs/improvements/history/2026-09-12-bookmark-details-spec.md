@@ -1,5 +1,7 @@
 # Bookmark details and cleanup design
 
+> Historical record. Describes the original scope and evidence, not current implementation instructions. Use the [improvement index](../README.md) and [active plan](../plans/2026-09-19-public-release-plan.md) for current priorities. Original task checkboxes are not a current completion tracker.
+
 Approved in the conversation on 12 September 2026. This implements the existing extension's detail and cleanup flows.
 
 - Keep the local, dependency-free TypeScript extension, existing name/icon and blue/white styling. Keep the unchecked-checkbox appearance unchanged.

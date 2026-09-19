@@ -1,5 +1,7 @@
 # Bookmark Details Implementation Plan
 
+> Historical record. Describes the original scope and evidence, not current implementation instructions. Use the [improvement index](../README.md) and [active plan](../plans/2026-09-19-public-release-plan.md) for current priorities. Original task checkboxes are not a current completion tracker.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Make bookmark details, single-item cleanup and management understandable, responsive and consistent with reviewed cleanup effects.
@@ -8,7 +10,7 @@
 
 **Tech Stack:** TypeScript/native ES modules, Chrome extension APIs (Chrome 130+), native HTML/CSS, Node test runner, existing disposable-browser CDP harness.
 
-**Spec:** `docs/superpowers/specs/2026-09-12-bookmark-details.md`
+**Spec:** [archived specification](2026-09-12-bookmark-details-spec.md)
 
 ## Global Constraints
 

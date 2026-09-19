@@ -1,5 +1,7 @@
 # UI hierarchy review — 2026-09-07
 
+> Historical record. Describes the original scope and evidence, not current implementation instructions. Use the [improvement index](../README.md) and [active plan](../plans/2026-09-19-public-release-plan.md) for current priorities. Original task checkboxes are not a current completion tracker.
+
 Method: dual-agent (A: hierarchy_review · B: ui_evidence). A reviewed design independently; B measured the live interface and ran the detector. Both used disposable Edge profiles.
 
 The blue/white identity, folder tree, data timeline and progressive disclosure fit the product. The main weakness was typography and contextual emphasis, rather than excess content.

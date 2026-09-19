@@ -8,6 +8,6 @@ Three journeys: overview cards → collapsible bookmark tree or last-visit site 
 
 Constraints: offline local assets, TypeScript/native modules, native controls/custom CSS, no runtime dependencies or framework. No live previews, screenshots, remote favicons or analytics. History is optional enrichment. Deletion is irreversible; never infer success after interruption or replay automatically.
 
-See docs/rebranding-plan.md for scope and docs/architecture.md for tested boundaries.
+See docs/improvements/history/2026-09-06-rebranding-plan.md for scope and docs/architecture.md for tested boundaries.
 
 UI preferences: reduce visible text, retain the original blue/white identity, use familiar labeled icons, animate folder transitions, and show details in a wide card sliding from the right. Avoid nested scrolling. Keep commits focused on one intent.
