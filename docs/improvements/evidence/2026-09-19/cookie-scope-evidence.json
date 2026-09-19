@@ -1,0 +1,35 @@
+{
+  "observedDate": "2026-09-19",
+  "browserUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36 Edg/153.0.0.0",
+  "environment": "Fresh built extension in disposable Edge profile; optional permissions granted in copied test manifest; synthetic reserved .test domains only",
+  "existingBrowserSuites": "All eight passed before these additional probes",
+  "observations": [
+    {
+      "scenario": "Selected host-only cookie collides with older domain cookie",
+      "before": [
+        {"domain": ".collision.test", "hostOnly": false, "name": "session", "path": "/", "value": "older-domain"},
+        {"domain": "collision.test", "hostOnly": true, "name": "session", "path": "/", "value": "newer-host"}
+      ],
+      "selectedCookies": ["collision.test hostOnly=true session /"],
+      "operation": "removeData(site, {...noCleanup, cookies:true})",
+      "result": "success",
+      "after": []
+    },
+    {
+      "scenario": "Reviewed host-only cookie has expired, domain cookie remains",
+      "before": [{"domain": ".absent.test", "hostOnly": false, "name": "session", "path": "/", "value": "older-domain"}],
+      "selectedCookies": ["absent.test hostOnly=true session / (already absent)"],
+      "operation": "removeData(site, {...noCleanup, cookies:true})",
+      "result": "success",
+      "after": []
+    },
+    {
+      "scenario": "Independent minimal direct API verification",
+      "beforeDomains": [".collision.test", "collision.test"],
+      "operation": "chrome.cookies.remove({url:'https://collision.test/',name:'session',storeId:'0'})",
+      "result": {"name": "session", "storeId": "0", "url": "https://collision.test/"},
+      "after": []
+    }
+  ],
+  "limitation": "Observed on this Edge build; other supported browser versions were not tested by these probes. This JSON records observed output and context, not an independently timestamped log."
+}

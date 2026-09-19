@@ -1,0 +1,43 @@
+{
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.0.0 Safari/537.36 Edg/153.0.0.0",
+  "scenario": "Real scan snapshot followed by newly introduced domain cookie",
+  "reviewed": {
+    "id": "reviewed.test",
+    "host": "reviewed.test",
+    "origins": [
+      "http://reviewed.test",
+      "https://reviewed.test"
+    ],
+    "urls": [],
+    "cookies": [
+      {
+        "name": "session",
+        "domain": "reviewed.test",
+        "hostOnly": true,
+        "path": "/",
+        "secure": true,
+        "storeId": "0"
+      }
+    ],
+    "bookmarks": [],
+    "cookiesAvailable": true
+  },
+  "before": [
+    {
+      "domain": "reviewed.test",
+      "hostOnly": true,
+      "name": "session",
+      "path": "/",
+      "value": "reviewed-host"
+    },
+    {
+      "domain": ".reviewed.test",
+      "hostOnly": false,
+      "name": "session",
+      "path": "/",
+      "value": "new-unreviewed-domain"
+    }
+  ],
+  "status": "success",
+  "after": []
+}
