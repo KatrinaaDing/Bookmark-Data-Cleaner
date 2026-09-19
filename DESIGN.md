@@ -35,6 +35,8 @@ Explicitly inherit the root font on `body`: Chromium extension defaults otherwis
 
 The inspected row uses a quiet blue tint and `aria-current`, separate from cleanup checkboxes. Preserve this context after list refreshes. Details places close beside its heading and uses one divider between summary values and expandable sections. Site filters and cleanup selection actions form separate toolbar groups; clear selection appears only when applicable.
 
-Cleanup review lists actual selected bookmark paths and category-specific related effects. Exact URL copies are unchecked additions; changing one prepares a fresh immutable snapshot before confirmation. Bookmark-only cleanup omits website-data warnings.
+Cleanup review lists actual selected bookmark paths and category-specific related effects. Exact URL copies are unchecked additions; changing one prepares a fresh immutable snapshot before confirmation. Bookmark-only cleanup omits website-data warnings. Both detail and batch entry points say Review cleanup and use blue; only final confirmation is red. Review is disabled until an available category is selected. The review heading receives focus so arriving or pressing Enter does not immediately activate deletion.
+
+Both workspaces offer Clear selection only while a selection exists. Bookmark clearing includes collapsed descendants and empty folders, resets mixed parent checkboxes, and preserves the inspected row/details independently.
 
 Detail disclosures use thin animated chevrons and aligned content. The close control stays visually quiet. The Open page action is explicit because visiting a page can create browsing data.
