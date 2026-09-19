@@ -4,7 +4,11 @@ import {
   inventoryFromCookies,
   sitesFromBookmarks,
 } from "../extension/core/inventory.js";
-import { webOrigin, cookieIdentity } from "../extension/helpers/sites.js";
+import {
+  cookieAppliesToUrl,
+  cookieIdentity,
+  webOrigin,
+} from "../extension/helpers/sites.js";
 import type { CookieRef } from "../extension/core/types.js";
 const cookie: CookieRef = {
   name: "session",
@@ -161,4 +165,105 @@ test("same-host bookmark groups retain matching partition cookies in either URL-
     );
     assert.deepEqual(site.cookies.map(({ name }) => name), ["partitioned"]);
   }
+});
+
+test("indexed bookmark cookie matching preserves host, domain, partition, identity, and invalid-URL semantics", () => {
+  const bookmarks = [
+    {
+      id: "https-app",
+      title: "Secure app",
+      url: "https://app.example.test/secure",
+      path: "Work",
+    },
+    {
+      id: "http-app",
+      title: "Plain app",
+      url: "http://app.example.test/plain",
+      path: "Work",
+    },
+    {
+      id: "https-app-again",
+      title: "Secure app again",
+      url: "https://app.example.test/another-page",
+      path: "Work",
+    },
+    {
+      id: "api",
+      title: "API",
+      url: "https://api.example.test/v1",
+      path: "Work",
+    },
+    { id: "settings", title: "Settings", url: "chrome://settings", path: "" },
+    { id: "broken", title: "Broken", url: "not a URL", path: "" },
+  ];
+  const cookies: CookieRef[] = [
+    { ...cookie, name: "host-only", domain: "app.example.test", hostOnly: true },
+    { ...cookie, name: "domain", domain: ".example.test" },
+    { ...cookie, name: "parent-domain", domain: ".test" },
+    { ...cookie, name: "lookalike", domain: ".notexample.test" },
+    {
+      ...cookie,
+      name: "https-partition-a",
+      domain: "third-party.test",
+      partitionKey: {
+        topLevelSite: "https://example.test",
+        hasCrossSiteAncestor: true,
+      },
+    },
+    {
+      ...cookie,
+      name: "https-partition-b",
+      domain: "fourth-party.test",
+      partitionKey: {
+        topLevelSite: "https://example.test",
+        hasCrossSiteAncestor: false,
+      },
+    },
+    {
+      ...cookie,
+      name: "http-partition",
+      domain: "third-party.test",
+      partitionKey: {
+        topLevelSite: "http://example.test",
+        hasCrossSiteAncestor: true,
+      },
+    },
+    {
+      ...cookie,
+      name: "other-partition",
+      domain: "third-party.test",
+      partitionKey: {
+        topLevelSite: "https://other.test",
+        hasCrossSiteAncestor: true,
+      },
+    },
+    {
+      ...cookie,
+      name: "invalid-partition",
+      domain: "third-party.test",
+      partitionKey: { topLevelSite: "not a URL" },
+    },
+  ];
+  const sites = sitesFromBookmarks(bookmarks, cookies);
+
+  for (const site of sites) {
+    const expected = [
+      ...new Map(
+        site.bookmarks
+          .flatMap((bookmark) =>
+            cookies.filter((item) => cookieAppliesToUrl(item, bookmark.url)),
+          )
+          .map((item) => [cookieIdentity(item), item]),
+      ).values(),
+    ];
+    assert.deepEqual(site.cookies, expected);
+  }
+  assert.deepEqual(
+    sites.find((site) => site.id === "bookmark:settings")?.cookies,
+    [],
+  );
+  assert.deepEqual(
+    sites.find((site) => site.id === "bookmark:broken")?.cookies,
+    [],
+  );
 });

@@ -1,6 +1,5 @@
 import type { BookmarkRef, CookieRef, SiteRecord } from "./types.js";
 import {
-  cookieAppliesToUrl,
   cookieIdentity,
   cookieOwner,
   unique,
@@ -10,16 +9,17 @@ interface ParsedWebItem<T> {
   item: T;
   host: string;
   origin: string;
+  protocol: string;
 }
 
 function parseWebUrl(
   value: string,
-): { host: string; origin: string } | undefined {
+): { host: string; origin: string; protocol: string } | undefined {
   try {
     const url = new URL(value);
     if (url.protocol !== "http:" && url.protocol !== "https:")
       return undefined;
-    return { host: url.hostname, origin: url.origin };
+    return { host: url.hostname, origin: url.origin, protocol: url.protocol };
   } catch {
     return undefined;
   }
@@ -38,6 +38,74 @@ function parseWebItems<T>(
     parsed.push({ item, ...location });
   }
   return parsed;
+}
+
+interface IndexedCookie {
+  cookie: CookieRef;
+  order: number;
+}
+
+function addCookie(
+  index: Map<string, IndexedCookie[]>,
+  host: string,
+  cookie: IndexedCookie,
+): void {
+  const matches = index.get(host);
+  if (matches) matches.push(cookie);
+  else index.set(host, [cookie]);
+}
+
+function ancestorHosts(host: string): string[] {
+  const ancestors: string[] = [];
+  let candidate = host;
+  while (candidate) {
+    ancestors.push(candidate);
+    const dot = candidate.indexOf(".");
+    if (dot < 0) break;
+    candidate = candidate.slice(dot + 1);
+  }
+  return ancestors;
+}
+
+class CookieMatchIndex {
+  private readonly hostOnly = new Map<string, IndexedCookie[]>();
+  private readonly domain = new Map<string, IndexedCookie[]>();
+  private readonly partitions = new Map<
+    string,
+    Map<string, IndexedCookie[]>
+  >();
+
+  constructor(cookies: CookieRef[]) {
+    for (const [order, cookie] of cookies.entries()) {
+      const indexed = { cookie, order };
+      if (!cookie.partitionKey) {
+        const host = cookie.domain.replace(/^\./, "").toLowerCase();
+        const hostOnly = cookie.hostOnly ?? !cookie.domain.startsWith(".");
+        addCookie(hostOnly ? this.hostOnly : this.domain, host, indexed);
+        continue;
+      }
+
+      const partition = parseWebUrl(cookie.partitionKey.topLevelSite ?? "");
+      if (!partition) continue;
+      let byHost = this.partitions.get(partition.protocol);
+      if (!byHost) {
+        byHost = new Map();
+        this.partitions.set(partition.protocol, byHost);
+      }
+      addCookie(byHost, partition.host, indexed);
+    }
+  }
+
+  matching(host: string, protocol: string): CookieRef[] {
+    const candidates = [...(this.hostOnly.get(host) ?? [])];
+    const partitionHosts = this.partitions.get(protocol);
+    for (const ancestor of ancestorHosts(host)) {
+      candidates.push(...(this.domain.get(ancestor) ?? []));
+      candidates.push(...(partitionHosts?.get(ancestor) ?? []));
+    }
+    candidates.sort((left, right) => left.order - right.order);
+    return candidates.map(({ cookie }) => cookie);
+  }
 }
 
 function matchingGroups(
@@ -112,7 +180,9 @@ export function sitesFromBookmarks(
   history: chrome.history.HistoryItem[] = [],
 ): SiteRecord[] {
   const groups = new Map<string, SiteRecord>();
+  const cookieIndex = cookies && new CookieMatchIndex(cookies);
   const parsedHistory = parseWebItems(history, (visit) => visit.url);
+  const matchedSchemeHosts = new Set<string>();
   const latestByHost = new Map<string, number>();
   const originsByHost = new Map<string, Set<string>>();
   for (const { item, host, origin } of parsedHistory) {
@@ -131,7 +201,8 @@ export function sitesFromBookmarks(
   for (const bookmark of bookmarks) {
     const location = parseWebUrl(bookmark.url),
       origin = location?.origin,
-      host = location?.host;
+      host = location?.host,
+      protocol = location?.protocol;
     // Non-web bookmarks can be removed independently but never become data targets.
     const id = host ?? `bookmark:${bookmark.id}`;
     let site = groups.get(id);
@@ -149,13 +220,13 @@ export function sitesFromBookmarks(
     }
     site.bookmarks.push(bookmark);
     site.urls.push(bookmark.url);
-    if (origin && host) {
+    if (origin && host && protocol) {
       site.origins.push(origin, `https://${host}`, `http://${host}`);
-      site.cookies.push(
-        ...(cookies ?? []).filter((cookie) =>
-          cookieAppliesToUrl(cookie, bookmark.url),
-        ),
-      );
+      const schemeHost = `${protocol}\u0000${host}`;
+      if (!matchedSchemeHosts.has(schemeHost)) {
+        site.cookies.push(...(cookieIndex?.matching(host, protocol) ?? []));
+        matchedSchemeHosts.add(schemeHost);
+      }
       site.lastVisit = latestByHost.get(host);
       site.origins.push(...(originsByHost.get(host) ?? []));
     }
