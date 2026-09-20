@@ -18,7 +18,7 @@ export function actionButton(label: string, action: () => void, options: { icon?
       element.disabled = pending || disabled;
       element.setAttribute('aria-busy', String(pending));
       element.setAttribute('aria-label', pending ? pendingLabel : label);
-      content.hidden = pending;
+      content.setAttribute('aria-hidden', String(pending));
       element.querySelector('.spinner')?.remove();
       if (pending) element.append(el('span', 'spinner'));
       element.classList.toggle('is-pending', pending);

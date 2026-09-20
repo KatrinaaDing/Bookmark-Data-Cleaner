@@ -33,8 +33,10 @@ try {
   assert.equal(await run(`${review}.disabled`), false);
   await run(`${category("Remove selected bookmarks")}.click()`);
   assert.equal(await run(`${review}.disabled`), true, "Removing the last choice disables review again");
+  await run(`window.nextWidth=${review}.getBoundingClientRect().width`);
   await run(`${category("Remove selected bookmarks")}.click(); window.prepareGate = new Promise(resolve => { window.releasePrepare = resolve; }); ${review}.click()`);
   assert.equal(await run(`Array.from(document.querySelectorAll('.cleanup-dialog input, .cleanup-dialog .dialog-actions button')).every(control => control.disabled)`), true, "Preparation freezes choices and actions");
+  assert.equal(await run(`Math.abs(${review}.getBoundingClientRect().width-window.nextWidth)<.5`),true,"Pending actions retain their width");
   await run(`window.releasePrepare(); window.prepareGate = undefined`);
   await pause(100);
   assert.equal(await run(`document.activeElement.id`), "cleanup-title", "Review starts on its summary heading, not Confirm");
