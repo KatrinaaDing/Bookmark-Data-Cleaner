@@ -42,7 +42,17 @@ try {
     first.click();
     const inspectionMs = performance.now() - inspectionStarted;
     await new Promise(resolve => setTimeout(resolve, 300));
+    const search = document.querySelector('input[aria-label="Find a bookmark"]');
+    const searchSamples = [];
+    for (const query of ['Saved page 4999', 'site123.test', 'Profile fixtures', 'no match', '']) {
+      const start = performance.now();
+      search.value = query;
+      search.dispatchEvent(new Event('input', {bubbles:true}));
+      document.querySelector('.workspace-list').getBoundingClientRect();
+      searchSamples.push({query, milliseconds:performance.now()-start, matches:document.querySelectorAll('.bookmark-row').length});
+    }
     return {
+      searchSamples,
       userAgent: navigator.userAgent, fixture: { bookmarks: bookmarks.length, cookies: cookies.length },
       rows, loadMs, expansionMs, inspectionMs,
       inspected: document.querySelector('.details-drawer')?.dataset.inspectionKey,
