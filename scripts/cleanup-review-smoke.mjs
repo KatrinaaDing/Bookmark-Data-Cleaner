@@ -19,7 +19,7 @@ try {
     window.openReview();
   })()`);
   await pause(100);
-  const review = `Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button => button.textContent === 'Review cleanup')`;
+  const review = `Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button => button.textContent === 'Next')`;
   const category = (label) => `Array.from(document.querySelectorAll('.cleanup-dialog label')).find(label => label.textContent === ${JSON.stringify(label)}).querySelector('input')`;
   assert.equal(await run(`Array.from(document.querySelectorAll('.cleanup-choice input')).every(input=>input.checked)`), true, "All available categories start selected");
   assert.equal(await run(`document.querySelectorAll('.cleanup-count').length`), 5);
@@ -38,7 +38,7 @@ try {
   await run(`window.releasePrepare(); window.prepareGate = undefined`);
   await pause(100);
   assert.equal(await run(`document.activeElement.id`), "cleanup-title", "Review starts on its summary heading, not Confirm");
-  assert.equal(await run(`document.activeElement.textContent`), "Review this cleanup");
+  assert.equal(await run(`document.activeElement.textContent`), "Step 2 — Review this cleanup");
   await browser.cmd("Input.dispatchKeyEvent", { type: "keyDown", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13, text: String.fromCharCode(13) }, page.sessionId);
   await browser.cmd("Input.dispatchKeyEvent", { type: "keyUp", key: "Enter", code: "Enter", windowsVirtualKeyCode: 13 }, page.sessionId);
   assert.equal(await run(`window.started`), 0, "Enter at review arrival does not start cleanup");
@@ -87,7 +87,7 @@ try {
     window.openPreview();
   })()`);
   await pause(100);
-  assert.deepEqual(await run(`Array.from(document.querySelectorAll('.cleanup-count')).map(node=>node.textContent)`), ['1 detected cookie','2 origins in scope','2 origins in scope','2 origins in scope','1 bookmark · 1 folder if empty']);
+  assert.deepEqual(await run(`Array.from(document.querySelectorAll('.cleanup-count')).map(node=>node.textContent)`), ['1 detected cookie','If present','If present','If present','1 bookmark · 1 folder if empty']);
   for (const [name,width,height] of [['choices-desktop',1360,900],['choices-narrow',390,844]]) {
     await browser.cmd('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false},page.sessionId);
     assert.equal(await run(`document.querySelector('.cleanup-dialog').scrollWidth<=document.querySelector('.cleanup-dialog').clientWidth`),true);

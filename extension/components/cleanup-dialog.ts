@@ -1,3 +1,7 @@
+import { actionButton } from "./action-button.js";
+import { bookmarkSummary } from "./bookmark-summary.js";
+import { enter } from "./motion.js";
+import { toast } from "./feedback.js";
 import { LatestRead } from "./async-state.js";
 import { buildCleanupPlan, hasData } from "../core/cleanup.js";
 import type { CleanupImpact } from "../core/impact.js";
@@ -30,18 +34,21 @@ export function cleanupDialog(
   const dialog = el("dialog", "cleanup-dialog");
   dialog.setAttribute("aria-labelledby", "cleanup-title");
   const body = el("div");
-  const title = el("h2", "", "Choose what to remove");
+  const title = el("h2", "", "Step 1 — Choose what to remove");
   title.id = "cleanup-title";
   title.tabIndex = -1;
   const feedback = el("div", "cleanup-feedback");
   const options: CleanupOptions = { cookies: true, savedData: true, cache: true, workers: true, bookmarks: allowBookmarks };
   const extras = new Set<string>();
   const duplicateCandidates = new Map<string, BookmarkRef>();
+  const duplicateDecisions = new Map<string, boolean>();
   let busy = false;
   let revision = 0;
   const reviews = new LatestRead();
   let validReview = false;
   let confirmAction: HTMLButtonElement | undefined;
+  let nextButton: ReturnType<typeof actionButton> | undefined;
+  let confirmButton: ReturnType<typeof actionButton> | undefined;
   let choiceInputs: HTMLInputElement[] = [];
   let activeControls: HTMLButtonElement[] = [];
   let reviewAction: HTMLButtonElement | undefined;
@@ -87,6 +94,8 @@ export function cleanupDialog(
     for (const control of activeControls) control.disabled = value;
     if (confirmAction) confirmAction.disabled = value || !validReview;
     updateReviewAvailability();
+    nextButton?.update({ pending: value, disabled: reviewAction?.disabled, pendingLabel: "Preparing cleanup…" });
+    confirmButton?.update({ pending: value, disabled: !validReview, pendingLabel: validReview ? "Starting cleanup…" : "Preparing cleanup…" });
     dialog.setAttribute("aria-busy", String(value));
   }
 
@@ -95,10 +104,11 @@ export function cleanupDialog(
     reviews.invalidate();
     validReview = false;
     confirmAction = undefined;
+    confirmButton = undefined;
     busy = false;
     dialog.setAttribute("aria-busy", "false");
     feedback.replaceChildren();
-    title.textContent = "Choose what to remove";
+    title.textContent = "Step 1 — Choose what to remove";
     body.replaceChildren(
       title,
       el("p", "muted", "Review your choices before confirming."),
@@ -121,23 +131,24 @@ export function cleanupDialog(
         if (current !== revision || request !== previewRevision || !dialog.open) return;
         const cookies = new Set(prepared.sites.flatMap(site => site.cookies.map(cookieIdentity))).size;
         const bookmarks = new Set(prepared.sites.flatMap(site => site.bookmarks.map(bookmark => bookmark.id))).size;
-        const origins = new Set(prepared.sites.flatMap(site => site.origins)).size;
         const folders = new Set((prepared.folders ?? []).map(folder => folder.id)).size;
         counts.get("cookies")!.textContent = granted
           ? `${cookies} detected ${cookies === 1 ? "cookie" : "cookies"}` : "Access needed";
         for (const key of ["savedData", "cache", "workers"] as const)
-          counts.get(key)!.textContent = `${origins} ${origins === 1 ? "origin" : "origins"} in scope`;
+          counts.get(key)!.textContent = "If present";
         if (allowBookmarks)
           counts.get("bookmarks")!.textContent = `${bookmarks} ${bookmarks === 1 ? "bookmark" : "bookmarks"}${folders ? ` · ${folders} ${folders === 1 ? "folder" : "folders"} if empty` : ""}`;
-        previewNotice.textContent = "Storage, cache and worker counts show website origins to check, not detected items or bytes. The next step refreshes the scope.";
+        previewNotice.textContent = "Clears this data for the selected websites, if present. Stored item counts and sizes are unavailable.";
       } catch {
         if (current !== revision || request !== previewRevision || !dialog.open) return;
         for (const count of counts.values()) count.textContent = "Count unavailable";
         if (!granted) counts.get("cookies")!.textContent = "Access needed";
-        previewNotice.textContent = "Could not load preview counts. Review cleanup will retry before you can confirm.";
+        previewNotice.textContent = "Could not load preview counts. Next will retry before you can confirm.";
       }
     }
+    body.append(el("h3", "", "Website data"));
     for (const [key, label, description] of choices) {
+      if (key === "bookmarks") body.append(el("h3", "", "Bookmarks"));
       const choice = checkbox(label, (value) => {
         options[key] = value;
         updateReviewAvailability();
@@ -188,6 +199,7 @@ export function cleanupDialog(
           }
         },
         () => {
+          if (current !== revision || !dialog.open) return;
           setCookieAccess(false);
           feedback.replaceChildren(
             status("Could not request cookie access. Try again."),
@@ -216,9 +228,10 @@ export function cleanupDialog(
       },
     );
     const close = button("Cancel", () => dialog.close(), "quiet");
-    const review = button("Review cleanup", () => {
+    nextButton = actionButton("Next", () => {
       void reviewPlan({ ...options, cookies: options.cookies && cookieInput!.dataset.permission === "on" });
-    }, "primary");
+    }, { tone: "primary" });
+    const review = nextButton.element;
     reviewAction = review;
     activeControls = [close, review];
     updateReviewAvailability();
@@ -226,9 +239,12 @@ export function cleanupDialog(
     actions.append(close, review);
     body.append(previewNotice, accessButton, feedback, actions);
     title.focus();
+    enter(body, -1);
   }
 
   async function reviewPlan(snapshot: CleanupOptions) {
+    if (busy) return;
+    const focusedDuplicate = (document.activeElement as HTMLElement | null)?.dataset.bookmarkId;
     const current = ++revision;
     const isCurrent = reviews.begin();
     validReview = false;
@@ -236,13 +252,26 @@ export function cleanupDialog(
     if (!body.contains(feedback)) body.append(feedback);
     feedback.replaceChildren(status("Preparing cleanup…", true));
     try {
-      const prepared = await prepare(
-        Object.freeze({ ...snapshot }),
-        new Set(extras),
-      );
-      if (current !== revision || !isCurrent() || !dialog.open) return;
-      for (const duplicate of prepared.impact?.duplicates ?? [])
-        duplicateCandidates.set(duplicate.id, duplicate);
+      let prepared: PreparedCleanup | undefined;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const requested = new Set(snapshot.bookmarks ? extras : []);
+        prepared = await prepare(Object.freeze({ ...snapshot }), requested);
+        if (current !== revision || !isCurrent() || !dialog.open) return;
+        duplicateCandidates.clear();
+        for (const duplicate of prepared.impact?.duplicates ?? []) {
+          duplicateCandidates.set(duplicate.id, duplicate);
+          if (snapshot.bookmarks && !duplicateDecisions.has(duplicate.id))
+            duplicateDecisions.set(duplicate.id, !duplicate.unmodifiable);
+        }
+        for (const id of duplicateDecisions.keys())
+          if (!duplicateCandidates.has(id)) duplicateDecisions.delete(id);
+        extras.clear();
+        if (snapshot.bookmarks) for (const duplicate of duplicateCandidates.values())
+          if (!duplicate.unmodifiable && duplicateDecisions.get(duplicate.id)) extras.add(duplicate.id);
+        if (requested.size === extras.size && [...requested].every(id => extras.has(id))) break;
+        if (attempt === 2) throw Error("Bookmarks changed while preparing. Retry to review the current list.");
+      }
+      if (!prepared) throw Error("Could not prepare cleanup.");
       validReview = true;
       feedback.replaceChildren();
       renderReview(
@@ -250,6 +279,7 @@ export function cleanupDialog(
         prepared.impact,
         snapshot,
       );
+      if (focusedDuplicate) body.querySelector<HTMLInputElement>(`input[data-bookmark-id="${CSS.escape(focusedDuplicate)}"]`)?.focus();
     } catch (error) {
       if (current === revision) {
         validReview = false;
@@ -265,8 +295,10 @@ export function cleanupDialog(
     impact: CleanupImpact | undefined,
     snapshot: CleanupOptions,
   ) {
-    title.textContent = "Review this cleanup";
+    const newStep = title.textContent !== "Step 2 — Review this cleanup";
+    title.textContent = "Step 2 — Review this cleanup";
     reviewAction = undefined;
+    nextButton = undefined;
     body.replaceChildren(title);
     choiceInputs = [];
     activeControls = [];
@@ -282,76 +314,52 @@ export function cleanupDialog(
     const selected = choices
       .filter(([key]) => plan.options[key])
       .map(([, label]) => label);
-    body.append(el("p", "selected-categories", selected.join(" · ")));
+    body.append(el("h3", "", "Data to remove"), el("p", "selected-categories", selected.filter(label => label !== "Remove selected bookmarks").join(" · ") || "No website data selected."));
 
-    if (allowBookmarks && plan.options.bookmarks && duplicateCandidates.size) {
-      const copies = el("fieldset", "duplicate-choices");
-      copies.append(
-        el("legend", "", "Additional exact copies"),
-        el(
-          "p",
-          "fine",
-          hasData(plan.options)
-            ? "Unchecked copies stay bookmarked but can still share the website data selected above."
-            : "Copies are unchecked by default and stay bookmarked unless you add them.",
-        ),
-      );
-      for (const duplicate of duplicateCandidates.values()) {
-        const choice = checkbox(
-          `${duplicate.title || "Untitled"} — ${duplicate.path || "Bookmarks"}`,
-          (checked) => {
-            if (checked) extras.add(duplicate.id);
-            else extras.delete(duplicate.id);
+    if (allowBookmarks && plan.options.bookmarks) {
+      const bookmarks = new Map(plan.sites.flatMap(site => site.bookmarks.map(bookmark => [bookmark.id, bookmark] as const)));
+      const section = el("section", "bookmark-removals");
+      section.append(el("h3", "", `Bookmarks to delete (${bookmarks.size})`));
+      for (const bookmark of bookmarks.values()) {
+        if (duplicateCandidates.has(bookmark.id)) continue;
+        const row = el("p", "selected-bookmark"); row.append(bookmarkSummary(bookmark)); section.append(row);
+      }
+      if (duplicateCandidates.size) {
+        const copies = el("fieldset", "duplicate-choices");
+        copies.append(el("legend", "", "Also delete other bookmarks for these URLs"));
+        for (const duplicate of duplicateCandidates.values()) {
+          const choice = checkbox("", checked => {
+            duplicateDecisions.set(duplicate.id, checked);
+            if (checked) extras.add(duplicate.id); else extras.delete(duplicate.id);
             void reviewPlan(snapshot);
-          },
-        );
-        choice.input.checked = extras.has(duplicate.id);
-        choiceInputs.push(choice.input);
-        copies.append(choice.label);
+          });
+          choice.input.checked = extras.has(duplicate.id);
+          choice.input.dataset.bookmarkId = duplicate.id;
+          choice.input.dataset.permission = duplicate.unmodifiable ? "off" : "on";
+          choice.input.disabled = !!duplicate.unmodifiable;
+          const caption = choice.label.querySelector("span")!;
+          caption.append(bookmarkSummary(duplicate));
+          if (duplicate.unmodifiable) caption.append(el("span", "fine", "Managed by your browser or organization. This bookmark will remain."));
+          if (!choice.input.checked && hasData(plan.options)) caption.append(el("span", "fine remaining-copies", "This bookmark will remain. Its website data will still be included in this cleanup."));
+          choiceInputs.push(choice.input); copies.append(choice.label);
+        }
+        if ([...duplicateCandidates.keys()].every(id => extras.has(id)))
+          copies.append(el("p", "fine", "All bookmarks for these URLs are selected for deletion. No saved copy will remain."));
+        section.append(copies);
       }
-      body.append(copies);
-    }
-
-    if (hasData(plan.options) && duplicateCandidates.size) {
-      const remaining = [...duplicateCandidates.values()].filter(
-        (bookmark) => !extras.has(bookmark.id),
-      );
-      if (remaining.length) {
-        const warning = el("div", "related-warning remaining-copies");
-        warning.append(
-          el("h3", "", "Saved copies will remain"),
-          el(
-            "p",
-            "fine",
-            "These exact copies stay bookmarked, but they share the website data selected for cleanup.",
-          ),
-        );
-        for (const bookmark of remaining)
-          warning.append(
-            el(
-              "p",
-              "affected-entry",
-              `${bookmark.title || "Untitled"} — ${bookmark.path || "Bookmarks"}`,
-            ),
-          );
-        body.append(warning);
-      }
+      if (plan.folders.length) section.append(el("p", "fine", `${plan.folders.length} selected folders will be removed only if empty.`));
+      body.append(section);
     }
 
     if (hasData(plan.options) && (impact?.relatedBookmarks.length || impact?.relatedSites.length)) {
       const warning = el("div", "related-warning");
       warning.append(
-        el("h3", "", "Other saved pages may be affected"),
+        el("h3", "", "Other pages affected by this cleanup"),
         el("p", "fine", "Their bookmarks stay, but the selected website data is shared."),
       );
-      for (const bookmark of impact?.relatedBookmarks ?? [])
-        warning.append(
-          el(
-            "p",
-            "affected-entry",
-            `${bookmark.title || "Untitled"} — ${bookmark.path || "Bookmarks"}`,
-          ),
-        );
+      for (const bookmark of impact?.relatedBookmarks ?? []) {
+        const row = el("p", "affected-entry"); row.append(bookmarkSummary(bookmark)); warning.append(row);
+      }
       for (const site of impact?.relatedSites ?? [])
         warning.append(el("p", "affected-entry", site.host));
       body.append(warning);
@@ -381,36 +389,16 @@ export function cleanupDialog(
       if (plan.options.savedData || plan.options.cache || plan.options.workers)
         for (const origin of site.origins)
           summary.append(el("p", "url", origin));
-      if (plan.options.bookmarks)
-        for (const bookmark of site.bookmarks)
-          summary.append(
-            el(
-              "p",
-              "selected-bookmark",
-              `${bookmark.title || "Untitled"} — ${bookmark.path || "Bookmarks"}`,
-            ),
-          );
     }
-    if (plan.folders.length && plan.options.bookmarks)
-      summary.append(
-        el(
-          "p",
-          "fine",
-          `${plan.folders.length} selected folders will be removed only if empty.`,
-        ),
-      );
-    body.append(
-      summary,
-      el(
-        "p",
-        "fine",
-        "HTTP/HTTPS defaults and locally known origins are listed above. Unknown ports and storage-only sites are not discovered. History, passwords and downloads are kept.",
-      ),
-    );
+    if (hasData(plan.options)) {
+      const details = el("details", "technical-details");
+      details.append(el("summary", "", "Technical details"), summary, el("p", "fine", "These are the exact website addresses and cookie domains targeted. Unknown ports and storage-only sites may not be discovered. History, passwords and downloads are kept."));
+      body.append(details);
+    }
     const result = el("div", "cleanup-result");
     const back = button("Back", () => renderChoices(), "quiet");
     const cancel = button("Cancel", () => dialog.close(), "quiet");
-    const confirm = button("Confirm cleanup", () => {
+    confirmButton = actionButton("Confirm cleanup", () => {
       if (busy || !validReview) return;
       setBusy(true);
       result.replaceChildren(status("Starting cleanup…", true));
@@ -421,18 +409,21 @@ export function cleanupDialog(
             throw Error(response.error ?? "Could not start cleanup.");
           onStarted(response.value);
           dialog.close();
+          toast("Cleanup started. Progress appears in cleanup results.", "info");
         })
         .catch((error) => {
           setBusy(false);
           result.replaceChildren(status(errorMessage(error)));
         });
-    }, "danger");
+    }, { tone: "danger" });
+    const confirm = confirmButton.element;
     confirmAction = confirm;
     activeControls = [back, cancel, confirm];
     const footer = el("div", "dialog-actions");
     footer.append(back, cancel, confirm);
     body.append(feedback, result, footer);
     title.focus();
+    if (newStep) enter(body, 1);
   }
 
   dialog.append(body);

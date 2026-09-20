@@ -14,7 +14,7 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
 .bookmark-summary .fine { font-weight: 400; }
 .info-control { display: inline-flex; vertical-align: middle; }
 .info-popover { position: fixed; inset: auto; margin: 0; padding: .8rem 1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--ink); color: var(--canvas); font-size: var(--text-control); line-height: 1.5; box-shadow: 0 5px 18px rgb(0 0 0 / 15%); }
-.toast-host { position: fixed; inset: auto 20px 20px auto; margin: 0; padding: 0; border: 0; background: transparent; width: min(420px, calc(100vw - 40px)); overflow: visible; }
+.toast-host { position: fixed; inset: 20px 20px auto auto; margin: 0; padding: 0; border: 0; background: transparent; width: min(420px, calc(100vw - 40px)); max-height: 45vh; overflow: auto; }
 .toast { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem 1rem; margin-top: .6rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); box-shadow: 0 8px 24px rgb(32 45 67 / 15%); font-size: var(--text-control); }
 .toast-success { background: var(--success-soft); color: var(--success); }
 .toast-error { background: var(--danger-soft); color: var(--danger); }
@@ -34,3 +34,11 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
 .page-heading h1 { display: flex; align-items: center; gap: .5rem; }
 .refreshing .icon { animation: spin 1s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .refreshing .icon { animation: none; } }
+.cleanup-dialog h3 { margin: 1.2rem 0 .6rem; font-size: var(--text-body); }
+.bookmark-removals .selected-bookmark { margin: .7rem 0; }
+.duplicate-choices { margin-top: 1rem; padding: .8rem; }
+.duplicate-choices .check { align-items: flex-start; margin: .7rem 0; }
+.duplicate-choices .check > span { display: grid; gap: .35rem; min-width: 0; }
+.remaining-copies { color: var(--danger); }
+.technical-details { margin: 1rem 0; }
+.technical-details > summary { padding: .5rem 0; cursor: pointer; }

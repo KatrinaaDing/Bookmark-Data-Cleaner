@@ -17,10 +17,11 @@ try {
     const duplicateFolder = await chrome.bookmarks.create({ parentId: base.id, title: 'Duplicate folder' });
     const first = await chrome.bookmarks.create({ parentId: source.id, title: 'Primary detail bookmark', url: 'https://details.example.test/article?edition=1#notes' });
     const duplicate = await chrome.bookmarks.create({ parentId: duplicateFolder.id, title: 'Exact saved copy', url: first.url });
+    const kept = await chrome.bookmarks.create({parentId:duplicateFolder.id,title:'Keep this duplicate',url:first.url});
     const related = await chrome.bookmarks.create({ parentId: source.id, title: 'Another page on this site', url: 'https://details.example.test/other' });
     const unrelated = await chrome.bookmarks.create({ parentId: source.id, title: 'Unrelated selected row', url: 'https://unrelated.example.test/keep' });
     await chrome.cookies.set({ url: 'https://details.example.test/', name: 'session', value: 'fixture' });
-    return { source: source.id, destination: destination.id, duplicateFolder: duplicateFolder.id, first: first.id, duplicate: duplicate.id, related: related.id, unrelated: unrelated.id };
+    return { source: source.id, destination: destination.id, duplicateFolder: duplicateFolder.id, first: first.id, duplicate: duplicate.id, kept: kept.id, related: related.id, unrelated: unrelated.id };
   })()`);
 
   await browser.cmd("Page.reload", {}, page.sessionId);
@@ -43,7 +44,7 @@ try {
     "The saved folder is visible",
   );
   assert.equal(
-    await run(`!!document.querySelector('.details-drawer .bookmark-editor')`),
+    await run(`!!document.querySelector('.details-drawer .bookmark-edit-action')`),
     true,
     "Existing bookmarks have an edit and move form",
   );
@@ -61,9 +62,9 @@ try {
   await pause(150);
 
   const beforeCount = await run(`chrome.bookmarks.search({}).then((nodes) => nodes.filter((node) => node.url).length)`);
+  await run(`document.querySelector('.bookmark-edit-action').click()`);
   await run(`(() => {
     const editor = document.querySelector('.details-drawer .edit-bookmark');
-    document.querySelector('.bookmark-edit-action').click();
     const form = editor.querySelector('form');
     form.elements.title.value = 'Moved detail bookmark';
     form.elements.parentId.value = ${JSON.stringify(fixtures.destination)};
@@ -82,7 +83,7 @@ try {
   );
   assert.match(
     await run(`document.querySelector('.details-drawer').textContent`),
-    /Saved in .*Detail destination/,
+    /Saved in.*Detail destination/,
     "The refreshed details show the actual destination",
   );
   await run(`location.hash = 'sites'`);
@@ -109,7 +110,7 @@ try {
     "Direct cleanup opens the shared review flow",
   );
   await run(`document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(!input.closest('label').textContent.includes('Remove selected bookmarks') && input.checked)input.click()})`);
-  await run(`Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find((button) => button.textContent === 'Review cleanup').click()`);
+  await run(`Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find((button) => button.textContent === 'Next').click()`);
   await pause(180);
   assert.equal(
     await run(`document.querySelector('dialog.cleanup-dialog .related-warning') === null`),
@@ -118,13 +119,13 @@ try {
   );
   assert.equal(
     await run(`document.querySelectorAll('dialog.cleanup-dialog .duplicate-choices input').length`),
-    1,
-    "The exact saved copy is offered separately",
+    2,
+    "Both duplicate entries are offered separately",
   );
   assert.equal(
     await run(`document.querySelector('dialog.cleanup-dialog .duplicate-choices input').checked`),
-    false,
-    "Additional copies start unchecked",
+    true,
+    "Additional duplicates start checked",
   );
   assert.equal(
     await run(`document.querySelector('dialog.cleanup-dialog').textContent.includes('Another page on this site')`),
@@ -146,9 +147,15 @@ try {
   await pause(180);
   assert.equal(
     await run(`document.querySelectorAll('dialog.cleanup-dialog .selected-bookmark').length`),
-    2,
-    "Only the inspected bookmark and opted-in exact copy are reviewed",
+    1,
+    "The original bookmark is listed once; the unchecked copy remains in its checklist",
   );
+  await run(`Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button=>button.textContent==='Back').click()`); await pause(80);
+  await run(`Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button=>button.textContent==='Next').click()`); await pause(150);
+  assert.equal(await run(`document.querySelector('.duplicate-choices input').checked`),false,'Back/Next preserves a duplicate deselection');
+  await run(`document.querySelector('.duplicate-choices input').click()`); await pause(150);
+  assert.equal(await run(`document.querySelector('.duplicate-choices input').checked`),true);
+  await run(`Array.from(document.querySelectorAll('.duplicate-choices label')).find(label=>label.textContent.includes('Keep this duplicate')).querySelector('input').click()`); await pause(150);
   await run(`Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find((button) => button.textContent === 'Confirm cleanup').click()`);
   for (let index = 0; index < 40; index++) {
     await pause(100);
@@ -157,6 +164,7 @@ try {
   assert.equal(await run(`chrome.bookmarks.get(${JSON.stringify(fixtures.first)}).then(() => false, () => true)`), true);
   assert.equal(await run(`chrome.bookmarks.get(${JSON.stringify(fixtures.duplicate)}).then(() => false, () => true)`), true);
   assert.equal(await run(`chrome.bookmarks.get(${JSON.stringify(fixtures.related)}).then(() => true, () => false)`), true);
+  assert.equal(await run(`chrome.bookmarks.get(${JSON.stringify(fixtures.kept)}).then(() => true, () => false)`), true, 'Explicitly unchecked duplicate survives cleanup');
   assert.equal(await run(`chrome.bookmarks.get(${JSON.stringify(fixtures.unrelated)}).then(() => true, () => false)`), true);
   assert.equal(await run(`chrome.bookmarks.get(${JSON.stringify(fixtures.duplicateFolder)}).then(() => true, () => false)`), true, "Adding a duplicate does not select its parent folder");
   await pause(1100);
@@ -210,7 +218,7 @@ try {
   await pause(100);
   assert.equal(await run(`document.activeElement.dataset.focusKey`), focusKey, "Closing the narrow modal returns focus to the refreshed source row");
 
-  console.log("Bookmark management: edit identity, isolated reviewed cleanup, duplicate opt-in, sticky details and responsive modal passed.");
+  console.log("Bookmark management: edit identity, isolated reviewed cleanup, duplicate defaults and decisions, sticky details and responsive modal passed.");
 } finally {
   await browser.close();
 }

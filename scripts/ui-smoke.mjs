@@ -62,18 +62,18 @@ try {
   await pause(80);
   assert.equal(
     await run(
-      `Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').disabled`,
+      `Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Next').disabled`,
     ),
     false,
     "Available cleanup categories are selected by default",
   );
   await run(
-    `document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(!input.closest('label').textContent.includes('Remove selected bookmarks') && input.checked)input.click()}); Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
+    `document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(!input.closest('label').textContent.includes('Remove selected bookmarks') && input.checked)input.click()}); Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Next').click()`,
   );
   await pause(80);
   assert.equal(
     await run(`document.querySelector('dialog.cleanup-dialog h2').textContent`),
-    "Review this cleanup",
+    "Step 2 — Review this cleanup",
   );
   await run(
     `Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Confirm cleanup').click()`,
@@ -167,7 +167,7 @@ try {
   );
   await pause(80);
   await run(
-    `document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(!input.closest('label').textContent.includes('Cookies and sign-in data') && input.checked)input.click()}); Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Review cleanup').click()`,
+    `document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(!input.closest('label').textContent.includes('Cookies and sign-in data') && input.checked)input.click()}); Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Next').click()`,
   );
   await pause(80);
   await run(
