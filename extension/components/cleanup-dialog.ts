@@ -31,6 +31,7 @@ export function cleanupDialog(
   allowBookmarks: boolean,
   onStarted: (job: Job) => void,
 ): void {
+  if (document.querySelector("dialog.cleanup-dialog[open]")) return;
   const dialog = el("dialog", "cleanup-dialog");
   dialog.setAttribute("aria-labelledby", "cleanup-title");
   const body = el("div");
@@ -316,6 +317,17 @@ export function cleanupDialog(
       .map(([, label]) => label);
     body.append(el("h3", "", "Data to remove"), el("p", "selected-categories", selected.filter(label => label !== "Remove selected bookmarks").join(" · ") || "No website data selected."));
 
+    if (hasData(plan.options)) {
+      const targets = el("ul", "cleanup-targets");
+      for (const site of plan.sites) {
+        const row = el("li");
+        row.append(el("span", "affected-title", site.host));
+        if (plan.options.cookies) row.append(el("span", "fine", `${site.cookies.length} detected cookies`));
+        targets.append(row);
+      }
+      body.append(targets);
+    }
+
     if (allowBookmarks && plan.options.bookmarks) {
       const bookmarks = new Map(plan.sites.flatMap(site => site.bookmarks.map(bookmark => [bookmark.id, bookmark] as const)));
       const section = el("section", "bookmark-removals");
@@ -351,13 +363,15 @@ export function cleanupDialog(
       body.append(section);
     }
 
-    if (hasData(plan.options) && (impact?.relatedBookmarks.length || impact?.relatedSites.length)) {
+    if (!plan.options.bookmarks) body.append(el("p", "fine", "Bookmarks will be kept."));
+    const retainedBookmarks = [...(impact?.relatedBookmarks ?? []), ...(!plan.options.bookmarks ? impact?.duplicates ?? [] : [])];
+    if (hasData(plan.options) && (retainedBookmarks.length || impact?.relatedSites.length)) {
       const warning = el("div", "related-warning");
       warning.append(
         el("h3", "", "Other pages affected by this cleanup"),
         el("p", "fine", "Their bookmarks stay, but the selected website data is shared."),
       );
-      for (const bookmark of impact?.relatedBookmarks ?? []) {
+      for (const bookmark of retainedBookmarks) {
         const row = el("p", "affected-entry"); row.append(bookmarkSummary(bookmark)); warning.append(row);
       }
       for (const site of impact?.relatedSites ?? [])

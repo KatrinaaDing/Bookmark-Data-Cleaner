@@ -120,6 +120,13 @@ try {
   assert.equal(await run(`window.started`),0);
   await run(`window.failReview=false;Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button=>button.textContent==='Retry review').click()`); await pause(80);
   assert.equal(await run(`Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button=>button.textContent==='Confirm cleanup').disabled`),false);
+  assert.match(await run(`document.querySelector('.cleanup-targets').textContent`),/review.test/,'Review names its target websites outside technical details');
+  for (const [name,width,height] of [['review-duplicates-desktop',1360,900],['review-duplicates-narrow',390,844]]) {
+    await browser.cmd('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false},page.sessionId);
+    await pause(220);
+    const shot=await browser.cmd('Page.captureScreenshot',{format:'png'},page.sessionId);
+    await writeFile('dist/review/'+name+'.png',Buffer.from(shot.data,'base64'));
+  }
   await run(`document.querySelector('.cleanup-dialog').close()`);
   console.log("Cleanup review: category availability, frozen preparation, safe keyboard focus, Back, permission loss and Escape passed.");
 } finally {
