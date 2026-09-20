@@ -4,7 +4,7 @@ import type {
   SiteRecord,
 } from "../core/types.js";
 import { analyzeImpact } from "../core/impact.js";
-import { button, dateText, el } from "./dom.js";
+import { dateText, el } from "./dom.js";
 import { affectedBookmarks } from "./affected-bookmarks.js";
 import { iconButton } from "./icons.js";
 import { infoPopover } from "./feedback.js";
@@ -30,7 +30,6 @@ export interface SiteDetailsOptions {
   folders?: BookmarkFolder[];
   detectedSites?: SiteRecord[];
   loadingDates?: boolean;
-  notice?: string;
   onCleanup?: (site: SiteRecord, bookmark?: BookmarkRef) => void;
   onMutation?: (
     id: string | undefined,
@@ -74,7 +73,6 @@ export function siteDetails(
   const detectedSites = options.detectedSites ?? [];
   const title = inspected?.title || site.host;
   panel.append(el("h2", "", title));
-
 
   const basic = detailCard("Basic information");
   basic.append(
@@ -141,7 +139,7 @@ export function siteDetails(
           opened = undefined;
           trigger.setAttribute("aria-expanded", "false");
           if (trigger.isConnected) trigger.focus({ preventScroll: true });
-          void reveal(editor, false).then(() => { editor.remove(); panel.dispatchEvent(new Event("editor-closed", { bubbles: true })); });
+          void reveal(editor, false).then(() => { editor.remove(); document.dispatchEvent(new Event("editor-closed")); });
         },
       });
       editor.append(form.element); container.append(editor);

@@ -34,15 +34,20 @@ try {
   );
   assert.equal(
     await run(
-      `document.querySelector('.details-drawer .bookmark-editor').checkVisibility()`,
+      `!!document.querySelector('.details-drawer .bookmark-editor')`,
     ),
     false,
     "Edit form is disclosed on demand",
   );
   assert.equal(await run(`document.querySelector('.address-disclosure') === null`), true, 'Redundant bookmark address list is removed');
-  await run(`document.querySelector('.bookmark-edit-action').click();document.querySelector('.edit-bookmark input').value='Unsaved draft';document.querySelector('.bookmark-edit-action').click();document.querySelector('.bookmark-edit-action').click()`);
-  assert.equal(await run(`document.activeElement.value`), 'Unsaved draft', 'Edit focuses the form and preserves a draft across toggles');
   await run(`document.querySelector('.bookmark-edit-action').click()`);
+  await run(`document.querySelector('.edit-bookmark input').value='Unsaved draft';document.querySelector('.bookmark-edit-action').click()`);
+  await pause(80);
+  await run(`Array.from(document.querySelectorAll('.unsaved-dialog button')).find(button=>button.textContent==='Keep editing').click()`);
+  assert.equal(await run(`document.activeElement.value`), 'Unsaved draft', 'Keep editing restores the draft and focus');
+  await run(`document.querySelector('.bookmark-edit-action').click()`); await pause(50);
+  await run(`Array.from(document.querySelectorAll('.unsaved-dialog button')).find(button=>button.textContent==='Discard').click()`); await pause(250);
+  assert.equal(await run(`!!document.querySelector('.bookmark-editor')`),false,'Discard removes the form state');
   assert.equal(await run(`Math.abs(document.querySelector('.workspace-list').getBoundingClientRect().width / document.querySelector('.details-rail').getBoundingClientRect().width - 1.5) < .02`), true, "List and details use a 3:2 split");
   assert.deepEqual(await run(`Array.from(document.querySelectorAll('.detail-card > h3')).map((heading) => heading.firstChild.textContent)`), ["Basic information", "Bookmark", "Website data"], "Details use the three approved sections");
   assert.equal(await run(`document.querySelector('.details-drawer').textContent.includes('Refinement fixtures')`), true, "Saved folder is recognizable");
@@ -53,11 +58,11 @@ try {
   assert.equal(await run(`document.querySelector('.details-drawer').textContent.includes('Reference 1')`), true, "Main list remains interactive");
   await run(`document.querySelector('.bookmark-row').click()`);
   await pause(350);
-  await run(`document.querySelector('.details-drawer .create-bookmark summary').click()`);
-  assert.equal(await run(`document.querySelector('.details-drawer .create-bookmark').getAnimations().length > 0`), true, "Disclosure expansion animates");
+  await run(`document.querySelector('.details-drawer .bookmark-copy-action').click()`);
+  assert.equal(await run(`document.querySelector('.details-drawer .create-bookmark')?.getAnimations().length > 0`), true, "Disclosure expansion animates");
   await pause(350);
-  await run(`document.querySelector('.details-drawer .create-bookmark summary').click()`);
-  assert.equal(await run(`document.querySelector('.details-drawer .create-bookmark').getAnimations().length > 0`), true, "Disclosure collapse animates");
+  await run(`document.querySelector('.details-drawer .bookmark-copy-action').click()`);
+  assert.equal(await run(`document.querySelector('.details-drawer .create-bookmark')?.getAnimations().length > 0`), true, "Disclosure collapse animates");
   await pause(350);
   await browser.cmd(
     "Input.dispatchKeyEvent",
@@ -78,8 +83,9 @@ try {
   await run(`document.querySelector('.bookmark-row .row-title').click()`);
   await pause(150);
   await run(
-    `const form=document.querySelector('.details-drawer .edit-bookmark .bookmark-editor');document.querySelector('.bookmark-edit-action').click();form.requestSubmit();`,
+    `document.querySelector('.bookmark-edit-action').click()`,
   );
+  await run(`const form=document.querySelector('.bookmark-editor');form.elements.url.value+='?edited';form.requestSubmit()`);
   await pause(350);
   assert.equal(await run(`document.querySelector('.bookmark-row .row-title').getAttribute('aria-current')`), 'true', "Inspected row survives list refresh");
   await run(
@@ -156,7 +162,7 @@ try {
     const saved={id:'fixture',parentId:'folder',title:'Long saved page 标题 '.repeat(8),url:'https://example.test/'+ 'long-address/'.repeat(20),path:'Saved / '+ 'Nested folder '.repeat(20)};
     const site={id:'example.test',host:'example.test',origins:['https://example.test'],urls:[saved.url],cookies:[],bookmarks:[saved]};
     document.querySelector('.drawer-content').replaceChildren(siteDetails(site,{folders:[{id:'folder',title:saved.path,path:saved.path}],onCleanup:()=>{}}));
-    document.querySelector('.bookmark-edit-action').click();document.querySelector('.create-bookmark').open=true;
+    document.querySelector('.bookmark-edit-action').click();
   })()`);
   for (const width of [1360, 800, 390]) {
     await browser.cmd('Emulation.setDeviceMetricsOverride', {width,height:900,deviceScaleFactor:1,mobile:false}, page.sessionId);
@@ -166,20 +172,20 @@ try {
       return rect.width>0 && rect.left>=form.left-1 && rect.right<=form.right+1 && rect.right<card.right;
     })`), true, 'Edit and create controls fit with long values at '+width+'px');
     assert.equal(await run(`document.querySelector('.details-drawer').scrollWidth <= document.querySelector('.details-drawer').clientWidth`), true, 'Drawer has no horizontal overflow');
-    assert.equal(await run(`document.querySelector('.website-data-help').checkVisibility()`), false, 'Help starts collapsed');
-    await run(`document.querySelector('.detail-info').focus()`);
-    await browser.cmd('Input.dispatchKeyEvent', {type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,text:String.fromCharCode(13)}, page.sessionId);
-    await browser.cmd('Input.dispatchKeyEvent', {type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13}, page.sessionId);
-    assert.equal(await run(`document.querySelector('.website-data-help').checkVisibility() && document.querySelector('.detail-info').getAttribute('aria-expanded')==='true'`), true, 'Keyboard opens explanatory help');
-    await run(`document.querySelector('.detail-info').click()`);
-    assert.equal(await run(`document.querySelector('.website-data-help').hidden`), true, 'Click closes help');
+    const info = `document.querySelector('.details .info-control button')`;
+    await run(`${info}.blur();${info}.focus()`);
+    assert.equal(await run(`!!document.querySelector('.details .info-popover:popover-open')`),true,'Keyboard focus opens explanatory help without expanding the card');
+    await browser.cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27},page.sessionId);
+    assert.equal(await run(`!!document.querySelector('.details .info-popover:popover-open')`),false,'Escape closes help before the drawer');
+    assert.equal(await run(`!!document.querySelector('.details-drawer[open]')`),true);
     if (width !== 800) {
       await run(`document.querySelector('.bookmark-editor').scrollIntoView({block:'start'})`);
       await capture('long-editor-'+width,width,900);
-      await run(`document.querySelector('.detail-info').click();document.querySelector('.detail-info').scrollIntoView({block:'center'})`);
+      await run(`${info}.scrollIntoView({block:'center'});${info}.click()`);
       await capture('website-help-'+width,width,900);
-      await run(`document.querySelector('.detail-info').click()`);
+      await run(`${info}.click()`);
     }
+
   }
   await run(`(async()=>{
     const {siteDetails}=await import('./components/site-details.js');
@@ -188,8 +194,9 @@ try {
   })()`);
   assert.equal(await run(`document.querySelector('.address-disclosure')===null`),true);
   assert.match(await run(`document.querySelector('.details').textContent`), /No bookmarks saved/);
-  assert.match(await run(`document.querySelector('.details').textContent`), /No writable bookmark folders/);
-  assert.equal(await run(`document.querySelector('.create-bookmark summary').textContent`),'Save bookmark');
+  assert.equal(await run(`document.querySelector('.bookmark-copy-action').getAttribute('aria-label')`),'Save bookmark');
+  await run(`document.querySelector('.bookmark-copy-action').click()`); await pause(80);
+  assert.match(await run(`document.querySelector('.details').textContent`), /No writable bookmark destination/);
   await run(`location.hash='home'`);
   await pause(350);
   assert.equal(

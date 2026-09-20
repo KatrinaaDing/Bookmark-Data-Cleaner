@@ -80,7 +80,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     );
   }
 
-  function detailsFor(id: string, notice?: string): HTMLElement {
+  function detailsFor(id: string): HTMLElement {
     const inspected = records.find((bookmark) => bookmark.id === id);
     const site = siteFor(id);
     if (!inspected || !site)
@@ -91,7 +91,6 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       folders,
       detectedSites: detailSites,
       loadingDates: detailsLoading,
-      notice,
       onCleanup: (_site, bookmark) => {
         if (bookmark) openDirectCleanup(bookmark);
       },
@@ -103,13 +102,13 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     document.addEventListener("editor-closed", () => updateOpenDetails(), { once: true });
   }
 
-  function updateOpenDetails(notice?: string, optionalEnrichment = false) {
+  function updateOpenDetails() {
     if (!inspectedId || !drawer.isOpen(`bookmark:${inspectedId}`)) return;
-    if (currentForm()    ) {
+    if (currentForm()) {
       deferEnrichmentUpdate();
       return;
     }
-    drawer.update(detailsFor(inspectedId, notice), inspectedRequest);
+    drawer.update(detailsFor(inspectedId), inspectedRequest);
   }
 
   function matches() {
@@ -222,7 +221,8 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
 
   const clean = button(
     "Clean up data",
-    () => {
+    async () => {
+      if (!(await requestLeave())) return;
       const ids = new Set(selection.ids);
       const selectedFolders = treeView?.folders() ?? [];
       cleanupDialog(
@@ -317,7 +317,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       cachedCookies = cookies;
       detailSites = inventory(records);
       detailsLoading = false;
-      updateOpenDetails(undefined, true);
+      updateOpenDetails();
       if (visits.warning) feedback.replaceChildren(status(visits.warning));
       if (force) toast("Bookmarks refreshed.");
     } catch {

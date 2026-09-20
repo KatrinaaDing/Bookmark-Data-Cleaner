@@ -126,13 +126,12 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     clean.disabled = busy || !selection.ids.size;
   }
 
-  function detailsFor(site: SiteRecord, notice?: string): HTMLElement {
+  function detailsFor(site: SiteRecord): HTMLElement {
     return siteDetails(site, {
       allBookmarks,
       folders,
       detectedSites: sites,
       loadingDates: datesLoading,
-      notice,
       onCleanup: (target) => openDirectCleanup(target),
       onMutation: reconcileMutation,
     });
@@ -148,9 +147,9 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     document.addEventListener("editor-closed", () => updateOpenDetails(), { once: true });
   }
 
-  function updateOpenDetails(optionalEnrichment = false) {
+  function updateOpenDetails() {
     if (!inspectedSiteId || !drawer.isOpen(`site:${inspectedSiteId}`)) return;
-    if (currentForm()    ) {
+    if (currentForm()) {
       deferEnrichmentUpdate();
       return;
     }
@@ -229,7 +228,8 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     cleanupDialog((options) => prepareSites(ids, options), false, onStarted);
   }
 
-  const clean = button("Clean up data", () => {
+  const clean = button("Clean up data", async () => {
+    if (!(await requestLeave())) return;
     const ids = new Set(selection.ids);
     cleanupDialog((options) => prepareSites(ids, options), false, onStarted);
   }, "primary");
@@ -291,7 +291,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
       selection.retain(new Set(sites.map((site) => site.id)));
       loaded = true;
       render();
-      updateOpenDetails(true);
+      updateOpenDetails();
       feedback.replaceChildren(...result.warnings.map((warning) => status(warning)));
       if (force) toast("Site data refreshed.");
     } catch {

@@ -48,5 +48,20 @@ try {
   await run(`chrome.bookmarks.update=window.originalUpdate; document.querySelector('.bookmark-editor').requestSubmit()`); await pause(350);
   assert.equal(await run(`chrome.bookmarks.get('${fixture.first}').then(([node])=>node.title)`), 'Retry draft');
   assert.equal(await run(`!!document.querySelector('.bookmark-editor')`), false);
+  // A write followed by a read failure must retry reconciliation, not the write.
+  await run(`document.querySelector('.bookmark-copy-action').click()`); await pause(80);
+  await run(`window.realTree=chrome.bookmarks.getTree;window.copyWrites=0;chrome.bookmarks.create=async(...args)=>{window.copyWrites++;return window.originalCreate(...args)};chrome.bookmarks.getTree=async()=>{throw Error('Refresh unavailable')};document.querySelector('.bookmark-editor').requestSubmit()`); await pause(150);
+  assert.equal(await run(`window.copyWrites`),1);
+  assert.match(await run(`document.querySelector('.editor-feedback').textContent`),/will not create another copy/);
+  await run(`chrome.bookmarks.getTree=window.realTree;document.querySelector('.bookmark-editor').requestSubmit()`); await pause(300);
+  assert.equal(await run(`window.copyWrites`),1,'Reconciliation retry does not repeat a committed create');
+  assert.equal(await run(`!!document.querySelector('.bookmark-editor')`),false);
+  await browser.cmd('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:false},page.sessionId);
+  await browser.cmd('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]},page.sessionId);
+  await run(`document.querySelector('.bookmark-edit-action').click()`); await pause(50);
+  assert.equal(await run(`document.querySelector('.edit-bookmark').getAnimations().length`),0,'Reduced motion does not animate form height');
+  await run(`document.querySelector('.bookmark-editor input[name=title]').value='Modal error';chrome.bookmarks.update=async()=>{throw Error('Modal write failure')};document.querySelector('.bookmark-editor').requestSubmit()`); await pause(120);
+  assert.equal(await run(`document.querySelector('.toast-host').parentElement.matches(':modal')`),true,'Notifications belong to the active modal and remain interactive');
+  assert.equal(await run(`document.querySelector('.toast-host').matches(':popover-open')`),true);
   console.log('Shared form lifecycle, guarded navigation, duplicate submission and error recovery passed');
 } finally { await browser.close(); }
