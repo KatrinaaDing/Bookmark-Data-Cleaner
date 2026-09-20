@@ -5,6 +5,7 @@ export interface TreeView {
   element: HTMLElement;
   folders: () => FolderRef[];
   update: () => void;
+  ids: () => Set<string>;
 }
 export function bookmarkTree(
   nodes: chrome.bookmarks.BookmarkTreeNode[],
@@ -126,6 +127,7 @@ export function bookmarkTree(
   return {
     element: root,
     update,
+    ids: () => new Set(checks.flatMap(check => check.input.disabled ? [] : check.ids)),
     folders: () =>
       checks
         .filter((c) => c.folder && c.input.checked && !c.input.disabled)

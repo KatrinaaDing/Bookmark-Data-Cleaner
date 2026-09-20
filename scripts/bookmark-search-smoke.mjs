@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import { launch, pause } from './browser-harness.mjs';
+const browser = await launch({ grantTestPermissions: true });
+try {
+  const page = await browser.attach(`chrome-extension://${browser.id}/app.html`);
+  const run = expression => browser.evaluate(page.sessionId, expression);
+  await run(`(async()=>{const root=(await chrome.bookmarks.getTree())[0].children[0];const folder=await chrome.bookmarks.create({parentId:root.id,title:'Search folder'});await chrome.bookmarks.create({parentId:folder.id,title:'Alpha',url:'https://search.test/first'});await chrome.bookmarks.create({parentId:folder.id,title:'Beta',url:'https://search.test/second'});location.hash='bookmarks'})()`);
+  await pause(350);
+  const search = `document.querySelector('input[aria-label="Find a bookmark"]')`;
+  const setSearch = async value => { await run(`${search}.value=${JSON.stringify(value)};${search}.dispatchEvent(new Event('input',{bubbles:true}))`); };
+  const all = `document.querySelector('section:not([hidden]) .list-selection input')`;
+  const clean = `Array.from(document.querySelectorAll('section:not([hidden]) .toolbar button')).find(b=>b.textContent==='Clean up data')`;
+  const before = await run(`${clean}.getBoundingClientRect().right`);
+  await setSearch('Alpha');
+  assert.equal(await run(`document.querySelectorAll('.search-results .bookmark-row').length`),1);
+  await run(`${all}.click()`);
+  assert.equal(await run(`${clean}.disabled`),false);
+  assert.equal(await run(`${clean}.getBoundingClientRect().right`),before,'Cleanup stays anchored after selecting');
+  await setSearch('second');
+  assert.match(await run(`document.querySelector('section:not([hidden]) .selection-count').textContent`),/1 outside results/);
+  await run(`${all}.click()`);
+  assert.match(await run(`document.querySelector('section:not([hidden]) .selection-count').textContent`),/2 selected/);
+  await run(`${all}.click()`);
+  assert.match(await run(`document.querySelector('section:not([hidden]) .selection-count').textContent`),/1 selected/,'Unselect current results preserves hidden selection');
+  await setSearch('SEARCH FOLDER');
+  assert.equal(await run(`document.querySelectorAll('.search-results .bookmark-row').length`),2,'Folder matching is case insensitive');
+  await setSearch('no-such-bookmark');
+  assert.equal(await run(`${all}.disabled`),true);
+  await setSearch('');
+  assert.equal(await run(`!!document.querySelector('.bookmark-tree')`),true);
+  await run(`document.querySelector('section:not([hidden]) button[aria-label="Clear selection"]').click()`);
+  assert.equal(await run(`${clean}.disabled`),true);
+  assert.equal(await run(`${clean}.getBoundingClientRect().right`),before);
+  console.log('Bookmark search, stable action placement, filtered selection and hidden selections passed');
+} finally { await browser.close(); }

@@ -31,3 +31,6 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
 .search-results .row-title { text-align: left; }
 @media (max-width: 760px) { .toolbar-actions { width: 100%; justify-content: flex-end; margin-left: auto; } .toolbar-filters { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { button { transition-duration: 0ms; } }
+.page-heading h1 { display: flex; align-items: center; gap: .5rem; }
+.refreshing .icon { animation: spin 1s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .refreshing .icon { animation: none; } }

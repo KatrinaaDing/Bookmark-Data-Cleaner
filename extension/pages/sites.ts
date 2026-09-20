@@ -1,3 +1,5 @@
+import { workspaceToolbar, selectionControl } from "../components/workspace-controls.js";
+import { infoPopover, toast } from "../components/feedback.js";
 import { currentForm, requestLeave } from "../components/form-session.js";
 import { iconButton } from "../components/icons.js";
 import { detailsDrawer } from "../components/details-drawer.js";
@@ -22,7 +24,6 @@ import { cleanupDialog } from "../components/cleanup-dialog.js";
 import {
   button,
   checkbox,
-  disclosure,
   el,
   heading,
   status,
@@ -37,7 +38,7 @@ import type { WorkspacePage } from "./bookmarks.js";
 export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
   const page = el("section");
   page.append(heading("Site data cleanup", "Choose the sites you no longer need."));
-  page.append(disclosure("About this list", coverage));
+  page.querySelector("h1")!.append(infoPopover("About site discovery", coverage));
   let sites: SiteRecord[] = [];
   let allBookmarks: BookmarkRef[] = [];
   let folders: BookmarkFolder[] = [];
@@ -51,7 +52,6 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
   const feedback = el("div");
   const list = el("div", "workspace-list");
   const drawer = detailsDrawer();
-  const toolbar = el("div", "toolbar");
   const search = el("input");
   search.type = "search";
   search.placeholder = "Find a website";
@@ -120,7 +120,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
   }
 
   function changed() {
-    count.textContent = `${selection.ids.size} selected`;
+    count.textContent = all.update();
     count.hidden = selection.ids.size === 0;
     clear.hidden = selection.ids.size === 0;
     clean.disabled = busy || !selection.ids.size;
@@ -169,6 +169,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     order.title = datesLoading ? "Visit dates are still loading" : "";
     const filtered = visible();
     list.replaceChildren(
+      all.element,
       filtered.length
         ? siteTimeline(filtered, selection, inspect, changed)
         : status(
@@ -179,7 +180,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
               : "Allow site discovery to list detected data.",
           ),
     );
-    all.disabled = !filtered.length;
+    all.update();
   }
 
   async function reconcileMutation(
@@ -232,23 +233,12 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     const ids = new Set(selection.ids);
     cleanupDialog((options) => prepareSites(ids, options), false, onStarted);
   }, "primary");
-  const all = iconButton("select", "Select visible", () => {
-    for (const site of visible()) selection.set(site.id, true);
-    render();
-  });
+  const all = selectionControl(selection, () => new Set(visible().map(site => site.id)), () => !!search.value.trim() || bookmarked.input.checked, render);
   const clear = iconButton("clear", "Clear selection", () => {
     selection.ids.clear();
     render();
   });
-  const filters = el("div", "toolbar-filters");
-  filters.setAttribute("role", "group");
-  filters.setAttribute("aria-label", "Filter sites");
-  filters.append(search, order, bookmarked.label, refresh, history);
-  const actions = el("div", "toolbar-actions");
-  actions.setAttribute("role", "group");
-  actions.setAttribute("aria-label", "Cleanup selection");
-  actions.append(all, clear, count, clean);
-  toolbar.append(filters, actions);
+  const toolbar = workspaceToolbar([refresh, search, order, bookmarked.label, history], [clear, count, clean]);
   page.append(toolbar, access, feedback);
   const workspace = el("div", "workspace");
   workspace.append(list);
@@ -262,6 +252,8 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     const current = ++generation;
     busy = true;
     refresh.disabled = true;
+    refresh.setAttribute("aria-busy", "true");
+    refresh.classList.add("refreshing");
     changed();
     feedback.replaceChildren(status(loaded ? "Refreshing detected data…" : "Loading detected data…", true));
     list.setAttribute("aria-busy", "true");
@@ -301,9 +293,11 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
       render();
       updateOpenDetails(true);
       feedback.replaceChildren(...result.warnings.map((warning) => status(warning)));
+      if (force) toast("Site data refreshed.");
     } catch {
       if (current !== generation) return;
       datesLoading = false;
+      toast("Could not refresh site data. Try Refresh again.", "error");
       feedback.replaceChildren(
         status(
           loaded
@@ -315,6 +309,8 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
       if (current === generation) {
         busy = false;
         refresh.disabled = false;
+        refresh.setAttribute("aria-busy", "false");
+        refresh.classList.remove("refreshing");
         list.removeAttribute("aria-busy");
         changed();
       }

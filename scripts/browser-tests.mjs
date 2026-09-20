@@ -12,6 +12,7 @@ for (const test of [
   "bookmark-management",
   "ui-refinement",
   "ui-contract",
+  "bookmark-search",
 ]) {
   execFileSync(process.execPath, [`scripts/${test}-smoke.mjs`], {
     stdio: "inherit",

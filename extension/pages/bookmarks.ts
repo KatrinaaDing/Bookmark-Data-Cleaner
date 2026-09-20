@@ -1,3 +1,6 @@
+import { workspaceToolbar, selectionControl } from "../components/workspace-controls.js";
+import { bookmarkSummary } from "../components/bookmark-summary.js";
+import { infoPopover, toast } from "../components/feedback.js";
 import { currentForm, requestLeave } from "../components/form-session.js";
 import { iconButton } from "../components/icons.js";
 import { detailsDrawer } from "../components/details-drawer.js";
@@ -16,7 +19,7 @@ import type {
 } from "../core/types.js";
 import { bookmarkTree, type TreeView } from "../components/bookmark-tree.js";
 import { cleanupDialog } from "../components/cleanup-dialog.js";
-import { button, el, heading, status } from "../components/dom.js";
+import { button, checkbox, clickableRow, el, heading, status } from "../components/dom.js";
 import {
   siteDetails,
   type DetailsSnapshot,
@@ -34,7 +37,8 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   page.append(
     heading("Bookmark cleanup", "Select bookmarks to review their site data."),
   );
-  const toolbar = el("div", "toolbar");
+  page.querySelector("h1")!.append(infoPopover("About bookmark cleanup", "Search saved titles, URLs or folder paths. Select bookmarks to review their website data and choose whether to delete the bookmarks too."));
+  const search = el("input"); search.type = "search"; search.placeholder = "Find a bookmark"; search.setAttribute("aria-label", "Find a bookmark");
   const count = el("span", "selection-count", "0 selected");
   const selection = new Selection();
   const expanded = new Set<string>();
@@ -108,17 +112,33 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     drawer.update(detailsFor(inspectedId, notice), inspectedRequest);
   }
 
+  function matches() {
+    const query = search.value.trim().toLowerCase();
+    return records.filter(bookmark => `${bookmark.title} ${bookmark.url} ${bookmark.path}`.toLowerCase().includes(query));
+  }
+  const all = selectionControl(selection,
+    () => search.value.trim() ? new Set(matches().filter(bookmark => !bookmark.unmodifiable).map(bookmark => bookmark.id)) : treeView?.ids() ?? new Set(),
+    () => !!search.value.trim(), () => { treeView?.update(); renderTree(); });
   function renderTree() {
-    treeView = bookmarkTree(
-      tree,
-      selection,
-      expanded,
-      (id, trigger) => inspect(id, trigger),
-      changed,
-    );
-    list.replaceChildren(treeView.element);
-    if (!records.length)
-      list.append(status("No bookmarks yet. Saved bookmarks will appear here."));
+    treeView = bookmarkTree(tree, selection, expanded, (id, trigger) => { void inspect(id, trigger); }, changed);
+    if (search.value.trim()) {
+      const results = el("div", "search-results");
+      for (const bookmark of matches()) {
+        const row = el("div", "bookmark-row");
+        const check = checkbox("", value => { selection.set(bookmark.id, value); changed(); });
+        check.input.setAttribute("aria-label", `Select ${bookmark.title || "untitled"}`);
+        check.input.checked = selection.ids.has(bookmark.id); check.input.disabled = !!bookmark.unmodifiable;
+        const title = button("", () => { void inspect(bookmark.id, title); }, "row-title");
+        title.append(bookmarkSummary(bookmark)); title.dataset.focusKey = `bookmark:${bookmark.id}`;
+        row.append(check.label, title); clickableRow(row, title); results.append(row);
+      }
+      if (!results.childElementCount) results.append(status("No bookmarks match this search. Try a title, URL or folder name."));
+      list.replaceChildren(all.element, results);
+    } else {
+      list.replaceChildren(all.element, treeView.element);
+      if (!records.length) list.append(status("No bookmarks yet. Saved bookmarks will appear here."));
+    }
+    changed();
   }
 
   async function reconcileMutation(
@@ -129,7 +149,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     records = result.bookmarks;
     folders = result.folders;
     tree = result.tree;
-    selection.retain(new Set(records.map((bookmark) => bookmark.id)));
+    selection.retain(new Set([...records.map(bookmark => bookmark.id), ...folders.map(folder => folder.id)]));
     detailSites = inventory(records);
     renderTree();
     changed();
@@ -172,8 +192,9 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     const contextual = cookies === undefined
       ? sitesFromBookmarks(base, undefined, cachedHistory)
       : sitesFromBookmarks(base, cookies, cachedHistory);
+    const eligibleExtras = analyzeImpact(contextual, fresh.bookmarks, detailSites, options).duplicates.filter(bookmark => !bookmark.unmodifiable && extras.has(bookmark.id)).map(bookmark => bookmark.id);
     const removalIds = options.bookmarks
-      ? new Set([...baseIds, ...extras])
+      ? new Set([...baseIds, ...eligibleExtras])
       : new Set<string>();
     const removal = fresh.bookmarks.filter((bookmark) => removalIds.has(bookmark.id));
     const planSites = cookies === undefined
@@ -216,7 +237,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   clean.disabled = true;
   const clear = iconButton("clear", "Clear selection", () => {
     selection.ids.clear();
-    treeView?.update();
+    renderTree();
   });
   clear.hidden = true;
   const refresh = iconButton("refresh", "Refresh", () => void load(true));
@@ -236,14 +257,15 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       () => feedback.replaceChildren(status("Could not request history access. Try again.")),
     );
   });
-  toolbar.append(refresh, history, clear, count, clean);
+  const toolbar = workspaceToolbar([refresh, search, history], [clear, count, clean]);
+  search.addEventListener("input", renderTree);
   page.append(toolbar, feedback);
   const workspace = el("div", "workspace");
   workspace.append(list);
   page.append(workspace);
 
   function changed() {
-    count.textContent = `${selection.ids.size} selected`;
+    count.textContent = all.update();
     count.hidden = selection.ids.size === 0;
     clear.hidden = selection.ids.size === 0;
     clean.disabled = busy || !selection.ids.size;
@@ -261,6 +283,8 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     const current = ++generation;
     busy = true;
     refresh.disabled = true;
+    refresh.setAttribute("aria-busy", "true");
+    refresh.classList.add("refreshing");
     changed();
     feedback.replaceChildren(status(loaded ? "Refreshing bookmarks…" : "Loading bookmarks…", true));
     list.setAttribute("aria-busy", "true");
@@ -274,7 +298,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       records = result.bookmarks;
       folders = result.folders;
       tree = result.tree;
-      selection.retain(new Set(records.map((bookmark) => bookmark.id)));
+      selection.retain(new Set([...records.map(bookmark => bookmark.id), ...folders.map(folder => folder.id)]));
       cachedCookies = undefined;
       cachedHistory = [];
       detailSites = inventory(records);
@@ -295,9 +319,11 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       detailsLoading = false;
       updateOpenDetails(undefined, true);
       if (visits.warning) feedback.replaceChildren(status(visits.warning));
+      if (force) toast("Bookmarks refreshed.");
     } catch {
       if (current !== generation) return;
       detailsLoading = false;
+      toast("Could not refresh bookmarks. Try Refresh again.", "error");
       feedback.replaceChildren(
         status(
           loaded
@@ -309,6 +335,8 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       if (current === generation) {
         busy = false;
         refresh.disabled = false;
+        refresh.setAttribute("aria-busy", "false");
+        refresh.classList.remove("refreshing");
         list.removeAttribute("aria-busy");
         changed();
       }
