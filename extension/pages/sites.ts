@@ -1,3 +1,4 @@
+import { currentForm, requestLeave } from "../components/form-session.js";
 import { iconButton } from "../components/icons.js";
 import { detailsDrawer } from "../components/details-drawer.js";
 import { readBookmarks } from "../browser/bookmarks.js";
@@ -137,38 +138,19 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     });
   }
 
-  function inspect(site: SiteRecord, trigger: HTMLElement) {
+  async function inspect(site: SiteRecord, trigger: HTMLElement) {
+    if (!(await requestLeave())) return;
     inspectedSiteId = site.id;
     inspectedRequest = drawer.open(detailsFor(site), trigger);
   }
 
   function deferEnrichmentUpdate() {
-    const opened = document.querySelectorAll<HTMLElement>(
-      ".details-drawer .edit-bookmark:not([hidden]), .details-drawer .create-bookmark[open]",
-    );
-    for (const disclosure of opened)
-      disclosure.addEventListener(
-        "toggle",
-        () => {
-          if (
-            !document.querySelector(
-              ".details-drawer .edit-bookmark:not([hidden]), .details-drawer .create-bookmark[open]",
-            )
-          )
-            updateOpenDetails(true);
-        },
-        { once: true },
-      );
+    document.addEventListener("editor-closed", () => updateOpenDetails(), { once: true });
   }
 
   function updateOpenDetails(optionalEnrichment = false) {
     if (!inspectedSiteId || !drawer.isOpen(`site:${inspectedSiteId}`)) return;
-    if (
-      optionalEnrichment &&
-      document.querySelector(
-        ".details-drawer .edit-bookmark:not([hidden]), .details-drawer .create-bookmark[open]",
-      )
-    ) {
+    if (currentForm()    ) {
       deferEnrichmentUpdate();
       return;
     }
@@ -276,6 +258,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
 
   async function load(force = false) {
     if (busy || (loaded && !force)) return;
+    if (force && !(await requestLeave())) return;
     const current = ++generation;
     busy = true;
     refresh.disabled = true;
@@ -342,7 +325,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
   return {
     element: page,
     load: () => load(),
-    refresh: () => (loaded ? load(true) : Promise.resolve()),
+    refresh: () => (loaded && !currentForm() ? load(true) : Promise.resolve()),
     invalidate: () => {
       generation++;
       loaded = false;

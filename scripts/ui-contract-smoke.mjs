@@ -1,0 +1,52 @@
+import assert from 'node:assert/strict';
+import { launch, pause } from './browser-harness.mjs';
+const browser = await launch({ grantTestPermissions: true });
+try {
+  const page = await browser.attach(`chrome-extension://${browser.id}/app.html`);
+  const run = expression => browser.evaluate(page.sessionId, expression);
+  const fixture = await run(`(async()=>{
+    const root=(await chrome.bookmarks.getTree())[0].children.find(node=>!node.unmodifiable);
+    const folder=await chrome.bookmarks.create({parentId:root.id,title:'Contract fixtures'});
+    const first=await chrome.bookmarks.create({parentId:folder.id,title:'Contract first',url:'https://contract.test/page'});
+    const second=await chrome.bookmarks.create({parentId:folder.id,title:'Contract second',url:'https://contract.test/other'});
+    location.hash='bookmarks'; return {first:first.id,second:second.id};
+  })()`);
+  await pause(350);
+  await run(`document.querySelectorAll('.folder-toggle').forEach(button=>{if(button.getAttribute('aria-expanded')==='false')button.click()})`);
+  await pause(250);
+  const inspect = id => run(`document.querySelector('[data-focus-key="bookmark:${id}"]').click()`);
+  await inspect(fixture.first); await pause(100);
+  assert.equal(await run(`document.querySelector('.bookmark-url').textContent`), 'https://contract.test/page');
+  await run(`document.querySelector('.bookmark-edit-action').click()`); await pause(100);
+  assert.equal(await run(`document.querySelector('.bookmark-editor button[type=submit]').disabled`), true);
+  await run(`const title=document.querySelector('.bookmark-editor input[name=title]'); title.value='Changed title'; title.dispatchEvent(new Event('input',{bubbles:true}))`);
+  await inspect(fixture.second); await pause(80);
+  assert.equal(await run(`!!document.querySelector('.unsaved-dialog[open]')`), true);
+  await run(`Array.from(document.querySelectorAll('.unsaved-dialog button')).find(b=>b.textContent==='Keep editing').click()`); await pause(80);
+  assert.equal(await run(`document.querySelector('.bookmark-editor input[name=title]').value`), 'Changed title');
+  assert.equal(await run(`document.querySelector('.details-drawer').dataset.inspectionKey`), `bookmark:${fixture.first}`);
+  await run(`document.querySelector('nav a[href="#sites"]').click()`); await pause(80);
+  assert.equal(await run(`location.hash`), '#bookmarks');
+  await run(`Array.from(document.querySelectorAll('.unsaved-dialog button')).find(b=>b.textContent==='Discard').click()`); await pause(250);
+  assert.equal(await run(`location.hash`), '#sites');
+  await run(`location.hash='bookmarks'`); await pause(100);
+  await inspect(fixture.first); await pause(100);
+  await run(`document.querySelector('.bookmark-copy-action').click()`); await pause(100);
+  const before = await run(`chrome.bookmarks.search({url:'https://contract.test/page'}).then(nodes=>nodes.length)`);
+  await run(`window.originalCreate=chrome.bookmarks.create; window.createCount=0; chrome.bookmarks.create=async(...args)=>{window.createCount++;await new Promise(resolve=>window.releaseCreate=resolve); return window.originalCreate(...args)}; document.querySelector('.bookmark-editor').requestSubmit(); document.querySelector('.bookmark-editor').requestSubmit()`);
+  assert.equal(await run(`window.createCount`), 1);
+  assert.equal(await run(`Array.from(document.querySelectorAll('.bookmark-editor input,.bookmark-editor select,.bookmark-editor button')).every(control=>control.disabled)`), true);
+  await run(`window.releaseCreate()`); await pause(350);
+  assert.equal(await run(`chrome.bookmarks.search({url:'https://contract.test/page'}).then(nodes=>nodes.length)`), before + 1);
+  assert.equal(await run(`!!document.querySelector('.bookmark-editor')`), false);
+  assert.match(await run(`document.querySelector('.toast-host').textContent`), /copy created/);
+  // Delayed reads cannot replace active drafts; failures keep entered values.
+  await run(`chrome.bookmarks.create=window.originalCreate; document.querySelector('.bookmark-edit-action').click()`); await pause(100);
+  await run(`const input=document.querySelector('.bookmark-editor input[name=title]'); input.value='Retry draft'; input.dispatchEvent(new Event('input',{bubbles:true})); window.originalUpdate=chrome.bookmarks.update; chrome.bookmarks.update=async()=>{throw Error('Synthetic write failure')}; document.querySelector('.bookmark-editor').requestSubmit()`); await pause(250);
+  assert.equal(await run(`document.querySelector('.bookmark-editor input[name=title]').value`), 'Retry draft');
+  assert.match(await run(`document.querySelector('.editor-feedback').textContent`), /Synthetic write failure/);
+  await run(`chrome.bookmarks.update=window.originalUpdate; document.querySelector('.bookmark-editor').requestSubmit()`); await pause(350);
+  assert.equal(await run(`chrome.bookmarks.get('${fixture.first}').then(([node])=>node.title)`), 'Retry draft');
+  assert.equal(await run(`!!document.querySelector('.bookmark-editor')`), false);
+  console.log('Shared form lifecycle, guarded navigation, duplicate submission and error recovery passed');
+} finally { await browser.close(); }

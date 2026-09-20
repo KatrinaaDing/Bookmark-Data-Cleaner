@@ -1,4 +1,5 @@
 import { el } from "./dom.js";
+import { requestLeave } from "./form-session.js";
 import { iconButton } from "./icons.js";
 
 export interface DetailsDrawer {
@@ -84,7 +85,9 @@ export function detailsDrawer(): DetailsDrawer {
     if (restoreFocus) returnFocus();
   }
 
-  function close() {
+  function close() { void requestLeave().then(allowed => { if (allowed) closeNow(); }); }
+
+  function closeNow() {
     if (!opened || closing) return;
     request++;
     closing = true;
@@ -113,7 +116,7 @@ export function detailsDrawer(): DetailsDrawer {
       event.key === "Escape" &&
       opened &&
       !modal &&
-      !document.querySelector("dialog.cleanup-dialog[open]")
+      !document.querySelector("dialog.cleanup-dialog[open], dialog.unsaved-dialog[open]")
     ) {
       event.preventDefault();
       close();
@@ -124,7 +127,7 @@ export function detailsDrawer(): DetailsDrawer {
     present();
     closeButton.focus({ preventScroll: true });
   });
-  window.addEventListener("hashchange", () => {
+  document.addEventListener("workspace-route", () => {
     request++;
     if (opened) finishClose(false);
   });

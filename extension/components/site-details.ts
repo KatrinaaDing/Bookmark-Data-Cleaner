@@ -7,6 +7,10 @@ import { analyzeImpact } from "../core/impact.js";
 import { button, dateText, el } from "./dom.js";
 import { affectedBookmarks } from "./affected-bookmarks.js";
 import { iconButton } from "./icons.js";
+import { infoPopover } from "./feedback.js";
+import { bookmarkLink, bookmarkSummary } from "./bookmark-summary.js";
+import { requestLeave } from "./form-session.js";
+import { reveal } from "./motion.js";
 import {
   bookmarkEditor,
   type BookmarkMutation,
@@ -70,11 +74,11 @@ export function siteDetails(
   const detectedSites = options.detectedSites ?? [];
   const title = inspected?.title || site.host;
   panel.append(el("h2", "", title));
-  if (options.notice) panel.append(el("p", "mutation-notice", options.notice));
+
 
   const basic = detailCard("Basic information");
   basic.append(
-    valueRow("Website", site.host),
+    valueRow(inspected ? "Bookmark URL" : "Domain", inspected ? "" : site.host),
     inspected
       ? valueRow(
           "Bookmark last opened",
@@ -92,60 +96,66 @@ export function siteDetails(
         options.loadingDates ? "Loading visit dates…" : dateText(site.lastVisit),
       ),
     );
-  const openUrl = inspected?.url ?? site.urls[0];
-  if (openUrl) {
-    const open = el("a", "open-page", "Open page");
-    open.href = openUrl;
-    open.target = "_blank";
-    open.rel = "noopener noreferrer";
-    basic.append(open);
-  }
+  if (inspected) basic.querySelector(".detail-value > :last-child")!.append(bookmarkLink(inspected.url));
 
   const bookmark = detailCard("Bookmark");
   const rerenderAfterMutation = async (result: BookmarkMutation) => {
     const snapshot = await options.onMutation?.(result.id, result);
     if (!snapshot || !panel.isConnected) return;
-    const destination = snapshot.inspectedBookmark?.path;
-    const notice = result.error
-      ? `${result.error} Current browser state is shown.`
-      : result.created
-        ? `Copy created in ${destination || "the selected folder"}.`
-        : `Saved in ${destination || "the selected folder"}.`;
-    panel.replaceWith(
-      siteDetails(snapshot.site, {
+    if (result.error) return; // Reconcile lists without discarding a failed or partially saved draft.
+    const next = siteDetails(snapshot.site, {
         ...options,
         ...snapshot,
-        notice,
         inspectedBookmark: options.inspectedBookmark
           ? result.created
             ? options.inspectedBookmark
             : snapshot.inspectedBookmark
           : undefined,
-      }),
-    );
+      });
+    panel.replaceWith(next);
+    const heading = next.querySelector("h2")!;
+    heading.tabIndex = -1; heading.focus({ preventScroll: true });
   };
-  function addEditor(container: HTMLElement, heading: HTMLElement, saved: BookmarkRef) {
-    const editor = el("div", "edit-bookmark");
-    editor.id = `bookmark-editor-${saved.id}`;
-    editor.hidden = true;
-    editor.append(bookmarkEditor({
-      bookmark: saved, folders, title: saved.title, url: saved.url,
-      onSettled: rerenderAfterMutation,
-    }));
-    const edit = button("Edit", () => {
-      editor.hidden = !editor.hidden;
-      edit.textContent = editor.hidden ? "Edit" : "Close edit";
-      edit.setAttribute("aria-expanded", String(!editor.hidden));
-      edit.setAttribute("aria-label", `${editor.hidden ? "Edit" : "Close editor for"} ${saved.title || "bookmark"}`);
-      if (!editor.hidden) editor.querySelector("input")?.focus();
-      editor.dispatchEvent(new Event("toggle"));
-    }, "bookmark-edit-action");
-    edit.setAttribute("aria-label", `Edit ${saved.title || "bookmark"}`);
-    edit.setAttribute("aria-expanded", "false");
-    edit.setAttribute("aria-controls", editor.id);
+  const defaultUrl = site.urls[0] ?? `${site.origins[0] ?? `https://${site.host}`}/`;
+  function addEditor(container: HTMLElement, heading: HTMLElement, saved?: BookmarkRef) {
+    const actions = el("span", "bookmark-actions");
     heading.classList.add("bookmark-heading");
-    heading.append(edit);
-    container.append(editor);
+    heading.append(actions);
+    let opened: HTMLElement | undefined;
+    let openedTrigger: HTMLButtonElement | undefined;
+    const openForm = async (copy: boolean, trigger: HTMLButtonElement) => {
+      const wasOpen = !!opened && openedTrigger === trigger;
+      if (!(await requestLeave())) return;
+      if (wasOpen) return;
+      const editor = el("div", copy ? "create-bookmark" : "edit-bookmark");
+      editor.hidden = true;
+      opened = editor;
+      openedTrigger = trigger;
+      const form = bookmarkEditor({
+        bookmark: copy ? undefined : saved,
+        folders, title: saved?.title ?? title, url: saved?.url ?? defaultUrl,
+        parentId: saved?.parentId,
+        onSettled: rerenderAfterMutation,
+        onClose: () => {
+          if (opened !== editor) return;
+          opened = undefined;
+          trigger.setAttribute("aria-expanded", "false");
+          if (trigger.isConnected) trigger.focus({ preventScroll: true });
+          void reveal(editor, false).then(() => { editor.remove(); panel.dispatchEvent(new Event("editor-closed", { bubbles: true })); });
+        },
+      });
+      editor.append(form.element); container.append(editor);
+      trigger.setAttribute("aria-expanded", "true");
+      void reveal(editor, true); form.open();
+    };
+    if (saved) {
+      const edit = iconButton("edit", `Edit ${saved.title || "bookmark"}`, () => void openForm(false, edit));
+      edit.classList.add("bookmark-edit-action"); edit.disabled = !!saved.unmodifiable;
+      edit.setAttribute("aria-expanded", "false"); actions.append(edit);
+    }
+    const copy = iconButton(saved ? "copy" : "bookmark", saved ? `Create bookmark copy of ${saved.title || "bookmark"}` : "Save bookmark", () => void openForm(true, copy));
+    copy.classList.add("bookmark-copy-action"); copy.setAttribute("aria-expanded", "false");
+    actions.append(copy);
   }
   if (inspected) {
     bookmark.append(valueRow("Saved in", inspected.path || "Bookmarks"));
@@ -156,10 +166,7 @@ export function siteDetails(
       const item = el("li", "saved-page");
       const heading = el("div", "saved-page-heading");
       const description = el("div", "saved-page-description");
-      description.append(
-        el("span", "affected-title", saved.title || "Untitled"),
-        el("span", "fine", saved.path || "Bookmarks"),
-      );
+      description.append(bookmarkSummary(saved), bookmarkLink(saved.url));
       heading.append(description);
       item.append(heading);
       addEditor(item, heading, saved);
@@ -168,61 +175,29 @@ export function siteDetails(
     bookmark.append(list);
   } else {
     bookmark.append(el("p", "fine", "No bookmarks saved for this website. Use Save bookmark to add one."));
+    addEditor(bookmark, bookmark.querySelector("h3")!);
   }
-  const create = el("details", "detail-disclosure create-bookmark");
-  create.append(el("summary", "", site.bookmarks.length ? "Create copy" : "Save bookmark"));
-  create.append(
-    bookmarkEditor({
-      folders,
-      createLabel: site.bookmarks.length ? "Create copy" : "Save bookmark",
-      title,
-      url: inspected?.url ?? site.urls[0] ?? `${site.origins[0] ?? `https://${site.host}`}/`,
-      onSettled: rerenderAfterMutation,
-    }),
-  );
-  bookmark.append(create);
 
   const target = inspected
     ? { ...site, bookmarks: [inspected] }
     : { ...site, bookmarks: [] };
   const impact = analyzeImpact([target], allBookmarks, detectedSites);
   const websiteData = detailCard("Website data");
-  const help = el("div", "website-data-help fine");
-  help.id = "website-data-help";
-  help.hidden = true;
-  help.append(
-    el("p", "", "Cleanup can sign you out or remove offline and unsynced website data. You will review each category before anything is removed."),
-  );
-  if (impact.duplicates.length)
-    help.append(
-      el("p", "", "Exact copies save the same complete address. They stay unless you add them during review."),
-    );
-  if (impact.relatedBookmarks.length || impact.relatedSites.length)
-    help.append(
-      el("p", "", "Removing website data can affect the saved pages or detected sites listed below even though their bookmarks stay."),
-    );
-  const info = iconButton("info", "About website data cleanup", () => {
-    help.hidden = !help.hidden;
-    info.setAttribute("aria-expanded", String(!help.hidden));
-  });
-  info.classList.add("detail-info");
-  info.setAttribute("aria-expanded", "false");
-  info.setAttribute("aria-controls", help.id);
-  websiteData.querySelector("h3")!.append(info);
+  websiteData.querySelector("h3")!.append(infoPopover("About website data cleanup", "Cleanup can sign you out or remove offline and unsynced website data. Other pages can share this data even when their bookmarks remain. You will review each category before anything is removed."));
+  if (impact.duplicates.length) bookmark.append(affectedBookmarks({ ...impact, relatedBookmarks: [], relatedSites: [] }));
   websiteData.append(
-    help,
     valueRow(
       "Detected cookies",
       site.cookiesAvailable === false
         ? "Not checked"
         : String(site.cookies.length),
     ),
-    affectedBookmarks(impact),
+    affectedBookmarks({ ...impact, duplicates: [] }),
   );
   if (options.onCleanup) {
     const clean = el("button", "primary detail-cleanup", "Clean up data");
     clean.type = "button";
-    clean.addEventListener("click", () => options.onCleanup?.(site, inspected));
+    clean.addEventListener("click", () => { void requestLeave().then(allowed => { if (allowed) options.onCleanup?.(site, inspected); }); });
     websiteData.append(clean);
   }
   panel.append(basic, bookmark, websiteData);

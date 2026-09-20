@@ -1,3 +1,4 @@
+import { currentForm, requestLeave } from "../components/form-session.js";
 import { iconButton } from "../components/icons.js";
 import { detailsDrawer } from "../components/details-drawer.js";
 import { readBookmarks } from "../browser/bookmarks.js";
@@ -95,32 +96,12 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   }
 
   function deferEnrichmentUpdate() {
-    const opened = document.querySelectorAll<HTMLElement>(
-      ".details-drawer .edit-bookmark:not([hidden]), .details-drawer .create-bookmark[open]",
-    );
-    for (const disclosure of opened)
-      disclosure.addEventListener(
-        "toggle",
-        () => {
-          if (
-            !document.querySelector(
-              ".details-drawer .edit-bookmark:not([hidden]), .details-drawer .create-bookmark[open]",
-            )
-          )
-            updateOpenDetails(undefined, true);
-        },
-        { once: true },
-      );
+    document.addEventListener("editor-closed", () => updateOpenDetails(), { once: true });
   }
 
   function updateOpenDetails(notice?: string, optionalEnrichment = false) {
     if (!inspectedId || !drawer.isOpen(`bookmark:${inspectedId}`)) return;
-    if (
-      optionalEnrichment &&
-      document.querySelector(
-        ".details-drawer .edit-bookmark:not([hidden]), .details-drawer .create-bookmark[open]",
-      )
-    ) {
+    if (currentForm()    ) {
       deferEnrichmentUpdate();
       return;
     }
@@ -268,13 +249,15 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     clean.disabled = busy || !selection.ids.size;
   }
 
-  function inspect(id: string, trigger: HTMLElement) {
+  async function inspect(id: string, trigger: HTMLElement) {
+    if (!(await requestLeave())) return;
     inspectedId = id;
     inspectedRequest = drawer.open(detailsFor(id), trigger);
   }
 
   async function load(force = false) {
     if (busy || (loaded && !force)) return;
+    if (force && !(await requestLeave())) return;
     const current = ++generation;
     busy = true;
     refresh.disabled = true;
@@ -335,7 +318,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   return {
     element: page,
     load: () => load(),
-    refresh: () => (loaded ? load(true) : Promise.resolve()),
+    refresh: () => (loaded && !currentForm() ? load(true) : Promise.resolve()),
     invalidate: () => {
       generation++;
       loaded = false;
