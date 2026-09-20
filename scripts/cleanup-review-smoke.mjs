@@ -47,6 +47,7 @@ try {
   await pause(80);
   assert.equal(await run(`${category("Remove selected bookmarks")}.checked`), true, "Back retains explicit choices");
   assert.equal(await run(`${review}.disabled`), false);
+  assert.equal(await run(`!!document.querySelector(".cleanup-feedback .spinner")`), false, "Back clears the completed preparation spinner");
 
   // An unavailable cookie choice must not leave a checked, disabled category in the next plan.
   await run(`${category("Remove selected bookmarks")}.click(); ${category("Cookies and sign-in data")}.click(); ${review}.click()`);
@@ -101,6 +102,25 @@ try {
   await run(`document.querySelector('.cleanup-dialog').close();window.releasePreview()`);
   await pause(50);
   assert.equal(await run(`document.querySelector('.cleanup-dialog')===null`),true,'Late preview does not reopen a dismissed dialog');
+  await run(`(async()=>{
+    const {cleanupDialog}=await import('./components/cleanup-dialog.js');
+    const base={id:'base',title:'Base',url:'https://review.test/',path:'Saved'};
+    const duplicate={...base,id:'duplicate',title:'Duplicate'};
+    cleanupDialog(async(options,extras)=>{
+      if(window.failReview)throw Error('Cannot refresh review');
+      return {sites:[{id:'review.test',host:'review.test',origins:['https://review.test'],urls:[],cookies:[],bookmarks:[base,...(extras.has('duplicate')?[duplicate]:[])]}],impact:{duplicates:[duplicate],relatedBookmarks:[],relatedSites:[]}};
+    },true,()=>{window.started++});
+  })()`);
+  await pause(80);
+  await run(`${review}.click()`); await pause(80);
+  await run(`window.failReview=true;document.querySelector('.duplicate-choices input').click()`); await pause(80);
+  assert.match(await run(`document.querySelector('.cleanup-feedback').textContent`),/Cannot refresh review/);
+  assert.equal(await run(`Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button=>button.textContent==='Confirm cleanup').disabled`),true,'Failed re-preparation cannot authorize the old plan');
+  await run(`Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button=>button.textContent==='Confirm cleanup').click()`);
+  assert.equal(await run(`window.started`),0);
+  await run(`window.failReview=false;Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button=>button.textContent==='Retry review').click()`); await pause(80);
+  assert.equal(await run(`Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button=>button.textContent==='Confirm cleanup').disabled`),false);
+  await run(`document.querySelector('.cleanup-dialog').close()`);
   console.log("Cleanup review: category availability, frozen preparation, safe keyboard focus, Back, permission loss and Escape passed.");
 } finally {
   await browser.close();

@@ -1,3 +1,4 @@
+import { LatestRead } from "./async-state.js";
 import { buildCleanupPlan, hasData } from "../core/cleanup.js";
 import type { CleanupImpact } from "../core/impact.js";
 import {
@@ -38,6 +39,9 @@ export function cleanupDialog(
   const duplicateCandidates = new Map<string, BookmarkRef>();
   let busy = false;
   let revision = 0;
+  const reviews = new LatestRead();
+  let validReview = false;
+  let confirmAction: HTMLButtonElement | undefined;
   let choiceInputs: HTMLInputElement[] = [];
   let activeControls: HTMLButtonElement[] = [];
   let reviewAction: HTMLButtonElement | undefined;
@@ -81,12 +85,19 @@ export function cleanupDialog(
     busy = value;
     for (const input of choiceInputs) input.disabled = value || input.dataset.permission === "off";
     for (const control of activeControls) control.disabled = value;
+    if (confirmAction) confirmAction.disabled = value || !validReview;
     updateReviewAvailability();
     dialog.setAttribute("aria-busy", String(value));
   }
 
   function renderChoices() {
     const current = ++revision;
+    reviews.invalidate();
+    validReview = false;
+    confirmAction = undefined;
+    busy = false;
+    dialog.setAttribute("aria-busy", "false");
+    feedback.replaceChildren();
     title.textContent = "Choose what to remove";
     body.replaceChildren(
       title,
@@ -182,7 +193,7 @@ export function cleanupDialog(
             status("Could not request cookie access. Try again."),
           );
         },
-      ).finally(() => setBusy(false));
+      ).finally(() => { if (current === revision && dialog.open) setBusy(false); });
     });
     accessButton.hidden = true;
     cookieInput!.dataset.permission = "off";
@@ -206,8 +217,6 @@ export function cleanupDialog(
     );
     const close = button("Cancel", () => dialog.close(), "quiet");
     const review = button("Review cleanup", () => {
-      extras.clear();
-      duplicateCandidates.clear();
       void reviewPlan({ ...options, cookies: options.cookies && cookieInput!.dataset.permission === "on" });
     }, "primary");
     reviewAction = review;
@@ -221,24 +230,31 @@ export function cleanupDialog(
 
   async function reviewPlan(snapshot: CleanupOptions) {
     const current = ++revision;
+    const isCurrent = reviews.begin();
+    validReview = false;
     setBusy(true);
+    if (!body.contains(feedback)) body.append(feedback);
     feedback.replaceChildren(status("Preparing cleanup…", true));
     try {
       const prepared = await prepare(
         Object.freeze({ ...snapshot }),
         new Set(extras),
       );
-      if (current !== revision || !dialog.open) return;
+      if (current !== revision || !isCurrent() || !dialog.open) return;
       for (const duplicate of prepared.impact?.duplicates ?? [])
         duplicateCandidates.set(duplicate.id, duplicate);
+      validReview = true;
+      feedback.replaceChildren();
       renderReview(
         buildCleanupPlan(prepared.sites, snapshot, prepared.folders),
         prepared.impact,
         snapshot,
       );
     } catch (error) {
-      if (current === revision)
-        feedback.replaceChildren(status(errorMessage(error)));
+      if (current === revision) {
+        validReview = false;
+        feedback.replaceChildren(status(errorMessage(error)), button("Retry review", () => void reviewPlan(snapshot), "quiet"));
+      }
     } finally {
       if (current === revision) setBusy(false);
     }
@@ -395,6 +411,7 @@ export function cleanupDialog(
     const back = button("Back", () => renderChoices(), "quiet");
     const cancel = button("Cancel", () => dialog.close(), "quiet");
     const confirm = button("Confirm cleanup", () => {
+      if (busy || !validReview) return;
       setBusy(true);
       result.replaceChildren(status("Starting cleanup…", true));
       void chrome.runtime
@@ -410,10 +427,11 @@ export function cleanupDialog(
           result.replaceChildren(status(errorMessage(error)));
         });
     }, "danger");
+    confirmAction = confirm;
     activeControls = [back, cancel, confirm];
     const footer = el("div", "dialog-actions");
     footer.append(back, cancel, confirm);
-    body.append(result, footer);
+    body.append(feedback, result, footer);
     title.focus();
   }
 
@@ -426,6 +444,7 @@ export function cleanupDialog(
   });
   dialog.addEventListener("close", () => {
     revision++;
+    reviews.invalidate();
     dialog.remove();
   });
 }
