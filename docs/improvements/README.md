@@ -6,8 +6,8 @@ The current goal is **public adoption first, portfolio value second**, confirmed
 
 - [Latest evaluation — 19 September 2026](evaluations/2026-09-19-extension-evaluation.md): findings, verification, product assessment, and value versus complexity.
 - [Active implementation plan](plans/2026-09-19-public-release-plan.md): phased tasks, acceptance criteria, recommendation coverage, and release gates. Branch: `codex/public-release-improvements`.
-- [Next interaction tranche — 20 September 2026](plans/2026-09-20-interaction-consistency-plan.md): agreed toolbar/search, form, feedback, cleanup-review and motion changes; planned, not implemented. Supersedes older duplicate opt-in defaults within this scope.
-- [Shared UI contract](../ui-contract.md): foundation-first standards for controls, async state, form exits, feedback, motion and reusable logic; implementation target for the next tranche.
+- [Next interaction tranche — 20 September 2026](plans/2026-09-20-interaction-consistency-plan.md): agreed toolbar/search, form, feedback, cleanup-review and motion changes; implemented with [verification evidence](history/2026-09-20-interaction-system.md). Supersedes older duplicate opt-in defaults within this scope.
+- [Shared UI contract](../ui-contract.md): foundation-first standards for controls, async state, form exits, feedback, motion and reusable logic; implemented foundation for this tranche and future UI work.
 - [First implementation tranche](history/2026-09-19-release-foundations.md): cookie-scope correction, review safety, selection reset, inventory performance, commits and verified limits.
 - [Cookie-scope evidence and reproduction](evidence/2026-09-19/README.md): durable synthetic evidence for the unresolved release blocker.
 - [Architecture](../architecture.md) and [development/release checks](../development.md): living implementation documentation.
@@ -26,7 +26,8 @@ The current goal is **public adoption first, portfolio value second**, confirmed
 | 2026-09-19 | [Release foundations](history/2026-09-19-release-foundations.md) | First implementation tranche, focused commits, 40 unit tests and 11 browser suites |
 | 2026-09-19 | [Details form and help refinement](history/2026-09-19-details-refinement.md) | Constrained long editor fields and on-demand website-data explanations |
 | 2026-09-19 | [Browsing and cleanup choices](history/2026-09-19-browsing-cleanup-choices.md) | Empty states, bookmark edit actions, cleaner entry labels and default-selected count previews |
-| 2026-09-20 | [Interaction consistency plan](plans/2026-09-20-interaction-consistency-plan.md) | Accepted fixes and motion contract; implementation and verification pending |
+| 2026-09-20 | [Interaction consistency plan](plans/2026-09-20-interaction-consistency-plan.md) | Implemented fixes, shared UI contract and motion; see the verification record |
+| 2026-09-20 | [Interaction system implementation](history/2026-09-20-interaction-system.md) | Shared UI lifecycles, guarded forms, search, cleanup review and verified limits |
 
 ## Interpreting old findings
 

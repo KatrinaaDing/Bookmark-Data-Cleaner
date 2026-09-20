@@ -1,10 +1,10 @@
 # Interaction consistency and cleanup clarity — 20 September 2026
 
-**Status:** planned; implementation has not started. The user accepted the proposed fixes and requested appropriate animation for UI changes, then requested this implementation plan.
+**Status:** implemented and verified on 20 September 2026 after the user approved committing the plan and starting implementation. See the [implementation record](../history/2026-09-20-interaction-system.md) for commits, automated/visual evidence and remaining release checks.
 
 **Outcome:** both workspaces use predictable controls; bookmark forms share one lifecycle; cleanup review clearly separates data removal, bookmark deletion and effects on retained pages. Motion communicates changes without delaying tasks.
 
-**Foundation first:** following the user's request for a unified UI system, the [shared UI contract](../../ui-contract.md) now defines reusable controls, state ownership, async/form/overlay lifecycles and extraction boundaries. Establish and exercise these foundations before rolling the changes through both workspaces. This remains a plan, not a claim that the shared system is implemented.
+**Foundation first:** following the user's request for a unified UI system, the [shared UI contract](../../ui-contract.md) now defines reusable controls, state ownership, async/form/overlay lifecycles and extraction boundaries. Establish and exercise these foundations before rolling the changes through both workspaces. Shared foundations now serve the scoped workspaces, forms and cleanup flow; acceptance evidence is recorded below.
 
 **Relationship to existing work:** this is the next focused tranche of the [public-release plan](2026-09-19-public-release-plan.md), covering parts of R04, R06, R09, R10, R13 and R14. It does not complete unrelated release or compatibility gates. The accepted default-selected duplicate behavior explicitly supersedes the older duplicate opt-in requirement for bookmark cleanup. Update DESIGN.md to describe implemented behavior only after verification.
 
@@ -116,14 +116,14 @@ Use disposable browser profiles and synthetic bookmarks/cookies for every destru
 ## Completion tracking
 
 - [x] Shared UI/interaction contract documented; responsibilities and extraction boundaries defined
-- [ ] Shared foundations implemented and exercised through edit/copy and cleanup lifecycle pilots
-- [ ] Cleanup preparation and Back/error lifecycle
-- [ ] Consistent toolbars, selection and bookmark search
-- [ ] Shared feedback, popovers and motion primitives
-- [ ] Unified bookmark forms and dirty navigation protection
-- [ ] Details URL/duplicate/affected-page hierarchy
-- [ ] Duplicate selection and verified deletion boundaries
-- [ ] Two-step review presentation and motion
-- [ ] Integrated checks, visual evidence and implemented-design documentation
+- [x] Shared foundations implemented and exercised through edit/copy and cleanup lifecycle pilots
+- [x] Cleanup preparation and Back/error lifecycle
+- [x] Consistent toolbars, selection and bookmark search
+- [x] Shared feedback, popovers and motion primitives
+- [x] Unified bookmark forms and dirty navigation protection
+- [x] Details URL/duplicate/affected-page hierarchy
+- [x] Duplicate selection and verified deletion boundaries
+- [x] Two-step review presentation and motion
+- [x] Integrated checks, visual evidence and implemented-design documentation
 
-Planning validation: checked against current workspace code and existing browser suites; no runtime behavior has been changed or tested by this planning task.
+Implementation validation: typecheck/build, 42 unit tests, 13 disposable Edge browser suites, targeted follow-up regressions, desktop/narrow visual inspection, one detector pass and `git diff --check`. Real permission prompts, full browser zoom/accessibility assessment and the existing Chrome/enterprise compatibility matrix remain manual release checks; this tranche does not close those broader gates.

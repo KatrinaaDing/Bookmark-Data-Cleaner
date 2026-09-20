@@ -41,13 +41,15 @@ Each script creates and removes a fresh temporary profile. Never point these scr
 - `permissions-smoke`: unmodified manifest, optional access gate, single app tab.
 - `cleanup-smoke`: selected partition removed; another partition and unrelated cookies preserved; no cookie values in inventory state.
 - `cookie-scope-smoke`: exact identity expiry, same-name domain/path neighbours, review/preflight races, partition ancestor bits, absent targets, prefixes and safely refused noncanonical HTTP cookie paths. Assertions inspect synthetic `.test`/loopback fixtures only, excluding browser-generated background cookies.
-- `cleanup-review-smoke`: empty-choice gating, frozen preparation, heading focus, Enter safety, Back, permission loss and Escape.
+- `cleanup-review-smoke`: empty-choice gating, frozen preparation, heading focus, Enter safety, Back without stale spinners, permission loss, visible re-preparation errors, stale-plan blocking and Escape.
 - `storage-smoke`: known-origin Local Storage, IndexedDB, CacheStorage and workers removed; control origin preserved.
 - `folder-motion-smoke`: animated collapse, rapid toggles and reduced-motion expansion.
 - `bookmark-mutation-smoke`: browser-backed bookmark create, update, move, delete and folder validation.
 - `bookmark-selection-smoke`: clearing collapsed descendants, empty folders and mixed states without losing details inspection.
-- `bookmark-management-smoke`: ID-preserving edit/move, cross-route refresh, isolated direct cleanup, explicit duplicate inclusion, sticky desktop details, native narrow modal, resize/focus and unavailable-cookie copy. Audit captures go to `dist/audit/`.
+- `bookmark-management-smoke`: ID-preserving edit/move, cross-route refresh, isolated direct cleanup, default-selected duplicates, persistent deselection and actual retention/deletion, sticky desktop details, native narrow modal, resize/focus and unavailable-cookie copy. Audit captures go to `dist/audit/`.
 - `ui-refinement-smoke`: sliding details, the three cards, editor disclosure, dismissal/focus, stale requests, reduced motion and narrow modal behavior. Captures go to `dist/refinement/`.
+- `ui-contract-smoke`: shared edit/copy lifecycle, save/discard/stay navigation, refreshed DOM ownership, double-submit exclusion, failed-write drafts, reconciliation-only retry after successful create, modal toast visibility/order and reduced-motion forms. Synthetic captures go to `dist/contract/`.
+- `bookmark-search-smoke`: title/URL/folder search, no results, hidden selections, filtered select/unselect, clear-all and stable cleanup placement.
 - `ui-smoke`: dashboard/routes, folders, indeterminate and duplicate selection, metadata, validation, bookmark-only and site-cookie cleanup, timeline, narrow layouts and offline reload. Screenshots go to ignored `dist/screenshots/`.
 
 Cleanup/storage/UI tests copy the package into their temporary profile and grant optional permissions **in that test copy only** to seed fixtures without browser prompts. The permission test uses the real manifest. These are controlled integration tests, not complete browser compatibility coverage.
@@ -56,7 +58,7 @@ Cleanup/storage/UI tests copy the package into their temporary profile and grant
 
 `node scripts/inventory-benchmark.mjs` compares the original matching algorithm with the indexed implementation using synthetic repeated/distinct-host fixtures, two warmups and five timed samples. It checks equivalent results and compiles into an automatically removed temporary directory. It is intentionally outside the unit suite; timings are diagnostic, not flaky assertions.
 
-After building, run `CHROME_BIN='/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge' node scripts/inventory-browser-profile.mjs` to exercise the actual bookmark workspace with 5,000 synthetic bookmarks and cookies. This uses immediate mocked browser reads in a disposable extension page, measures load/DOM creation and interaction, and checks row count/inspection/settled overflow. It does not measure real-profile I/O, produce a CPU trace, or predict every machine's latency.
+After building, run `CHROME_BIN='/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge' node scripts/inventory-browser-profile.mjs` to exercise the actual bookmark workspace with 5,000 synthetic bookmarks and cookies. This uses immediate mocked browser reads in a disposable extension page, measures load/DOM creation, interaction and matching/full-result search, and checks row count/inspection/settled overflow. It does not measure real-profile I/O, produce a CPU trace, or predict every machine's latency.
 
 See the [improvement history](improvements/README.md) for dated results and remaining release checks.
 

@@ -13,7 +13,7 @@ A small TypeScript extension compiled to native ES modules. No runtime packages,
 
 Views prepare a plan; the native dialog displays its exact targets/categories. The worker validates and snapshots it again, allows one active job, executes each data category and keeps dependent bookmarks if any category fails. Empty folders are removed deepest-first, using `bookmarks.remove` only after checking their current contents. Nothing calls `removeTree`.
 
-Direct detail cleanup passes its own target IDs into the same preparation boundary, independent of batch selection. Cleanup choices are copied once per preparation. Exact-URL copies are optional explicit additions; every change rebuilds the reviewed snapshot from fresh browser reads. Data-only site plans carry contextual bookmarks only as impact information, not deletion targets.
+Direct detail cleanup passes its own target IDs into the same preparation boundary, independent of batch selection. Cleanup choices are copied once per preparation. Eligible exact-URL copies are visible default-selected additions in bookmark cleanup. Explicit deselections persist, and every change rebuilds the reviewed snapshot from fresh browser reads. Managed copies remain unselectable. A failed rebuild invalidates confirmation rather than falling back to the previous plan. Data-only site plans carry contextual bookmarks only as impact information, not deletion targets.
 
 Results are per site/category and bookmark/folder. Review failures and explicitly select a new cleanup; there is no automatic retry. Partial cookie cleanup is re-inventoried so already absent cookies are not newly selected.
 
@@ -39,3 +39,16 @@ All assets are packaged locally. Metadata inspection performs no target-page req
 ## Details and motion
 
 Both workspaces share one details controller. Desktop uses a sticky, viewport-constrained modeless dialog beside the interactive list; narrow windows use the same native dialog modally. Resize switches modes without losing the inspected key, and cleanup confirmation can open above it. Request generations ignore results after dismissal or replacement. Stable row keys restore focus even when bookmark mutation rebuilds the list; cross-workspace invalidation refreshes the other mounted page on its next visit. Folder expansion uses CSS grid transitions and makes collapsed descendants inert. Reduced-motion preferences disable spatial transitions.
+
+
+## Shared UI ownership
+
+The [UI contract](ui-contract.md) separates shared rendering/lifecycles from browser and cleanup semantics. Existing component and token directories remain the implementation home; no framework or runtime package was introduced.
+
+- `action-button`, `workspace-controls` and `bookmark-summary` share action states, toolbar/selection presentation and title/folder rows.
+- `form-session` owns baseline/draft comparison, submission exclusion, the one active form and save/discard/stay exits. `bookmark-editor` adapts that lifecycle to actual browser mutations. A committed write is remembered during reconciliation failures, so retrying refresh cannot replay create.
+- `async-state` separates pending-write exclusion from latest-read invalidation. Cleanup owns its options/duplicate decisions and reviewed snapshot; presentation never grants deletion authority.
+- `feedback` owns toast lifetime/modal placement and accessible info popovers. `permission-action` shares request/loading/outcome behavior while callers own permission-specific inventory changes.
+- `motion` owns cancellation, shared duration lookup and reduced-motion settlement. DOM disclosure, details and form controllers retain logical state and disposal responsibilities.
+
+Route, refresh and inspection transitions await the active form's leave decision. When save replaces DOM owners, continuation resolves stable row/editor keys against the new view. Optional enrichment waits while a form is active. Search preserves the tree and its expansion state, and shared set-based selection calculations expose hidden selections without altering deletion scope.

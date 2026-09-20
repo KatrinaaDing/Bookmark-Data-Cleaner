@@ -1,6 +1,6 @@
 # Shared UI and interaction contract
 
-**Status:** implementation target established on 20 September 2026. This documents the agreed direction; existing components do not yet satisfy every rule. Migration and verification are tracked in the [interaction plan](improvements/plans/2026-09-20-interaction-consistency-plan.md).
+**Status:** shared foundations and scoped consumer migration implemented on 20 September 2026. Verified behavior and remaining manual release checks are recorded in the [implementation record](improvements/history/2026-09-20-interaction-system.md); the [interaction plan](improvements/plans/2026-09-20-interaction-consistency-plan.md) tracks completion. This remains the standard for subsequent UI work, not a claim of exhaustive browser/accessibility coverage.
 
 ## Purpose and boundaries
 

@@ -2,7 +2,7 @@
 
 **Status:** implementation started on 19 September 2026. R02, R03 and R05 are implemented; the R01 scope correction and remaining compatibility gate are recorded in the [first refinement](../history/2026-09-19-release-foundations.md). The overall release and remaining phases are not complete.
 
-**Next tranche:** the user accepted the [20 September interaction consistency plan](2026-09-20-interaction-consistency-plan.md), which specifies toolbar/search, forms, feedback, cleanup review and motion. For that scope, its default-selected additional duplicates and flat bookmark search replace the older duplicate opt-in and filtered-tree assumptions below. Implementation remains pending; unrelated release gates are unchanged.
+**Next tranche:** the user accepted the [20 September interaction consistency plan](2026-09-20-interaction-consistency-plan.md), which specifies toolbar/search, forms, feedback, cleanup review and motion. For that scope, its default-selected additional duplicates and flat bookmark search replace the older duplicate opt-in and filtered-tree assumptions below. This tranche is now implemented; see its [verification record](../history/2026-09-20-interaction-system.md). Unrelated release gates are unchanged.
 
 **Branch:** `codex/public-release-improvements`, created from `codex/rebrand-stage-1` at `ad45d365d2924d1be79848a7ee8ff3730a4afd39`.
 
