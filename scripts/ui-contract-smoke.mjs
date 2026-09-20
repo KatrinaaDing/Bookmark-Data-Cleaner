@@ -80,8 +80,10 @@ try {
   await run(`Array.from(document.querySelectorAll('.unsaved-dialog button')).find(button=>button.textContent==='Save changes').click()`);
   await waitFor(`!!document.querySelector('.create-bookmark:not([inert]) .bookmark-editor')`);
   assert.equal(await run(`document.querySelector('.create-bookmark input[name=title]').value`),'Saved before copy');
-  await run(`document.querySelector('.create-bookmark button[aria-label="Cancel changes"]').click()`);
+  await run(`window.closedForm=document.querySelector('.create-bookmark .bookmark-editor');window.writesBeforeClose=window.copyWrites;document.querySelector('.create-bookmark button[aria-label="Cancel changes"]').click()`);
   await waitFor(`!document.querySelector('.bookmark-editor')`);
+  await run(`window.closedForm.requestSubmit()`);
+  assert.equal(await run(`window.copyWrites`),await run(`window.writesBeforeClose`),'Closed form sessions cannot submit again');
   await browser.cmd('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:false},page.sessionId);
   await browser.cmd('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]},page.sessionId);
   await run(`document.querySelector('.bookmark-edit-action').click()`); await pause(50);
