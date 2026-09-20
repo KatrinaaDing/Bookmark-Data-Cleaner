@@ -1,3 +1,4 @@
+import { permissionAction } from "../components/permission-action.js";
 import { workspaceToolbar, selectionControl } from "../components/workspace-controls.js";
 import { infoPopover, toast } from "../components/feedback.js";
 import { currentForm, requestLeave } from "../components/form-session.js";
@@ -69,34 +70,16 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
   const bookmarked = checkbox("Bookmarked only", () => render());
   const refresh = iconButton("refresh", "Refresh", () => void load(true));
   const count = el("span", "selection-count");
-  const access = button("Allow site discovery", () => {
-    void requestSiteAccess().then(
-      (granted) => {
-        if (granted) {
-          access.hidden = true;
-          void load(true);
-        } else
-          feedback.replaceChildren(
-            status(
-              "Site access declined. Allow site discovery to build this list, or use Bookmark cleanup.",
-            ),
-          );
-      },
-      () => feedback.replaceChildren(status("Could not request access. Try again.")),
-    );
-  }, "primary");
+  const access = permissionAction({
+    label: "Allow site discovery", request: requestSiteAccess,
+    granted: "Site discovery enabled.", declined: "Site access declined. You can still use Bookmark cleanup.",
+    onGranted: () => load(true, false),
+  });
   access.hidden = true;
-  const history = iconButton("history", "Enable visit dates", () => {
-    void requestHistory().then(
-      (granted) => {
-        if (granted) void load(true);
-        else
-          feedback.replaceChildren(
-            status("History access declined. You can still clean detected site data."),
-          );
-      },
-      () => feedback.replaceChildren(status("Could not request history access. Try again.")),
-    );
+  const history = permissionAction({
+    label: "Enable visit dates", icon: "history", request: requestHistory,
+    granted: "Visit dates enabled.", declined: "History access declined. Cleanup still works.",
+    onGranted: () => load(true, false),
   });
 
   function visible() {
@@ -140,12 +123,16 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
   async function inspect(site: SiteRecord, trigger: HTMLElement) {
     if (!(await requestLeave())) return;
     inspectedSiteId = site.id;
-    inspectedRequest = drawer.open(detailsFor(site), trigger);
+    const current = sites.find(item => item.id === site.id) ?? site;
+    const source = list.querySelector<HTMLElement>(`[data-focus-key="site:${CSS.escape(site.id)}"]`) ?? trigger;
+    inspectedRequest = drawer.open(detailsFor(current), source);
   }
 
-  function deferEnrichmentUpdate() {
-    document.addEventListener("editor-closed", () => updateOpenDetails(), { once: true });
-  }
+  let enrichmentDeferred = false;
+  function deferEnrichmentUpdate() { enrichmentDeferred = true; }
+  document.addEventListener("editor-closed", () => {
+    if (enrichmentDeferred) { enrichmentDeferred = false; updateOpenDetails(); }
+  });
 
   function updateOpenDetails() {
     if (!inspectedSiteId || !drawer.isOpen(`site:${inspectedSiteId}`)) return;
@@ -246,9 +233,10 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
   search.addEventListener("input", render);
   order.addEventListener("change", render);
 
-  async function load(force = false) {
+  async function load(force = false, announce = force) {
     if (busy || (loaded && !force)) return;
     if (force && !(await requestLeave())) return;
+    if (busy) return;
     const current = ++generation;
     busy = true;
     refresh.disabled = true;
@@ -293,7 +281,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
       render();
       updateOpenDetails();
       feedback.replaceChildren(...result.warnings.map((warning) => status(warning)));
-      if (force) toast("Site data refreshed.");
+      if (announce) toast("Site data refreshed.");
     } catch {
       if (current !== generation) return;
       datesLoading = false;
@@ -321,7 +309,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
   return {
     element: page,
     load: () => load(),
-    refresh: () => (loaded && !currentForm() ? load(true) : Promise.resolve()),
+    refresh: () => (loaded && !currentForm() ? load(true, false) : Promise.resolve()),
     invalidate: () => {
       generation++;
       loaded = false;

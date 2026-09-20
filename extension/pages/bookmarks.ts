@@ -1,3 +1,4 @@
+import { permissionAction } from "../components/permission-action.js";
 import { workspaceToolbar, selectionControl } from "../components/workspace-controls.js";
 import { bookmarkSummary } from "../components/bookmark-summary.js";
 import { infoPopover, toast } from "../components/feedback.js";
@@ -98,9 +99,11 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     });
   }
 
-  function deferEnrichmentUpdate() {
-    document.addEventListener("editor-closed", () => updateOpenDetails(), { once: true });
-  }
+  let enrichmentDeferred = false;
+  function deferEnrichmentUpdate() { enrichmentDeferred = true; }
+  document.addEventListener("editor-closed", () => {
+    if (enrichmentDeferred) { enrichmentDeferred = false; updateOpenDetails(); }
+  });
 
   function updateOpenDetails() {
     if (!inspectedId || !drawer.isOpen(`bookmark:${inspectedId}`)) return;
@@ -117,9 +120,9 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   }
   const all = selectionControl(selection,
     () => search.value.trim() ? new Set(matches().filter(bookmark => !bookmark.unmodifiable).map(bookmark => bookmark.id)) : treeView?.ids() ?? new Set(),
-    () => !!search.value.trim(), () => { treeView?.update(); renderTree(); });
-  function renderTree() {
-    treeView = bookmarkTree(tree, selection, expanded, (id, trigger) => { void inspect(id, trigger); }, changed);
+    () => !!search.value.trim(), () => { treeView?.update(); renderTree(false); });
+  function renderTree(rebuild = true) {
+    if (rebuild || !treeView) treeView = bookmarkTree(tree, selection, expanded, (id, trigger) => { void inspect(id, trigger); }, changed);
     if (search.value.trim()) {
       const results = el("div", "search-results");
       for (const bookmark of matches()) {
@@ -134,7 +137,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       if (!results.childElementCount) results.append(status("No bookmarks match this search. Try a title, URL or folder name."));
       list.replaceChildren(all.element, results);
     } else {
-      list.replaceChildren(all.element, treeView.element);
+      list.replaceChildren(all.element, treeView!.element);
       if (!records.length) list.append(status("No bookmarks yet. Saved bookmarks will appear here."));
     }
     changed();
@@ -237,28 +240,19 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   clean.disabled = true;
   const clear = iconButton("clear", "Clear selection", () => {
     selection.ids.clear();
-    renderTree();
+    treeView?.update();
+    renderTree(false);
+    search.focus();
   });
   clear.hidden = true;
   const refresh = iconButton("refresh", "Refresh", () => void load(true));
-  const history = iconButton("history", "Enable visit dates", () => {
-    void requestHistory().then(
-      (granted) => {
-        history.hidden = granted;
-        feedback.replaceChildren(
-          status(
-            granted
-              ? "Visit dates enabled. Refreshing details…"
-              : "History access declined. Bookmark cleanup still works.",
-          ),
-        );
-        if (granted) void load(true);
-      },
-      () => feedback.replaceChildren(status("Could not request history access. Try again.")),
-    );
+  const history = permissionAction({
+    label: "Enable visit dates", icon: "history", request: requestHistory,
+    granted: "Visit dates enabled.", declined: "History access declined. Cleanup still works.",
+    onGranted: () => load(true, false),
   });
   const toolbar = workspaceToolbar([refresh, search, history], [clear, count, clean]);
-  search.addEventListener("input", renderTree);
+  search.addEventListener("input", () => renderTree(false));
   page.append(toolbar, feedback);
   const workspace = el("div", "workspace");
   workspace.append(list);
@@ -274,12 +268,14 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   async function inspect(id: string, trigger: HTMLElement) {
     if (!(await requestLeave())) return;
     inspectedId = id;
-    inspectedRequest = drawer.open(detailsFor(id), trigger);
+    const source = list.querySelector<HTMLElement>(`[data-focus-key="bookmark:${CSS.escape(id)}"]`) ?? trigger;
+    inspectedRequest = drawer.open(detailsFor(id), source);
   }
 
-  async function load(force = false) {
+  async function load(force = false, announce = force) {
     if (busy || (loaded && !force)) return;
     if (force && !(await requestLeave())) return;
+    if (busy) return;
     const current = ++generation;
     busy = true;
     refresh.disabled = true;
@@ -319,7 +315,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       detailsLoading = false;
       updateOpenDetails();
       if (visits.warning) feedback.replaceChildren(status(visits.warning));
-      if (force) toast("Bookmarks refreshed.");
+      if (announce) toast("Bookmarks refreshed.");
     } catch {
       if (current !== generation) return;
       detailsLoading = false;
@@ -346,7 +342,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   return {
     element: page,
     load: () => load(),
-    refresh: () => (loaded && !currentForm() ? load(true) : Promise.resolve()),
+    refresh: () => (loaded && !currentForm() ? load(true, false) : Promise.resolve()),
     invalidate: () => {
       generation++;
       loaded = false;

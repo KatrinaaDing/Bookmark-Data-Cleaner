@@ -8,6 +8,10 @@ try {
   );
   await browser.cmd("Emulation.setDeviceMetricsOverride", { width: 1360, height: 900, deviceScaleFactor: 1, mobile: false }, page.sessionId);
   const run = (expression) => browser.evaluate(page.sessionId, expression);
+  async function waitFor(expression) {
+    for(let attempt=0;attempt<80;attempt++) { if(await run(expression)) return; await pause(25); }
+    assert.fail(`Timed out waiting for ${expression}`);
+  }
   await run(`(async()=>{
     const folder=await chrome.bookmarks.create({title:'Refinement fixtures'});
     for(let i=0;i<35;i++)await chrome.bookmarks.create({parentId:folder.id,title:'Reference '+i,url:'https://example.test/page/'+i});
@@ -47,6 +51,7 @@ try {
   assert.equal(await run(`document.activeElement.value`), 'Unsaved draft', 'Keep editing restores the draft and focus');
   await run(`document.querySelector('.bookmark-edit-action').click()`); await pause(50);
   await run(`Array.from(document.querySelectorAll('.unsaved-dialog button')).find(button=>button.textContent==='Discard').click()`); await pause(250);
+  await waitFor(`!document.querySelector('.bookmark-editor')`);
   assert.equal(await run(`!!document.querySelector('.bookmark-editor')`),false,'Discard removes the form state');
   assert.equal(await run(`Math.abs(document.querySelector('.workspace-list').getBoundingClientRect().width / document.querySelector('.details-rail').getBoundingClientRect().width - 1.5) < .02`), true, "List and details use a 3:2 split");
   assert.deepEqual(await run(`Array.from(document.querySelectorAll('.detail-card > h3')).map((heading) => heading.firstChild.textContent)`), ["Basic information", "Bookmark", "Website data"], "Details use the three approved sections");

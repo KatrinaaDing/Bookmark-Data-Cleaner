@@ -9,7 +9,7 @@ export function workspaceToolbar(filters: HTMLElement[], actions: HTMLElement[])
 }
 export function selectionControl(selection: Selection, results: () => Set<string>, filtered: () => boolean, changed: () => void) {
   const header = el('div', 'list-selection');
-  const choice = checkbox('Select all', selected => { selection.setMany(results(), selected); changed(); });
+  const choice = checkbox('Select all', selected => { selection.setMany(results(), selected); changed(); choice.input.focus({ preventScroll: true }); });
   header.append(choice.label);
   return { element: header, update() {
     const ids = results();

@@ -47,16 +47,17 @@ export function formSession(options: {
 }): FormSession {
   let baseline = JSON.stringify(options.values());
   const action = new PendingAction();
+  let closed = false;
   const session: FormSession = {
     element: options.element,
     dirty: () => JSON.stringify(options.values()) !== baseline,
     pending: () => action.pending,
-    submit: async () => (await action.run(async () => {
+    submit: async () => closed ? false : (await action.run(async () => {
       const success = await options.save();
       if (success) baseline = JSON.stringify(options.values());
       return success;
     })) ?? false,
-    close: () => { releaseForm(session); options.close(); },
+    close: () => { if (closed) return; closed = true; releaseForm(session); options.close(); },
   };
   return session;
 }

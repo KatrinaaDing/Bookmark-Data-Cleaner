@@ -1,9 +1,14 @@
+import { mkdir, writeFile } from "node:fs/promises";
 import assert from 'node:assert/strict';
 import { launch, pause } from './browser-harness.mjs';
 const browser = await launch({ grantTestPermissions: true });
 try {
   const page = await browser.attach(`chrome-extension://${browser.id}/app.html`);
   const run = expression => browser.evaluate(page.sessionId, expression);
+  async function waitFor(expression) {
+    for (let attempt=0;attempt<80;attempt++) { if(await run(expression)) return; await pause(25); }
+    assert.fail(`Timed out waiting for ${expression}`);
+  }
   const fixture = await run(`(async()=>{
     const root=(await chrome.bookmarks.getTree())[0].children.find(node=>!node.unmodifiable);
     const folder=await chrome.bookmarks.create({parentId:root.id,title:'Contract fixtures'});
@@ -32,8 +37,13 @@ try {
   await run(`location.hash='bookmarks'`); await pause(100);
   await inspect(fixture.first); await pause(100);
   await run(`document.querySelector('.bookmark-copy-action').click()`); await pause(100);
+  await waitFor(`!!document.querySelector('.create-bookmark:not([inert]) .bookmark-editor')`);
+  await mkdir('dist/contract',{recursive:true});
+  const formShot=await browser.cmd('Page.captureScreenshot',{format:'png'},page.sessionId);
+  await writeFile('dist/contract/copy-form.png',Buffer.from(formShot.data,'base64'));
   const before = await run(`chrome.bookmarks.search({url:'https://contract.test/page'}).then(nodes=>nodes.length)`);
-  await run(`window.originalCreate=chrome.bookmarks.create; window.createCount=0; chrome.bookmarks.create=async(...args)=>{window.createCount++;await new Promise(resolve=>window.releaseCreate=resolve); return window.originalCreate(...args)}; document.querySelector('.bookmark-editor').requestSubmit(); document.querySelector('.bookmark-editor').requestSubmit()`);
+  await run(`window.originalCreate=chrome.bookmarks.create; window.createCount=0; chrome.bookmarks.create=async(...args)=>{window.createCount++;await new Promise(resolve=>window.releaseCreate=resolve); return window.originalCreate(...args)}; document.querySelector('.create-bookmark:not([inert]) .bookmark-editor').requestSubmit(); document.querySelector('.create-bookmark:not([inert]) .bookmark-editor').requestSubmit()`);
+  await waitFor(`window.createCount > 0`);
   assert.equal(await run(`window.createCount`), 1);
   assert.equal(await run(`Array.from(document.querySelectorAll('.bookmark-editor input,.bookmark-editor select,.bookmark-editor button')).every(control=>control.disabled)`), true);
   await run(`window.releaseCreate()`); await pause(350);
@@ -56,6 +66,22 @@ try {
   await run(`chrome.bookmarks.getTree=window.realTree;document.querySelector('.bookmark-editor').requestSubmit()`); await pause(300);
   assert.equal(await run(`window.copyWrites`),1,'Reconciliation retry does not repeat a committed create');
   assert.equal(await run(`!!document.querySelector('.bookmark-editor')`),false);
+  // Saving before leaving replaces the list/panel. Continue on the refreshed owner.
+  await run(`document.querySelector('.bookmark-edit-action').click()`); await pause(50);
+  await run(`document.querySelector('.bookmark-editor input[name=title]').value='Saved before switching'`);
+  await inspect(fixture.second); await waitFor(`!!document.querySelector('.unsaved-dialog[open]')`);
+  await run(`Array.from(document.querySelectorAll('.unsaved-dialog button')).find(button=>button.textContent==='Save changes').click()`);
+  await waitFor(`document.querySelector('.details-drawer')?.dataset.inspectionKey==='bookmark:${fixture.second}'`);
+  assert.equal(await run(`chrome.bookmarks.get('${fixture.first}').then(([node])=>node.title)`),'Saved before switching');
+  await inspect(fixture.first); await pause(50);
+  await run(`document.querySelector('.bookmark-edit-action').click()`); await pause(50);
+  await run(`document.querySelector('.bookmark-editor input[name=title]').value='Saved before copy';document.querySelector('.bookmark-copy-action').click()`);
+  await waitFor(`!!document.querySelector('.unsaved-dialog[open]')`);
+  await run(`Array.from(document.querySelectorAll('.unsaved-dialog button')).find(button=>button.textContent==='Save changes').click()`);
+  await waitFor(`!!document.querySelector('.create-bookmark:not([inert]) .bookmark-editor')`);
+  assert.equal(await run(`document.querySelector('.create-bookmark input[name=title]').value`),'Saved before copy');
+  await run(`document.querySelector('.create-bookmark button[aria-label="Cancel changes"]').click()`);
+  await waitFor(`!document.querySelector('.bookmark-editor')`);
   await browser.cmd('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:false},page.sessionId);
   await browser.cmd('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]},page.sessionId);
   await run(`document.querySelector('.bookmark-edit-action').click()`); await pause(50);
@@ -63,5 +89,8 @@ try {
   await run(`document.querySelector('.bookmark-editor input[name=title]').value='Modal error';chrome.bookmarks.update=async()=>{throw Error('Modal write failure')};document.querySelector('.bookmark-editor').requestSubmit()`); await pause(120);
   assert.equal(await run(`document.querySelector('.toast-host').parentElement.matches(':modal')`),true,'Notifications belong to the active modal and remain interactive');
   assert.equal(await run(`document.querySelector('.toast-host').matches(':popover-open')`),true);
+  assert.match(await run(`document.querySelector('.toast-host').firstElementChild.textContent`),/Modal write failure/,'Newest outcome remains visible before older errors');
+  const errorShot=await browser.cmd('Page.captureScreenshot',{format:'png'},page.sessionId);
+  await writeFile('dist/contract/modal-error.png',Buffer.from(errorShot.data,'base64'));
   console.log('Shared form lifecycle, guarded navigation, duplicate submission and error recovery passed');
 } finally { await browser.close(); }

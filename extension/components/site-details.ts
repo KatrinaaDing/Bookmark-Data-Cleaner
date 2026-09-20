@@ -1,3 +1,4 @@
+import { PendingAction } from "./async-state.js";
 import type {
   BookmarkFolder,
   BookmarkRef,
@@ -114,17 +115,27 @@ export function siteDetails(
     const heading = next.querySelector("h2")!;
     heading.tabIndex = -1; heading.focus({ preventScroll: true });
   };
+  const opening = new PendingAction();
+  const siteKey = site.id;
   const defaultUrl = site.urls[0] ?? `${site.origins[0] ?? `https://${site.host}`}/`;
   function addEditor(container: HTMLElement, heading: HTMLElement, saved?: BookmarkRef) {
     const actions = el("span", "bookmark-actions");
     heading.classList.add("bookmark-heading");
     heading.append(actions);
+    const formHost = el("div", "bookmark-form-host");
+    container.append(formHost);
     let opened: HTMLElement | undefined;
     let openedTrigger: HTMLButtonElement | undefined;
-    const openForm = async (copy: boolean, trigger: HTMLButtonElement) => {
+    const openForm = (copy: boolean, trigger: HTMLButtonElement) => opening.run(async () => {
       const wasOpen = !!opened && openedTrigger === trigger;
       if (!(await requestLeave())) return;
       if (wasOpen) return;
+      // Saving may replace this panel. Continue on the new control, never an old DOM owner.
+      if (!trigger.isConnected) {
+        const key = trigger.dataset.editorKey;
+        if (key) document.querySelector<HTMLButtonElement>(`.details-drawer [data-editor-key="${CSS.escape(key)}"]`)?.click();
+        return;
+      }
       const editor = el("div", copy ? "create-bookmark" : "edit-bookmark");
       editor.hidden = true;
       opened = editor;
@@ -142,16 +153,18 @@ export function siteDetails(
           void reveal(editor, false).then(() => { editor.remove(); document.dispatchEvent(new Event("editor-closed")); });
         },
       });
-      editor.append(form.element); container.append(editor);
+      editor.append(form.element); formHost.append(editor);
       trigger.setAttribute("aria-expanded", "true");
       void reveal(editor, true); form.open();
-    };
+    });
     if (saved) {
       const edit = iconButton("edit", `Edit ${saved.title || "bookmark"}`, () => void openForm(false, edit));
+      edit.dataset.editorKey = `edit:${saved.id}`;
       edit.classList.add("bookmark-edit-action"); edit.disabled = !!saved.unmodifiable;
       edit.setAttribute("aria-expanded", "false"); actions.append(edit);
     }
     const copy = iconButton(saved ? "copy" : "bookmark", saved ? `Create bookmark copy of ${saved.title || "bookmark"}` : "Save bookmark", () => void openForm(true, copy));
+    copy.dataset.editorKey = `copy:${saved?.id ?? siteKey}`;
     copy.classList.add("bookmark-copy-action"); copy.setAttribute("aria-expanded", "false");
     actions.append(copy);
   }
@@ -190,7 +203,9 @@ export function siteDetails(
         ? "Not checked"
         : String(site.cookies.length),
     ),
-    affectedBookmarks({ ...impact, duplicates: [] }),
+    impact.duplicates.length && !impact.relatedBookmarks.length && !impact.relatedSites.length
+      ? el("p", "fine", "Other bookmarks for this URL share its website data.")
+      : affectedBookmarks({ ...impact, duplicates: [] }, inspected ? "Other pages affected by this cleanup" : "Bookmarked pages affected by this cleanup"),
   );
   if (options.onCleanup) {
     const clean = el("button", "primary detail-cleanup", "Clean up data");

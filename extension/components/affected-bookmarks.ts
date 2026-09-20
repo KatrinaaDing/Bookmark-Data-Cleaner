@@ -9,7 +9,7 @@ function bookmarkLine(bookmark: BookmarkRef): HTMLElement {
   return line;
 }
 
-export function affectedBookmarks(impact: CleanupImpact): HTMLElement {
+export function affectedBookmarks(impact: CleanupImpact, relatedTitle = "Other pages affected by this cleanup"): HTMLElement {
   const content = el("div", "affected-bookmarks");
   if (impact.duplicates.length) {
     content.append(
@@ -21,7 +21,7 @@ export function affectedBookmarks(impact: CleanupImpact): HTMLElement {
   }
   if (impact.relatedBookmarks.length || impact.relatedSites.length) {
     content.append(
-      el("h4", "", "Other pages affected by this cleanup"),
+      el("h4", "", relatedTitle),
     );
     if (impact.relatedBookmarks.length) {
       const list = el("ul");
