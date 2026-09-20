@@ -25,3 +25,14 @@
   color: var(--ink);
   background: var(--canvas);
 }
+:root {
+  --success: #21603b;
+  --success-soft: #eaf5ee;
+  --danger-soft: #faeceb;
+  --control-size: 38px;
+  --space-control: .55rem;
+  --motion-feedback: 120ms;
+  --motion-reveal: 200ms;
+  --motion-panel: 240ms;
+  --ease-arrive: cubic-bezier(.16, 1, .3, 1);
+}

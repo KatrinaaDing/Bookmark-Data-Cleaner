@@ -1,5 +1,8 @@
 import { button } from "./dom.js";
 const paths = {
+  edit: ["M15 4l5 5M4 20l5-1L21 7a2 2 0 0 0-5-5L4 14v6"],
+  copy: ["M9 9h12v12H9z", "M15 5V3H3v12h2"],
+  check: ["M5 12l4 4L19 6"],
   close: ["M6 6l12 12M18 6L6 18"],
   refresh: [
     "M20 7v5h-5",
