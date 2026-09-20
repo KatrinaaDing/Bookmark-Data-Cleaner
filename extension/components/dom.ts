@@ -1,3 +1,4 @@
+import { cancelTransition, motionDuration, transition } from "./motion.js";
 export function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   className = "",
@@ -59,30 +60,31 @@ export function disclosure(label: string, text: string): HTMLDetailsElement {
 
 // Keep native summary keyboard behavior while animating both directions.
 function animateDisclosure(details: HTMLDetailsElement): void {
-  let motion: Animation | undefined;
+  let moving = false;
   let target = details.open;
-  details.addEventListener("click", (event) => {
-    if (!(event.target instanceof Element) || !event.target.closest("summary")) return;
-    if (event.target.closest("details") !== details) return;
+  let revision = 0;
+  details.addEventListener("click", event => {
+    if (!(event.target instanceof Element) || !event.target.closest("summary") || event.target.closest("details") !== details) return;
     event.preventDefault();
     const start = details.getBoundingClientRect().height;
-    if (!motion) target = details.open;
+    if (!moving) target = details.open;
     target = !target;
-    motion?.cancel();
-    motion = undefined;
+    const current = ++revision;
+    cancelTransition(details);
     details.open = target;
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const end = details.getBoundingClientRect().height;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      details.style.overflow = ""; moving = false; return;
+    }
+    moving = true;
     details.open = true;
     details.style.overflow = "hidden";
-    motion = details.animate([{ height: `${start}px` }, { height: `${end}px` }], {
-      duration: 220, easing: "cubic-bezier(.2,.8,.2,1)",
-    });
-    motion.onfinish = () => {
+    void transition(details, [{ height: `${start}px` }, { height: `${end}px` }], motionDuration("reveal")).then(() => {
+      if (current !== revision) return;
       details.open = target;
       details.style.overflow = "";
-      motion = undefined;
-    };
+      moving = false;
+    });
   });
 }
 

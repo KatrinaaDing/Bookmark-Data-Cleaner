@@ -1,6 +1,6 @@
 import { button, el } from './dom.js';
 import { iconButton } from './icons.js';
-import { enter, transition } from './motion.js';
+import { enter, motionDuration, transition } from './motion.js';
 let host: HTMLElement | undefined;
 let serial = 0;
 function toastHost(): HTMLElement {
@@ -39,7 +39,7 @@ export function toast(message: string, kind: 'success' | 'error' | 'info' = 'suc
     if (dismissing) return;
     dismissing = true;
     stop();
-    void transition(item, [{ opacity: 1 }, { opacity: 0 }], 120).then(() => {
+    void transition(item, [{ opacity: 1 }, { opacity: 0 }], motionDuration('feedback')).then(() => {
       item.remove();
       if (!container.childElementCount) container.hidePopover();
     });
@@ -52,12 +52,13 @@ export function toast(message: string, kind: 'success' | 'error' | 'info' = 'suc
   item.addEventListener('mouseenter', stop);
   item.addEventListener('mouseleave', schedule);
   item.addEventListener('focusin', stop);
-  item.addEventListener('focusout', schedule);
+  item.addEventListener('focusout', () => queueMicrotask(schedule));
   // Keep persistent errors; bound transient notification noise.
   const transient = container.querySelectorAll('.toast:not(.toast-error)');
-  if (transient.length >= 3) transient[0].dispatchEvent(new Event('dismiss-toast'));
+  if (transient.length >= 3) transient[transient.length - 1].dispatchEvent(new Event('dismiss-toast'));
   item.addEventListener('dismiss-toast', dismiss);
-  container.append(item);
+  container.prepend(item);
+  container.scrollTop = 0;
   enter(item, 1);
   schedule();
 }
@@ -68,7 +69,13 @@ export function infoPopover(label: string, content: string): HTMLElement {
   help.id = `info-${++serial}`;
   help.popover = 'manual';
   help.setAttribute('role', 'tooltip');
-  const control = iconButton('info', label, () => help.matches(':popover-open') ? hide() : show());
+  let pointerWasOpen: boolean | undefined;
+  const control = iconButton('info', label, () => {
+    const wasOpen = pointerWasOpen ?? help.matches(':popover-open');
+    pointerWasOpen = undefined;
+    if (wasOpen) hide(); else show();
+  });
+  control.addEventListener('pointerdown', () => { pointerWasOpen = help.matches(':popover-open'); });
   control.classList.add('detail-info');
   control.removeAttribute('title');
   control.setAttribute('aria-describedby', help.id);

@@ -2,7 +2,7 @@ html { scrollbar-gutter: stable; }
 .workspace {
   grid-template-columns: minmax(0, 1fr) minmax(0, 0fr);
   column-gap: 0;
-  transition: grid-template-columns 240ms ease-out, column-gap 240ms ease-out;
+  transition: grid-template-columns var(--motion-panel) ease-out, column-gap var(--motion-panel) ease-out;
 }
 .workspace.has-details {
   grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
@@ -54,14 +54,6 @@ html { scrollbar-gutter: stable; }
   font-size: var(--text-detail);
   overflow-wrap: anywhere;
 }
-.mutation-notice {
-  margin-top: 0.75rem;
-  padding: 0.65rem 0.75rem;
-  border-radius: var(--radius);
-  color: #164d2f;
-  background: #edf8f1;
-  font-size: var(--text-meta);
-}
 .detail-card {
   margin-top: 1rem;
   padding: 1rem;
@@ -76,7 +68,7 @@ html { scrollbar-gutter: stable; }
   font-size: 1rem;
 }
 .detail-card > .fine { color: #536474; }
-.detail-card > h3:has(.detail-info) {
+.detail-card > h3:has(.info-control) {
   display: flex;
   align-items: center;
   gap: 0.35rem;
@@ -88,8 +80,6 @@ html { scrollbar-gutter: stable; }
   color: #536474;
   background: transparent;
 }
-.website-data-help { margin-bottom: 0.8rem; }
-.website-data-help p + p { margin-top: 0.6rem; }
 .detail-value {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
@@ -102,34 +92,6 @@ html { scrollbar-gutter: stable; }
   overflow-wrap: anywhere;
 }
 .detail-label { color: var(--muted); }
-.detail-disclosure { margin-top: 0.45rem; }
-.detail-disclosure summary {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 40px;
-  padding: 4px 2px;
-  list-style: none;
-  font-size: var(--text-control);
-  font-weight: 600;
-}
-.detail-disclosure summary::-webkit-details-marker { display: none; }
-.detail-disclosure summary::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  flex: 0 0 6px;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: rotate(-45deg);
-  transition: transform 180ms ease-out;
-}
-.detail-disclosure[open] > summary::before { transform: rotate(45deg); }
-.detail-disclosure[open] > :not(summary) { margin-left: 15px; }
-.detail-disclosure .url {
-  padding: 5px 0;
-  line-height: 1.5;
-}
 .bookmark-editor {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -150,7 +112,6 @@ html { scrollbar-gutter: stable; }
   min-width: 0;
   max-width: 100%;
 }
-.bookmark-editor button { justify-self: start; }
 .saved-pages,
 .affected-bookmarks ul {
   margin: 0;
@@ -217,7 +178,6 @@ html { scrollbar-gutter: stable; }
 
 @media (prefers-reduced-motion: reduce) {
   .workspace { transition: none; }
-  .detail-disclosure summary::before { transition: none; }
 }
 
 .bookmark-heading {
@@ -227,13 +187,4 @@ html { scrollbar-gutter: stable; }
   gap: 0.75rem;
 }
 .saved-page-description { display: grid; min-width: 0; gap: 0.1rem; }
-.bookmark-edit-action {
-  flex-shrink: 0;
-  padding: 0.3rem 0.6rem;
-  font-size: var(--text-meta);
-  color: var(--accent);
-  border-color: transparent;
-  background: transparent;
-}
-.bookmark-edit-action:hover { background: var(--tint); border-color: var(--accent); }
 .empty-folder { padding: 0.5rem 0.75rem; }

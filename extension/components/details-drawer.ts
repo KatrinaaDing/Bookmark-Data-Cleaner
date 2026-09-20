@@ -1,3 +1,4 @@
+import { cancelTransition, motionDuration, transition } from "./motion.js";
 import { el } from "./dom.js";
 import { requestLeave } from "./form-session.js";
 import { iconButton } from "./icons.js";
@@ -18,7 +19,7 @@ export function detailsDrawer(): DetailsDrawer {
   const body = el("div", "drawer-content");
   let request = 0;
   let trigger: HTMLElement | undefined;
-  let motion: Animation | undefined;
+  let motionRevision = 0;
   let opened = false;
   let modal = false;
   let closing = false;
@@ -74,8 +75,8 @@ export function detailsDrawer(): DetailsDrawer {
   }
 
   function finishClose(restoreFocus = true) {
-    motion?.cancel();
-    motion = undefined;
+    motionRevision++;
+    cancelTransition(dialog);
     if (dialog.open) dialog.close();
     markInspected();
     opened = false;
@@ -92,19 +93,16 @@ export function detailsDrawer(): DetailsDrawer {
     request++;
     closing = true;
     rail.closest(".workspace")?.classList.remove("has-details");
-    motion?.cancel();
+    cancelTransition(dialog);
     if (modal || reduced()) {
       finishClose();
       return;
     }
-    motion = dialog.animate(
-      [
-        { transform: "translateX(0)", opacity: 1 },
-        { transform: "translateX(calc(100% + 20px))", opacity: 0 },
-      ],
-      { duration: 240, easing: "ease-in", fill: "forwards" },
-    );
-    motion.onfinish = () => finishClose();
+    const current = ++motionRevision;
+    void transition(dialog,
+      [{ transform: "translateX(0)", opacity: 1 }, { transform: "translateX(calc(100% + 20px))", opacity: 0 }],
+      motionDuration("panel"),
+    ).then(() => { if (current === motionRevision && closing) finishClose(); });
   }
 
   dialog.addEventListener("cancel", (event) => {
@@ -137,7 +135,7 @@ export function detailsDrawer(): DetailsDrawer {
       request++;
       trigger = source;
       closing = false;
-      motion?.cancel();
+      cancelTransition(dialog);
       body.replaceChildren(content);
       dialog.scrollTop = 0;
       const workspace = source.closest(".workspace");
@@ -148,13 +146,11 @@ export function detailsDrawer(): DetailsDrawer {
       const alreadyOpen = opened;
       opened = true;
       present();
+      motionRevision++;
       if (!alreadyOpen && !reduced() && !modal)
-        motion = dialog.animate(
-          [
-            { transform: "translateX(calc(100% + 20px))", opacity: 0 },
-            { transform: "translateX(0)", opacity: 1 },
-          ],
-          { duration: 240, easing: "cubic-bezier(.16,1,.3,1)" },
+        void transition(dialog,
+          [{ transform: "translateX(calc(100% + 20px))", opacity: 0 }, { transform: "translateX(0)", opacity: 1 }],
+          motionDuration("panel"),
         );
       closeButton.focus({ preventScroll: true });
       return request;

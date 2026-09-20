@@ -3,7 +3,11 @@ const active = new Map<HTMLElement, Animation>();
 preference.addEventListener('change', () => {
   if (preference.matches) for (const animation of active.values()) animation.finish();
 });
-export async function transition(element: HTMLElement, frames: Keyframe[], duration = 180): Promise<void> {
+export function motionDuration(kind: 'feedback' | 'reveal' | 'panel'): number {
+  return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(`--motion-${kind}`)) || 0;
+}
+export function cancelTransition(element: HTMLElement): void { active.get(element)?.cancel(); }
+export async function transition(element: HTMLElement, frames: Keyframe[], duration = motionDuration('reveal')): Promise<void> {
   active.get(element)?.cancel();
   if (preference.matches || !element.isConnected) return;
   const animation = element.animate(frames, { duration, easing: 'cubic-bezier(.16,1,.3,1)' });
@@ -21,7 +25,7 @@ export async function reveal(element: HTMLElement, open: boolean): Promise<void>
   element.style.overflow = 'hidden';
   await transition(element, open
     ? [{ height: '0px', opacity: 0 }, { height: `${height}px`, opacity: 1 }]
-    : [{ height: `${height}px`, opacity: 1 }, { height: '0px', opacity: 0 }], 200);
+    : [{ height: `${height}px`, opacity: 1 }, { height: '0px', opacity: 0 }], motionDuration('reveal'));
   if (element.inert === !open) {
     element.hidden = !open;
     element.style.overflow = '';

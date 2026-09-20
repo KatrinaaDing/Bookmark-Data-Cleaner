@@ -23,6 +23,7 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
 .editor-feedback:empty { display: none; }
 .editor-feedback .status { background: var(--danger-soft); color: var(--danger); }
 .list-selection { display: flex; align-items: center; gap: 1rem; padding: .5rem .75rem; border-bottom: 1px solid var(--line); margin-bottom: .5rem; font-size: var(--text-control); }
+.toolbar-filters, .toolbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-control); min-width: 0; }
 .toolbar-actions { margin-left: auto; }
 .toolbar-actions .selection-count { margin: 0; }
 .toolbar-filters { flex: 1 1 400px; }
@@ -42,3 +43,8 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
 .remaining-copies { color: var(--danger); }
 .technical-details { margin: 1rem 0; }
 .technical-details > summary { padding: .5rem 0; cursor: pointer; }
+.bookmark-actions .icon-button { background: transparent; color: var(--accent); border-color: transparent; padding: 0; }
+.bookmark-actions .icon-button:hover:not(:disabled) { background: var(--tint); border-color: var(--accent); }
+
+.cleanup-targets { list-style: none; margin: .7rem 0; padding: 0; }
+.cleanup-targets li { display: flex; flex-wrap: wrap; gap: .35rem 1rem; justify-content: space-between; padding: .3rem 0; overflow-wrap: anywhere; }
