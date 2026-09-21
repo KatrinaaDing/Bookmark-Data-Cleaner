@@ -1,6 +1,7 @@
 import type { SiteRecord } from "../core/types.js";
 import type { Selection } from "../core/state.js";
 import { clickableRow, button, checkbox, dateText, el } from "./dom.js";
+import { icon } from "./icons.js";
 export function siteTimeline(
   sites: SiteRecord[],
   selection: Selection,
@@ -32,15 +33,17 @@ export function siteTimeline(
     const main = el("div", "site-label");
     const title = button(site.host, () => inspect(site, title), "row-title");
     title.dataset.focusKey = `site:${site.id}`;
-    main.append(
-      title,
-      el(
-        "span",
-        "muted",
-        `${site.cookies.length} detected ${site.cookies.length === 1 ? "cookie" : "cookies"}${site.bookmarks.length ? " · Bookmarked" : ""}`,
-      ),
-    );
-    row.append(label, main);
+    main.append(title);
+    if (site.bookmarks.length) main.append(el("span", "muted", "Bookmarked"));
+    const cookies = el("span", "site-cookie-count");
+    const cookieLabel = site.cookiesAvailable === false
+      ? "Cookies not checked"
+      : `${site.cookies.length} detected ${site.cookies.length === 1 ? "cookie" : "cookies"}`;
+    cookies.setAttribute("role", "img");
+    cookies.setAttribute("aria-label", cookieLabel);
+    cookies.title = cookieLabel;
+    cookies.append(icon("cookie"), el("span", "", site.cookiesAvailable === false ? "—" : String(site.cookies.length)));
+    row.append(label, main, cookies);
     clickableRow(row, title);
     list.append(row);
   }

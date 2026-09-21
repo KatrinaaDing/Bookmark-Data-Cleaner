@@ -8,6 +8,8 @@ White surfaces, neutral text (`#212529`) and the original blue accent (`#0b5ed7`
 
 Use 15px row titles, 14px supporting controls, 13px metadata, 24px details headings and 27–32px page headings. Inherit the root font on body to avoid Chromium extension default sizing. Use shared tokens for semantic colors, control sizes, focus and motion; `components.css` holds common interactive patterns.
 
+Detail section headings use blue at medium weight; bookmark titles use medium-weight neutral text. Subheadings, dates, folder paths and URLs are quieter. Reserve semibold for page/detail titles rather than every line of content.
+
 ## Workspaces
 
 Both workspaces use short descriptions and optional info popovers. Refresh is first on the left, then search and applicable filters. The cleanup action group remains right-aligned with or without selection; narrow windows stack it on a consistent second row.
@@ -18,11 +20,13 @@ Bookmark search matches title, full URL and folder path case-insensitively. Resu
 
 Folder and site rows remain clickable independently of their padded checkbox targets. Closed folders are inert and hidden from assistive technology. The site timeline retains date groups and a separate unknown-history group.
 
+Row titles open details and never acquire link underlines on hover. Site rows place a cookie icon/count at the right, with a descriptive accessible name and tooltip. An unavailable count shows a dash rather than zero.
+
 ## Details and bookmark forms
 
 A shared sticky details panel uses a 3:2 list-to-details split on desktop. At 760px and below it becomes a native modal. Resize preserves inspection. Stable row keys restore focus after mutation replaces a row. Unsaved changes are guarded before close, item changes, workspace navigation, refresh or cleanup entry.
 
-Three softly tinted cards show Basic information, Bookmark and Website data. Bookmark details display the full saved URL as a wrapping link. Site-level details accurately label the Domain and show saved-page URLs with their bookmark entries. No separate Open page link is needed; visiting a URL remains an explicit user action.
+Bookmark details have Basic information, Bookmark and Website data cards and display the full saved URL as a wrapping link. Site-level details have Basic information and a combined Website data card containing the cookie count, saved bookmarks and their actions. Bookmarks are listed once by ID; additional pages sharing cookies/origins remain visible. A visible explanation states that site-data cleanup keeps bookmarks saved. Site-level details accurately label the Domain and show saved-page URLs with their bookmark entries. No separate Open page link is needed; visiting a URL remains an explicit user action.
 
 Edit and copy are adjacent pencil/copy actions with accessible names and tooltips. Each saved bookmark has its own copy action; an unbookmarked site offers Save bookmark. Only one form is active. Both use the shared form session, bottom confirm/cancel icons, validation, pending exclusion and draft reset behavior.
 

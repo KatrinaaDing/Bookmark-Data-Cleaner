@@ -65,7 +65,9 @@ html { scrollbar-gutter: stable; }
 .detail-card:nth-of-type(3) { background: #f3f8f7; }
 .detail-card > h3 {
   margin: 0 0 0.8rem;
-  font-size: 1rem;
+  font-size: var(--text-body);
+  font-weight: 500;
+  color: var(--accent);
 }
 .detail-card > .fine { color: #536474; }
 .detail-card > h3:has(.info-control) {
@@ -129,17 +131,23 @@ html { scrollbar-gutter: stable; }
   gap: 0.1rem;
   overflow-wrap: anywhere;
 }
-.affected-title { font-weight: 600; }
+.affected-title { font-weight: 500; }
 .affected-bookmarks { margin-top: 0.9rem; }
-.affected-bookmarks h4 {
+.affected-bookmarks h4,
+.detail-bookmarks > h4 {
   margin: 0.85rem 0 0.25rem;
   font-size: var(--text-control);
+  font-weight: 500;
+  color: var(--muted);
 }
+.detail-bookmarks { margin-top: 1.2rem; }
+.saved-page-description { font-size: var(--text-body); }
+.saved-page-description .bookmark-url { font-size: var(--text-meta); }
 .affected-bookmarks li { margin-top: 0.55rem; }
 .affected-site {
   margin-top: 0.45rem;
   font-size: var(--text-meta);
-  font-weight: 600;
+  font-weight: 400;
 }
 .detail-cleanup { margin-top: 1rem; }
 .icon {

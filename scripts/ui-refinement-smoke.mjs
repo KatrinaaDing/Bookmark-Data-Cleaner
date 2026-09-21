@@ -165,10 +165,16 @@ try {
   await run(`(async()=>{
     const {siteDetails}=await import('./components/site-details.js');
     const saved={id:'fixture',parentId:'folder',title:'Long saved page 标题 '.repeat(8),url:'https://example.test/'+ 'long-address/'.repeat(20),path:'Saved / '+ 'Nested folder '.repeat(20)};
-    const site={id:'example.test',host:'example.test',origins:['https://example.test'],urls:[saved.url],cookies:[],bookmarks:[saved]};
-    document.querySelector('.drawer-content').replaceChildren(siteDetails(site,{folders:[{id:'folder',title:saved.path,path:saved.path}],onCleanup:()=>{}}));
+    const site={id:'example.test',host:'example.test',origins:['https://example.test'],urls:[saved.url],cookies:[{domain:'.example.test',path:'/',secure:true,hostOnly:false}],bookmarks:[saved]};
+    const related={...saved,id:'related',title:'Shared cookie page',url:'https://sub.example.test/page'};
+    const duplicate={...saved,id:'duplicate',title:'Another saved copy'};
+    const otherSite={...site,id:'sub.example.test',host:'sub.example.test',origins:['https://sub.example.test'],urls:[related.url],bookmarks:[related]};
+    document.querySelector('.drawer-content').replaceChildren(siteDetails(site,{allBookmarks:[saved,duplicate,related],detectedSites:[site,otherSite],folders:[{id:'folder',title:saved.path,path:saved.path}],onCleanup:()=>{}}));
     document.querySelector('.bookmark-edit-action').click();
   })()`);
+  assert.equal(await run(`document.querySelectorAll('.details .affected-title').length`), 3, 'Merging site details preserves distinct bookmark IDs including copies and related pages');
+  assert.equal(await run(`document.querySelectorAll('.details .saved-page').length`), 1, 'The saved bookmark is not repeated in the shared-data section');
+  assert.equal(await run(`document.querySelector('.details .affected-site')?.textContent`), 'sub.example.test', 'Broader cookie effects remain visible');
   for (const width of [1360, 800, 390]) {
     await browser.cmd('Emulation.setDeviceMetricsOverride', {width,height:900,deviceScaleFactor:1,mobile:false}, page.sessionId);
     await pause(300);
