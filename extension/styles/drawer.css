@@ -164,14 +164,12 @@ html { scrollbar-gutter: stable; }
 }
 .affected-title { font-weight: 500; }
 .affected-bookmarks { margin-top: 0.65rem; }
-.affected-bookmarks h4,
-.detail-bookmarks > h4 {
+.affected-bookmarks h4 {
   margin: 0.85rem 0 0.25rem;
   font-size: var(--text-control);
   font-weight: 500;
   color: var(--muted);
 }
-.detail-bookmarks { margin-top: 1.2rem; }
 .saved-page-description { font-size: var(--text-body); }
 .saved-page-description .bookmark-url { font-size: var(--text-meta); }
 .affected-site {
@@ -182,7 +180,6 @@ html { scrollbar-gutter: stable; }
 .detail-shared-data { margin-top: 1.35rem; padding-top: 1rem; border-top: 1px solid var(--line); }
 .detail-shared-data > h4 { margin: 0 0 .35rem; font-size: var(--text-control); font-weight: 500; color: var(--muted); }
 .detail-shared-data > .fine { margin: .35rem 0 .8rem; }
-.detail-shared-data .detail-bookmarks { margin-top: 0; }
 .detail-cleanup { display: inline-flex; align-items: center; gap: .4rem; flex-shrink: 0; min-height: var(--control-size); padding-inline: .8rem .95rem; font-size: var(--text-control); font-weight: 500; }
 .detail-cleanup .icon { width: 17px; height: 17px; }
 .related-disclosure { margin-top: .75rem; font-size: var(--text-control); }

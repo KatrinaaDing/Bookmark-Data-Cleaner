@@ -106,8 +106,9 @@ export function siteDetails(
     );
   basic.append(dates);
 
-  const bookmark = el("section", "detail-bookmarks");
-  if (!inspected) bookmark.append(el("h4", "", "Saved bookmarks"));
+  // Saved bookmarks are their own section: site cleanup keeps them, so they are not website data.
+  const bookmark = detailCard("Saved bookmarks");
+  bookmark.classList.add("detail-bookmarks");
   const rerenderAfterMutation = async (result: BookmarkMutation) => {
     const snapshot = await options.onMutation?.(result.id, result);
     if (!snapshot || !panel.isConnected) return;
@@ -233,7 +234,7 @@ export function siteDetails(
     } else bookmark.append(list);
   } else {
     bookmark.append(el("p", "fine", "No bookmarks saved for this website. Use Save bookmark to add one."));
-    addEditor(bookmark, bookmark.querySelector("h4")!);
+    addEditor(bookmark, bookmark.querySelector<HTMLElement>(".detail-card-header")!);
   }
 
   const target = inspected
@@ -268,18 +269,18 @@ export function siteDetails(
       websiteData.append(shared);
     }
   } else {
-    const shared = el("section", "detail-shared-data");
-    shared.append(bookmark);
-    // These bookmarks already have their full details and actions above. Keep
-    // broader cookie/origin effects visible without listing the same ID twice.
+    // Saved bookmarks already have their own section. Keep broader cookie/origin
+    // effects visible here without listing the same ID twice.
     const shownIds = new Set(site.bookmarks.map(saved => saved.id));
     const additionalImpact = {
       ...impact,
       relatedBookmarks: impact.relatedBookmarks.filter(saved => !shownIds.has(saved.id)),
     };
-    if (additionalImpact.relatedBookmarks.length || additionalImpact.relatedSites.length)
-      shared.append(affectedBookmarks(additionalImpact, savedPageList));
-    websiteData.append(shared);
+    if (additionalImpact.relatedBookmarks.length || additionalImpact.relatedSites.length) {
+      const shared = el("section", "detail-shared-data");
+      shared.append(el("h4", "", "Other pages sharing this data"), affectedBookmarks(additionalImpact, savedPageList));
+      websiteData.append(shared);
+    }
   }
   if (options.onCleanup) {
     const label = inspected ? "Clean up this bookmark…" : "Clean up this site…";
@@ -292,5 +293,6 @@ export function siteDetails(
     websiteData.querySelector(".detail-card-header")!.append(clean);
   }
   panel.append(basic, websiteData);
+  if (!inspected) panel.append(bookmark);
   return panel;
 }
