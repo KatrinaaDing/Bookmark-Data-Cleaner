@@ -65,6 +65,8 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
 .technical-details[open] > summary { font-weight: 500; }
 .bookmark-actions .icon-button { background: transparent; color: var(--accent); border-color: transparent; padding: 0; }
 .bookmark-actions .icon-button:hover:not(:disabled) { background: var(--tint); border-color: var(--accent); }
+.bookmark-actions .bookmark-delete-action { color: var(--danger); }
+.bookmark-actions .bookmark-delete-action:hover:not(:disabled) { background: var(--danger-soft); border-color: var(--danger); }
 
 .cleanup-targets { list-style: none; margin: .7rem 0; padding: 0; }
 .cleanup-targets li { display: flex; flex-wrap: wrap; gap: .35rem 1rem; justify-content: space-between; padding: .3rem 0; overflow-wrap: anywhere; }

@@ -158,3 +158,31 @@ export function unsavedChoice(): Promise<'save' | 'discard' | 'stay'> {
     enter(dialog);
   });
 }
+
+/** Destructive confirmation shares the unsaved-dialog shell so drawer Escape handling stays paused. */
+export function confirmDestructive(title: string, message: string, confirmLabel: string): Promise<boolean> {
+  return new Promise(resolve => {
+    const dialog = el('dialog', 'unsaved-dialog confirm-dialog');
+    const heading = el('h2', '', title);
+    heading.id = `confirm-title-${++serial}`;
+    dialog.setAttribute('aria-labelledby', heading.id);
+    dialog.append(heading, el('p', 'muted', message));
+    let settled = false;
+    const finish = (confirmed: boolean) => {
+      if (settled) return;
+      settled = true;
+      dialog.close();
+      dialog.remove();
+      resolve(confirmed);
+    };
+    const actions = el('div', 'dialog-actions');
+    const cancel = button('Cancel', () => finish(false), 'quiet');
+    actions.append(cancel, button(confirmLabel, () => finish(true), 'danger'));
+    dialog.append(actions);
+    dialog.addEventListener('cancel', event => { event.preventDefault(); finish(false); });
+    document.body.append(dialog);
+    dialog.showModal();
+    cancel.focus();
+    enter(dialog);
+  });
+}

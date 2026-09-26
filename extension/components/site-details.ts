@@ -10,7 +10,9 @@ import { affectedBookmarks } from "./affected-bookmarks.js";
 import { icon, iconButton } from "./icons.js";
 import { bookmarkLink, bookmarkSummary } from "./bookmark-summary.js";
 import { requestLeave } from "./form-session.js";
-import { infoPopover } from "./feedback.js";
+import { confirmDestructive, infoPopover, toast } from "./feedback.js";
+import { removeBookmark } from "../browser/bookmarks.js";
+import { errorMessage } from "../helpers/sites.js";
 import { reveal } from "./motion.js";
 import {
   bookmarkEditor,
@@ -126,7 +128,25 @@ export function siteDetails(
   const opening = new PendingAction();
   const siteKey = site.id;
   const defaultUrl = site.urls[0] ?? `${site.origins[0] ?? `https://${site.host}`}/`;
-  function addEditor(container: HTMLElement, heading: HTMLElement, saved?: BookmarkRef) {
+  const deleting = new PendingAction();
+  const deleteBookmark = (saved: BookmarkRef, trigger: HTMLButtonElement) => deleting.run(async () => {
+    if (!(await requestLeave())) return;
+    const name = saved.title || "Untitled";
+    if (!(await confirmDestructive("Delete this bookmark?", `“${name}” will be removed from ${saved.path || "Bookmarks"}. Website data is kept.`, "Delete bookmark"))) {
+      if (trigger.isConnected) trigger.focus({ preventScroll: true });
+      return;
+    }
+    trigger.disabled = true;
+    try {
+      await removeBookmark(saved.id);
+      toast("Bookmark deleted.");
+      await rerenderAfterMutation({ id: saved.id, created: false });
+    } catch (error) {
+      toast(errorMessage(error), "error");
+      if (trigger.isConnected) trigger.disabled = !!saved.unmodifiable;
+    }
+  });
+  function addEditor(container: HTMLElement, heading: HTMLElement, saved?: BookmarkRef, deletable = false) {
     const actions = el("span", "bookmark-actions");
     heading.classList.add("bookmark-heading");
     heading.append(actions);
@@ -178,6 +198,12 @@ export function siteDetails(
     copy.dataset.editorKey = `copy:${saved?.id ?? siteKey}`;
     copy.classList.add("bookmark-copy-action"); copy.setAttribute("aria-expanded", "false");
     actions.append(copy);
+    if (saved && deletable) {
+      const remove = iconButton("trash", `Delete ${saved.title || "bookmark"}`, () => void deleteBookmark(saved, remove));
+      remove.title = "Delete bookmark";
+      remove.classList.add("bookmark-delete-action"); remove.disabled = !!saved.unmodifiable;
+      actions.append(remove);
+    }
   }
   if (inspected) {
     addEditor(basic, basic.querySelector<HTMLElement>(".detail-card-header")!, inspected);
@@ -190,7 +216,7 @@ export function siteDetails(
       description.append(bookmarkSummary(saved), bookmarkLink(saved.url));
       heading.append(description);
       item.append(heading);
-      addEditor(item, heading, saved);
+      addEditor(item, heading, saved, true);
       list.append(item);
     }
     if (site.bookmarks.length > 3) {

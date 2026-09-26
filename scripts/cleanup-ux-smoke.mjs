@@ -166,6 +166,23 @@ try {
     await waitFor(`document.querySelector('#cleanup-title')?.textContent.includes('Step 2')`);
     assert.deepEqual(await run(`Array.from(document.querySelectorAll('.cleanup-targets .affected-title')).map(el=>el.textContent).sort()`),['a.test','b.test']);
     await click('Cancel');
+    await run(`document.querySelector('.saved-pages-disclosure').open=true`);
+    const deletedId = await run(`document.querySelector('.saved-page .bookmark-edit-action').dataset.editorKey.slice(5)`);
+    const cookiesBefore = await run(`document.querySelector('.details .detail-card:last-of-type .detail-value')?.textContent`);
+    await run(`document.querySelector('.saved-page .bookmark-delete-action').click()`);
+    await waitFor(`!!document.querySelector('.confirm-dialog[open]')`);
+    assert.equal(await run(`document.activeElement.textContent`),'Cancel','Delete confirmation does not focus the destructive action');
+    await run(`document.querySelector('.confirm-dialog .quiet').click()`);
+    await waitFor(`!document.querySelector('.confirm-dialog')`);
+    assert.equal(await run(`chrome.bookmarks.get(${JSON.stringify(deletedId)}).then(()=>true,()=>false)`),true,'Cancelled delete keeps the bookmark');
+    await run(`document.querySelector('.saved-page .bookmark-delete-action').click()`);
+    await waitFor(`!!document.querySelector('.confirm-dialog[open]')`);
+    await capture('delete-confirm',1360,900);
+    await run(`document.querySelector('.confirm-dialog .danger').click()`);
+    await waitFor(`document.querySelectorAll('.saved-page').length===12`);
+    assert.equal(await run(`chrome.bookmarks.get(${JSON.stringify(deletedId)}).then(()=>true,()=>false)`),false,'Saved-page delete removes the bookmark');
+    assert.equal(await run(`document.querySelector('.details h2')?.textContent`),'shared.test','Deleting a bookmark keeps the site and its data');
+    assert.equal(await run(`document.querySelector('.details .detail-card:last-of-type .detail-value')?.textContent`),cookiesBefore,'Deleting a bookmark leaves detected cookies untouched');
     const reports = await run(`(async()=>{
       const {operationStatus}=await import('./components/operation-status.js');
       return ['failed','unverified'].map(status=>operationStatus({id:status,status:status==='unverified'?'unverified':'finished',completed:1,total:1,outcomes:[{target:'synthetic.test',kind:'data',status,message:'Synthetic incomplete outcome'}]}).textContent);
