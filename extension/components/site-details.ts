@@ -167,11 +167,14 @@ export function siteDetails(
     });
     if (saved) {
       const edit = iconButton("edit", `Edit ${saved.title || "bookmark"}`, () => void openForm(false, edit));
+      edit.title = "Edit";
       edit.dataset.editorKey = `edit:${saved.id}`;
       edit.classList.add("bookmark-edit-action"); edit.disabled = !!saved.unmodifiable;
       edit.setAttribute("aria-expanded", "false"); actions.append(edit);
     }
     const copy = iconButton(saved ? "copy" : "bookmark", saved ? `Create bookmark copy of ${saved.title || "bookmark"}` : "Save bookmark", () => void openForm(true, copy));
+    // Tooltips stay short; the accessible name keeps the title to tell repeated rows apart.
+    if (saved) copy.title = "Create copy";
     copy.dataset.editorKey = `copy:${saved?.id ?? siteKey}`;
     copy.classList.add("bookmark-copy-action"); copy.setAttribute("aria-expanded", "false");
     actions.append(copy);
