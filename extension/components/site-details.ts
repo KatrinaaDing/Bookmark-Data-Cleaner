@@ -264,7 +264,7 @@ export function siteDetails(
         shared.append(disclosure);
       }
       if (impact.relatedBookmarks.length || impact.relatedSites.length)
-        shared.append(affectedBookmarks({ ...impact, duplicates: [] }));
+        shared.append(affectedBookmarks({ ...impact, duplicates: [] }, savedPageList));
       websiteData.append(shared);
     }
   } else {
@@ -278,7 +278,7 @@ export function siteDetails(
       relatedBookmarks: impact.relatedBookmarks.filter(saved => !shownIds.has(saved.id)),
     };
     if (additionalImpact.relatedBookmarks.length || additionalImpact.relatedSites.length)
-      shared.append(affectedBookmarks(additionalImpact));
+      shared.append(affectedBookmarks(additionalImpact, savedPageList));
     websiteData.append(shared);
   }
   if (options.onCleanup) {

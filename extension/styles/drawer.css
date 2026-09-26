@@ -174,7 +174,6 @@ html { scrollbar-gutter: stable; }
 .detail-bookmarks { margin-top: 1.2rem; }
 .saved-page-description { font-size: var(--text-body); }
 .saved-page-description .bookmark-url { font-size: var(--text-meta); }
-.affected-bookmarks li { margin-top: 0.55rem; }
 .affected-site {
   margin-top: 0.45rem;
   font-size: var(--text-meta);

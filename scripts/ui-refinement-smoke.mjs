@@ -175,7 +175,9 @@ try {
     document.querySelector('.bookmark-edit-action').click();
   })()`);
   assert.equal(await run(`document.querySelectorAll('.details .affected-title').length`), 3, 'Merging site details preserves distinct bookmark IDs including copies and related pages');
-  assert.equal(await run(`document.querySelectorAll('.details .saved-page').length`), 1, 'The saved bookmark is not repeated in the shared-data section');
+  const listedKeys = await run(`Array.from(document.querySelectorAll('.details .saved-page .bookmark-edit-action')).map(b=>b.dataset.editorKey)`);
+  assert.equal(new Set(listedKeys).size, listedKeys.length, 'Each bookmark ID is listed once across saved and shared-data entries');
+  assert.equal(listedKeys.length, 3, 'Saved, copy and related bookmarks all use saved-bookmark entries');
   assert.equal(await run(`document.querySelector('.details .affected-site')?.textContent`), 'sub.example.test', 'Broader cookie effects remain visible');
   for (const width of [1360, 800, 390]) {
     await browser.cmd('Emulation.setDeviceMetricsOverride', {width,height:900,deviceScaleFactor:1,mobile:false}, page.sessionId);
