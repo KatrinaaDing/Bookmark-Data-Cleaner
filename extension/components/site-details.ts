@@ -10,6 +10,7 @@ import { affectedBookmarks } from "./affected-bookmarks.js";
 import { icon, iconButton } from "./icons.js";
 import { bookmarkLink, bookmarkSummary } from "./bookmark-summary.js";
 import { requestLeave } from "./form-session.js";
+import { infoPopover } from "./feedback.js";
 import { reveal } from "./motion.js";
 import {
   bookmarkEditor,
@@ -207,9 +208,9 @@ export function siteDetails(
     : { ...site, bookmarks: [] };
   const impact = analyzeImpact([target], allBookmarks, detectedSites);
   const websiteData = detailCard("Website data");
-  websiteData.append(el("p", "detail-consequence", inspected
-    ? "Website data is shared across pages. Clearing it may sign you out or remove offline and unsynced work."
-    : "Cleanup keeps your bookmarks saved. Clearing website data may sign you out or remove offline and unsynced work."));
+  websiteData.querySelector("h3")!.append(infoPopover("About website data", `${inspected
+    ? "Website data is shared across pages of this site."
+    : "Cleanup keeps your bookmarks saved."} Clearing website data may sign you out or remove offline and unsynced work. Only cookies can be counted here; other selected website data is cleared if present.`));
   websiteData.append(
     valueRow(
       "Detected cookies",
@@ -217,7 +218,6 @@ export function siteDetails(
         ? "Not checked"
         : String(site.cookies.length),
     ),
-    el("p", "fine detail-detection-note", "Other website data cannot be counted here; selected categories are cleared if present."),
   );
   if (inspected) {
     if (impact.duplicates.length || impact.relatedBookmarks.length || impact.relatedSites.length) {

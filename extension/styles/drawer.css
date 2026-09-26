@@ -180,8 +180,6 @@ html { scrollbar-gutter: stable; }
   font-size: var(--text-meta);
   font-weight: 400;
 }
-.detail-consequence { margin: -.15rem 0 .8rem; font-size: var(--text-control); }
-.detail-detection-note { margin: .3rem 0 0; }
 .detail-shared-data { margin-top: 1.35rem; padding-top: 1rem; border-top: 1px solid var(--line); }
 .detail-shared-data > h4 { margin: 0 0 .35rem; font-size: var(--text-control); font-weight: 500; color: var(--muted); }
 .detail-shared-data > .fine { margin: .35rem 0 .8rem; }

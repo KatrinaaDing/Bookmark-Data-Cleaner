@@ -36,7 +36,7 @@ Keep DOM helpers simple and shared component APIs typed. Prefer explicit handles
 | Text | Domain, full bookmark URL, affected page, selected bookmark and duplicate are distinct concepts. No unmeasured data counts or generic success when work is partial/unverified. |
 | Typography | Reuse the system font and size tokens. Section and site row titles use medium weight, metadata regular weight. Bookmark list/search titles use regular (400); folder titles use bold (700). Blue may distinguish section headings; do not add bold to every level. |
 | Inspection rows | Row titles are buttons opening local details, without link underlines. Actual URLs remain links. Trailing icon/count metadata needs a descriptive accessible name and an explicit unavailable state. |
-| Site-level details | Combine saved bookmarks with website-data context; show each bookmark ID once and retain additional shared-data effects. Explain that site-data cleanup keeps bookmarks saved. This grouping never changes cleanup scope. |
+| Site-level details | Combine saved bookmarks with website-data context; show each bookmark ID once and retain additional shared-data effects. Explain, in the Website data info popover, that site-data cleanup keeps bookmarks saved. This grouping never changes cleanup scope. |
 
 Extend existing tokens with semantic success/danger foreground and subtle backgrounds, disabled/focus states, shared control sizing and the few spacing/motion values used repeatedly. Validate contrast in default, hover, focus and disabled treatments; translucent backgrounds must still make controls readable. Do not introduce a second competing token palette.
 
