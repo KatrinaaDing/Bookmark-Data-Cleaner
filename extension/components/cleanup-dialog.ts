@@ -21,6 +21,13 @@ export interface PreparedCleanup {
   sites: SiteRecord[];
   folders?: FolderRef[];
   impact?: CleanupImpact;
+  /** Initial bookmarks retained when bookmark removal is off; presentation only. */
+  contextualBookmarks?: BookmarkRef[];
+}
+
+export interface CleanupEntry {
+  label: string;
+  url?: string;
 }
 
 export function cleanupDialog(
@@ -30,6 +37,7 @@ export function cleanupDialog(
   ) => Promise<PreparedCleanup>,
   allowBookmarks: boolean,
   onStarted: (job: Job) => void,
+  entry?: CleanupEntry,
 ): void {
   if (document.querySelector("dialog.cleanup-dialog[open]")) return;
   const dialog = el("dialog", "cleanup-dialog");
@@ -39,6 +47,11 @@ export function cleanupDialog(
   title.id = "cleanup-title";
   title.tabIndex = -1;
   const feedback = el("div", "cleanup-feedback");
+  function entrySummary(): HTMLElement {
+    const summary = el("p", "cleanup-entry", entry?.label ?? "Review your choices before confirming.");
+    if (entry?.url) summary.append(el("span", "url", entry.url));
+    return summary;
+  }
   const options: CleanupOptions = { cookies: true, savedData: true, cache: true, workers: true, bookmarks: allowBookmarks };
   const extras = new Set<string>();
   const duplicateCandidates = new Map<string, BookmarkRef>();
@@ -62,7 +75,7 @@ export function cleanupDialog(
     [
       "savedData",
       "Saved site data",
-      "Local Storage, IndexedDB and files. Unsynced work may be lost.",
+      "Offline and unsynced work may be lost.",
     ],
     [
       "cache",
@@ -72,13 +85,13 @@ export function cleanupDialog(
     [
       "workers",
       "Background workers",
-      "Service workers used for offline and background activity.",
+      "Removes offline and background functionality until you revisit.",
     ],
   ];
   if (allowBookmarks)
     choices.push([
       "bookmarks",
-      "Remove selected bookmarks",
+      "Delete bookmarks",
       "Bookmarks are kept if their selected data cleanup fails.",
     ]);
 
@@ -112,7 +125,7 @@ export function cleanupDialog(
     title.textContent = "Step 1 — Choose what to remove";
     body.replaceChildren(
       title,
-      el("p", "muted", "Review your choices before confirming."),
+      entrySummary(),
     );
     choiceInputs = [];
     activeControls = [];
@@ -139,7 +152,7 @@ export function cleanupDialog(
           counts.get(key)!.textContent = "If present";
         if (allowBookmarks)
           counts.get("bookmarks")!.textContent = `${bookmarks} ${bookmarks === 1 ? "bookmark" : "bookmarks"}${folders ? ` · ${folders} ${folders === 1 ? "folder" : "folders"} if empty` : ""}`;
-        previewNotice.textContent = "Clears this data for the selected websites, if present. Stored item counts and sizes are unavailable.";
+        previewNotice.textContent = "Website data can be shared with other pages. Next checks the targets and saved copies.";
       } catch {
         if (current !== revision || request !== previewRevision || !dialog.open) return;
         for (const count of counts.values()) count.textContent = "Count unavailable";
@@ -238,7 +251,9 @@ export function cleanupDialog(
     updateReviewAvailability();
     const actions = el("div", "dialog-actions");
     actions.append(close, review);
-    body.append(previewNotice, accessButton, feedback, actions);
+    const technical = el("details", "technical-details");
+    technical.append(el("summary", "", "Technical details"), el("p", "fine", "Saved site data includes Local Storage, IndexedDB and files. Background workers are service workers. Counts are a preview; stored item counts and sizes are unavailable. Cleanup uses detected cookies and known origins, not just a single page URL."));
+    body.append(previewNotice, technical, accessButton, feedback, actions);
     title.focus();
     enter(body, -1);
   }
@@ -279,6 +294,7 @@ export function cleanupDialog(
         buildCleanupPlan(prepared.sites, snapshot, prepared.folders),
         prepared.impact,
         snapshot,
+        prepared.contextualBookmarks,
       );
       if (focusedDuplicate) body.querySelector<HTMLInputElement>(`input[data-bookmark-id="${CSS.escape(focusedDuplicate)}"]`)?.focus();
     } catch (error) {
@@ -295,12 +311,13 @@ export function cleanupDialog(
     plan: CleanupPlan,
     impact: CleanupImpact | undefined,
     snapshot: CleanupOptions,
+    contextualBookmarks: BookmarkRef[] = [],
   ) {
     const newStep = title.textContent !== "Step 2 — Review this cleanup";
     title.textContent = "Step 2 — Review this cleanup";
     reviewAction = undefined;
     nextButton = undefined;
-    body.replaceChildren(title);
+    body.replaceChildren(title, entrySummary());
     choiceInputs = [];
     activeControls = [];
     body.append(
@@ -309,34 +326,36 @@ export function cleanupDialog(
         "warning",
         hasData(plan.options)
           ? "Deletion cannot be undone. Selected website data may include sign-ins, offline copies or unsynced work."
-          : "Deletion cannot be undone. Only the reviewed bookmarks will be removed.",
+          : `Deletion cannot be undone. Only the reviewed bookmarks${plan.folders.length ? " and empty folders" : ""} will be removed.`,
       ),
     );
     const selected = choices
-      .filter(([key]) => plan.options[key])
+      .filter(([key]) => key !== "bookmarks" && plan.options[key])
       .map(([, label]) => label);
-    body.append(el("h3", "", "Data to remove"), el("p", "selected-categories", selected.filter(label => label !== "Remove selected bookmarks").join(" · ") || "No website data selected."));
 
     if (hasData(plan.options)) {
+      body.append(el("h3", "", "Website data to clear"), el("p", "selected-categories", selected.join(" · ")));
       const targets = el("ul", "cleanup-targets");
       for (const site of plan.sites) {
         const row = el("li");
         row.append(el("span", "affected-title", site.host));
-        if (plan.options.cookies) row.append(el("span", "fine", `${site.cookies.length} detected cookies`));
+        if (plan.options.cookies) row.append(el("span", "fine", `${site.cookies.length} detected ${site.cookies.length === 1 ? "cookie" : "cookies"}`));
         targets.append(row);
       }
       body.append(targets);
-    }
+    } else body.append(el("p", "fine", "No website data will be cleared."));
 
-    if (allowBookmarks && plan.options.bookmarks) {
-      const bookmarks = new Map(plan.sites.flatMap(site => site.bookmarks.map(bookmark => [bookmark.id, bookmark] as const)));
+    const bookmarks = new Map(plan.sites.flatMap(site => site.bookmarks.map(bookmark => [bookmark.id, bookmark] as const)));
+    if (allowBookmarks && plan.options.bookmarks && (bookmarks.size || plan.folders.length || duplicateCandidates.size)) {
       const section = el("section", "bookmark-removals");
-      section.append(el("h3", "", `Bookmarks to delete (${bookmarks.size})`));
+      section.append(el("h3", "", bookmarks.size ? `Bookmarks to delete (${bookmarks.size})` : "Folders to remove if empty"));
       for (const bookmark of bookmarks.values()) {
         if (duplicateCandidates.has(bookmark.id)) continue;
         const row = el("p", "selected-bookmark"); row.append(bookmarkSummary(bookmark)); section.append(row);
       }
       if (duplicateCandidates.size) {
+        const added = [...duplicateCandidates.keys()].filter(id => bookmarks.has(id)).length;
+        section.append(el("p", "fine scope-additions", `${added} additional ${added === 1 ? "bookmark" : "bookmarks"} with identical URLs selected below. These were not part of the initial selection.`));
         const copies = el("fieldset", "duplicate-choices");
         copies.append(el("legend", "", "Also delete other bookmarks for these URLs"));
         for (const duplicate of duplicateCandidates.values()) {
@@ -363,17 +382,27 @@ export function cleanupDialog(
       body.append(section);
     }
 
-    if (!plan.options.bookmarks) body.append(el("p", "fine", "Bookmarks will be kept."));
-    const retainedBookmarks = [...(impact?.relatedBookmarks ?? []), ...(!plan.options.bookmarks ? impact?.duplicates ?? [] : [])];
+    if (!plan.options.bookmarks || !bookmarks.size) body.append(el("p", "fine", "No bookmarks will be deleted."));
+    const deletedIds = new Set(plan.options.bookmarks ? bookmarks.keys() : []);
+    const retainedBookmarks = [...new Map([
+      ...contextualBookmarks, ...(impact?.relatedBookmarks ?? []), ...(impact?.duplicates ?? []),
+    ].filter(bookmark => !deletedIds.has(bookmark.id)).map(bookmark => [bookmark.id, bookmark])).values()];
     if (hasData(plan.options) && (retainedBookmarks.length || impact?.relatedSites.length)) {
       const warning = el("div", "related-warning");
-      warning.append(
-        el("h3", "", "Other pages affected by this cleanup"),
-        el("p", "fine", "Their bookmarks stay, but the selected website data is shared."),
-      );
-      for (const bookmark of retainedBookmarks) {
-        const row = el("p", "affected-entry"); row.append(bookmarkSummary(bookmark)); warning.append(row);
+      let entries: HTMLElement = warning;
+      if (retainedBookmarks.length) {
+        warning.append(el("h3", "", "Bookmarks kept but potentially affected"), el("p", "fine", "These bookmarks stay saved. The selected website data may be shared across their pages."));
+        if (retainedBookmarks.length > 3) {
+          const disclosure = el("details", "related-disclosure");
+          disclosure.append(el("summary", "", `${retainedBookmarks.length} saved pages may be affected`));
+          warning.append(disclosure);
+          entries = disclosure;
+        }
       }
+      for (const bookmark of retainedBookmarks) {
+        const row = el("p", "affected-entry"); row.append(bookmarkSummary(bookmark)); entries.append(row);
+      }
+      if (impact?.relatedSites.length) warning.append(el("h3", "", "Other sites sharing selected data"));
       for (const site of impact?.relatedSites ?? [])
         warning.append(el("p", "affected-entry", site.host));
       body.append(warning);
@@ -394,7 +423,7 @@ export function cleanupDialog(
           ...new Set(
             site.cookies.map(
               (cookie) =>
-                `${cookie.domain}${cookie.partitionKey ? ` (partition: ${cookie.partitionKey.topLevelSite})` : ""}`,
+                `${cookie.domain} · ${cookie.hostOnly ? "host-only" : "domain cookie"} · ${cookie.name} · path ${cookie.path} · store ${cookie.storeId}${cookie.partitionKey ? ` · partition ${cookie.partitionKey.topLevelSite} · cross-site ancestor: ${cookie.partitionKey.hasCrossSiteAncestor ?? "unknown"}` : " · unpartitioned"}`,
             ),
           ),
         ];

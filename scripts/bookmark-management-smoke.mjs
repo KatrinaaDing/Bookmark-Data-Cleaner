@@ -109,7 +109,7 @@ try {
     1,
     "Direct cleanup opens the shared review flow",
   );
-  await run(`document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(!input.closest('label').textContent.includes('Remove selected bookmarks') && input.checked)input.click()})`);
+  await run(`document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(!input.closest('label').textContent.includes('Delete bookmarks') && input.checked)input.click()})`);
   await run(`Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find((button) => button.textContent === 'Next').click()`);
   await pause(180);
   assert.equal(

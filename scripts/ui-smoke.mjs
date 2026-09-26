@@ -57,7 +57,7 @@ try {
     `document.querySelector('input[aria-label="Select More design notes"]').click(); document.querySelector('input[aria-label="Select Design notes"]').click()`,
   );
   await run(
-    `Array.from(document.querySelectorAll('section:not([hidden]) button')).find(b=>b.textContent==='Clean up data').click()`,
+    `Array.from(document.querySelectorAll('section:not([hidden]) button')).find(b=>b.textContent==='Clean up selected…').click()`,
   );
   await pause(80);
   assert.equal(
@@ -68,7 +68,7 @@ try {
     "Available cleanup categories are selected by default",
   );
   await run(
-    `document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(!input.closest('label').textContent.includes('Remove selected bookmarks') && input.checked)input.click()}); Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Next').click()`,
+    `document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(!input.closest('label').textContent.includes('Delete bookmarks') && input.checked)input.click()}); Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Next').click()`,
   );
   await pause(80);
   assert.equal(
@@ -165,7 +165,7 @@ try {
   await run(`location.hash='sites'`);
   await pause(50);
   await run(
-    `document.querySelector('input[aria-label="Select old.test"]').click(); Array.from(document.querySelectorAll('section:not([hidden]) button')).find(b=>b.textContent==='Clean up data').click()`,
+    `document.querySelector('input[aria-label="Select old.test"]').click(); Array.from(document.querySelectorAll('section:not([hidden]) button')).find(b=>b.textContent==='Clean up selected…').click()`,
   );
   await pause(80);
   await run(

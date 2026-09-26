@@ -74,14 +74,14 @@ try {
 
   await run(`document.querySelector('[aria-label="Clear selection"]').click()`);
   assert.equal(
-    await run(`document.querySelector('.selection-count').hidden`),
-    true,
-    "The selection count hides after clearing",
+    await run(`document.querySelector('.selection-count').textContent`),
+    '0 selected',
+    "The selection count remains explicit after clearing",
   );
   assert.equal(
-    await run(`Array.from(document.querySelectorAll('.toolbar button')).find((button) => button.textContent === 'Clean up data').disabled`),
+    await run(`Array.from(document.querySelectorAll('.toolbar button')).find((button) => button.textContent === 'Clean up selected…').disabled`),
     true,
-    "Clean up data is disabled after clearing",
+    "Clean up selected… is disabled after clearing",
   );
   assert.equal(
     await run(`(() => {

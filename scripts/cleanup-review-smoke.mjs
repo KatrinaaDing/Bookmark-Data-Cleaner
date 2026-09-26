@@ -29,12 +29,12 @@ try {
   assert.equal(await run(`${review}.disabled`), true, "No category means no review action");
   await run(`${review}.click()`);
   assert.equal(await run(`window.prepared.length`), 0, "Disabled review does not prepare a plan");
-  await run(`${category("Remove selected bookmarks")}.click()`);
+  await run(`${category("Delete bookmarks")}.click()`);
   assert.equal(await run(`${review}.disabled`), false);
-  await run(`${category("Remove selected bookmarks")}.click()`);
+  await run(`${category("Delete bookmarks")}.click()`);
   assert.equal(await run(`${review}.disabled`), true, "Removing the last choice disables review again");
   await run(`window.nextWidth=${review}.getBoundingClientRect().width`);
-  await run(`${category("Remove selected bookmarks")}.click(); window.prepareGate = new Promise(resolve => { window.releasePrepare = resolve; }); ${review}.click()`);
+  await run(`${category("Delete bookmarks")}.click(); window.prepareGate = new Promise(resolve => { window.releasePrepare = resolve; }); ${review}.click()`);
   assert.equal(await run(`Array.from(document.querySelectorAll('.cleanup-dialog input, .cleanup-dialog .dialog-actions button')).every(control => control.disabled)`), true, "Preparation freezes choices and actions");
   assert.equal(await run(`Math.abs(${review}.getBoundingClientRect().width-window.nextWidth)<.5`),true,"Pending actions retain their width");
   await run(`window.releasePrepare(); window.prepareGate = undefined`);
@@ -47,19 +47,19 @@ try {
   assert.equal(await run(`document.querySelector('.cleanup-dialog').open`), true);
   await run(`Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button => button.textContent === 'Back').click()`);
   await pause(80);
-  assert.equal(await run(`${category("Remove selected bookmarks")}.checked`), true, "Back retains explicit choices");
+  assert.equal(await run(`${category("Delete bookmarks")}.checked`), true, "Back retains explicit choices");
   assert.equal(await run(`${review}.disabled`), false);
   assert.equal(await run(`!!document.querySelector(".cleanup-feedback .spinner")`), false, "Back clears the completed preparation spinner");
 
   // An unavailable cookie choice must not leave a checked, disabled category in the next plan.
-  await run(`${category("Remove selected bookmarks")}.click(); ${category("Cookies and sign-in data")}.click(); ${review}.click()`);
+  await run(`${category("Delete bookmarks")}.click(); ${category("Cookies and sign-in data")}.click(); ${review}.click()`);
   await pause(80);
   await run(`chrome.permissions.contains = async () => false; Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button => button.textContent === 'Back').click()`);
   await pause(80);
   assert.equal(await run(`${category("Cookies and sign-in data")}.disabled`), true);
   assert.equal(await run(`${category("Cookies and sign-in data")}.checked`), false);
   assert.equal(await run(`${review}.disabled`), true, "Unavailable cookie access cannot enable review");
-  await run(`${category("Remove selected bookmarks")}.click(); ${review}.click()`);
+  await run(`${category("Delete bookmarks")}.click(); ${review}.click()`);
   await pause(80);
   assert.equal(await run(`window.prepared.at(-1).cookies`), false, "The next plan excludes the unavailable, unchecked cookie category");
   assert.equal(await run(`window.prepared.at(-1).bookmarks`), true);

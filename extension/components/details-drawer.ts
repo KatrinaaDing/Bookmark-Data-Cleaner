@@ -8,6 +8,7 @@ export interface DetailsDrawer {
   update(content: HTMLElement, request: number): void;
   isOpen(key?: string): boolean;
   close(): void;
+  syncInspection(): void;
 }
 
 let shared: DetailsDrawer | undefined;
@@ -166,6 +167,12 @@ export function detailsDrawer(): DetailsDrawer {
       );
     },
     close,
+    syncInspection() {
+      const key = dialog.dataset.inspectionKey;
+      if (!opened || closing || !key) return;
+      document.querySelectorAll('[data-focus-key][aria-current="true"]').forEach(node => node.removeAttribute("aria-current"));
+      document.querySelector(`[data-focus-key="${CSS.escape(key)}"]`)?.setAttribute("aria-current", "true");
+    },
   };
   return shared;
 }

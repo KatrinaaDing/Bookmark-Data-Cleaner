@@ -104,7 +104,6 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
 
   function changed() {
     count.textContent = all.update();
-    count.hidden = selection.ids.size === 0;
     clear.hidden = selection.ids.size === 0;
     clean.disabled = busy || !selection.ids.size;
   }
@@ -167,6 +166,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
           ),
     );
     all.update();
+    drawer.syncInspection();
   }
 
   async function reconcileMutation(
@@ -212,13 +212,13 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
 
   function openDirectCleanup(site: SiteRecord) {
     const ids = new Set([site.id]);
-    cleanupDialog((options) => prepareSites(ids, options), false, onStarted);
+    cleanupDialog((options) => prepareSites(ids, options), false, onStarted, { label: `This site: ${site.host}` });
   }
 
-  const clean = button("Clean up data", async () => {
+  const clean = button("Clean up selected…", async () => {
     if (!(await requestLeave())) return;
     const ids = new Set(selection.ids);
-    cleanupDialog((options) => prepareSites(ids, options), false, onStarted);
+    cleanupDialog((options) => prepareSites(ids, options), false, onStarted, { label: `Selected: ${ids.size} ${ids.size === 1 ? "site" : "sites"}` });
   }, "primary");
   const all = selectionControl(selection, () => new Set(visible().map(site => site.id)), () => !!search.value.trim() || bookmarked.input.checked, render);
   const clear = iconButton("clear", "Clear selection", () => {

@@ -13,6 +13,7 @@ for (const test of [
   "ui-refinement",
   "ui-contract",
   "bookmark-search",
+  "cleanup-ux",
 ]) {
   execFileSync(process.execPath, [`scripts/${test}-smoke.mjs`], {
     stdio: "inherit",

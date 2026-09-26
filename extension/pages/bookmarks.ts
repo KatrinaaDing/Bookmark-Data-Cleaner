@@ -140,6 +140,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       list.replaceChildren(all.element, treeView!.element);
       if (!records.length) list.append(status("No bookmarks yet. Saved bookmarks will appear here."));
     }
+    drawer.syncInspection();
     changed();
   }
 
@@ -210,29 +211,34 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       sites: planSites,
       folders: selectedFolders,
       impact: analyzeImpact(contextual, fresh.bookmarks, detailSites, options),
+      contextualBookmarks: base,
     };
   }
 
   function openDirectCleanup(bookmark: BookmarkRef) {
     const ids = new Set([bookmark.id]);
+    const current = records.find(item => item.id === bookmark.id) ?? bookmark;
     cleanupDialog(
       (options, extras) => prepareBookmarks(ids, options, extras),
       true,
       onStarted,
+      { label: `This bookmark: ${current.title || "Untitled"}`, url: current.url },
     );
   }
 
   const clean = button(
-    "Clean up data",
+    "Clean up selected…",
     async () => {
       if (!(await requestLeave())) return;
       const ids = new Set(selection.ids);
       const selectedFolders = treeView?.folders() ?? [];
+      const bookmarkCount = records.filter(bookmark => ids.has(bookmark.id)).length;
       cleanupDialog(
         (options, extras) =>
           prepareBookmarks(ids, options, extras, selectedFolders),
         true,
         onStarted,
+        { label: `Selected: ${bookmarkCount} ${bookmarkCount === 1 ? "bookmark" : "bookmarks"}${selectedFolders.length ? ` · ${selectedFolders.length} ${selectedFolders.length === 1 ? "folder" : "folders"} (only if empty)` : ""}` },
       );
     },
     "primary",
@@ -260,7 +266,6 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
 
   function changed() {
     count.textContent = all.update();
-    count.hidden = selection.ids.size === 0;
     clear.hidden = selection.ids.size === 0;
     clean.disabled = busy || !selection.ids.size;
   }

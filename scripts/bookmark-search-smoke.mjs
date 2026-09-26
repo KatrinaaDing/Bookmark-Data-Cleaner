@@ -9,7 +9,7 @@ try {
   const search = `document.querySelector('input[aria-label="Find a bookmark"]')`;
   const setSearch = async value => { await run(`${search}.value=${JSON.stringify(value)};${search}.dispatchEvent(new Event('input',{bubbles:true}))`); };
   const all = `document.querySelector('section:not([hidden]) .list-selection input')`;
-  const clean = `Array.from(document.querySelectorAll('section:not([hidden]) .toolbar button')).find(b=>b.textContent==='Clean up data')`;
+  const clean = `Array.from(document.querySelectorAll('section:not([hidden]) .toolbar button')).find(b=>b.textContent==='Clean up selected…')`;
   const before = await run(`${clean}.getBoundingClientRect().right`);
   await setSearch('Alpha');
   assert.equal(await run(`document.querySelectorAll('.search-results .bookmark-row').length`),1);

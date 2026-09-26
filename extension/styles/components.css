@@ -36,6 +36,8 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
 .refreshing .icon { animation: spin 1s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .refreshing .icon { animation: none; } }
 .cleanup-dialog h3 { margin: 1.2rem 0 .6rem; font-size: var(--text-body); }
+.cleanup-entry { overflow-wrap: anywhere; }
+.cleanup-entry .url { display: block; margin-top: .25rem; font-size: var(--text-meta); color: var(--muted); }
 .bookmark-removals .selected-bookmark { margin: .7rem 0; }
 .duplicate-choices { margin-top: 1rem; padding: .8rem; }
 .duplicate-choices .check { align-items: flex-start; margin: .7rem 0; }
