@@ -170,7 +170,9 @@ html { scrollbar-gutter: stable; }
   font-weight: 500;
   color: var(--muted);
 }
-.saved-page-description { font-size: var(--text-body); }
+/* Entries sit below section and disclosure labels, so they never outsize them. */
+.saved-page-description { font-size: var(--text-control); }
+.saved-page-description .affected-title { font-weight: 400; }
 .saved-page-description .bookmark-url { font-size: var(--text-meta); }
 .affected-site {
   margin-top: 0.45rem;
@@ -234,5 +236,5 @@ html { scrollbar-gutter: stable; }
 .empty-folder { padding: 0.5rem 0.75rem; }
 /* Pull icon-only actions out by their hit-area padding so glyphs line up with right-aligned values. */
 .bookmark-actions { margin-right: calc((19px - var(--control-size)) / 2); }
-.saved-page-heading .bookmark-actions { margin-top: calc((1.55rem - var(--control-size)) / 2); }
+.saved-page-heading .bookmark-actions { margin-top: calc((var(--text-control) * 1.55 - var(--control-size)) / 2); }
 .detail-card-header.bookmark-heading { align-items: center; }
