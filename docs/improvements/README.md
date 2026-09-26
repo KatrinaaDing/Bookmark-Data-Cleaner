@@ -4,6 +4,8 @@ The current goal is **public adoption first, portfolio value second**, confirmed
 
 ## Start here
 
+- [Product UX session handover — 26 September 2026](../handovers/2026-09-26-product-ux.md): current state, user priority, safety boundaries, verification and next-session starting point.
+
 - [Details and cleanup review — 26 September 2026](history/2026-09-26-details-review-ux.md): grouped identity controls, visible review actions, stable reading position and overlay focus.
 
 - [Discovery and results refinement — 26 September 2026](history/2026-09-26-discovery-results-ux.md): unbookmarked-site filtering and compact, outcome-specific results.
