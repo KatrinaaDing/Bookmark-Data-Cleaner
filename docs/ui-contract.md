@@ -24,7 +24,7 @@ Keep DOM helpers simple and shared component APIs typed. Prefer explicit handles
 
 | Pattern | Standard |
 |---|---|
-| Actions | Explicit primary, secondary, quiet, destructive, positive-icon and negative-icon variants. Final deletion uses destructive; entering cleanup uses primary in toolbars and a broom icon at the end of Website data in details. Name the entry scope: Clean up selected… in toolbars, Clean up this bookmark… / Clean up this site… on detail actions. Editing cancel/discard does not inherit final-deletion wording. |
+| Actions | Explicit primary, secondary, quiet, destructive, positive-icon and negative-icon variants. Final deletion uses destructive; entering cleanup uses primary in toolbars and a labelled primary broom button (Clean up) in the Website data header in details. Name the entry scope: Clean up selected… in toolbars, Clean up this bookmark… / Clean up this site… on detail actions. Editing cancel/discard does not inherit final-deletion wording. |
 | Icon actions | Use the shared SVG set, accessible name and tooltip. Button hit area is independent of glyph size. Familiar secondary actions may be icon-only; Next and Confirm cleanup remain labelled. |
 | Button state | Idle, disabled and pending use the same API. Pending preserves dimensions, prevents repeated invocation, exposes a meaningful loading label and restores the correct disabled state afterward. |
 | Focus | Shared visible focus treatment; logical focus return after overlays/forms close. No automatic focus on destructive confirmation. Color/animation never replaces labels or focus indication. |

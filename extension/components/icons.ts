@@ -21,7 +21,12 @@ const paths = {
   ],
   bookmark: ["M6 3h12v18l-6-4-6 4V3"],
   cookie: ["M21 12a9 9 0 1 1-9-9 4 4 0 0 0 4 4 5 5 0 0 0 5 5Z", "M8 8h.01M7 14h.01M12 17h.01M14 11h.01"],
-  broom: ["M21 2 10 13", "M9 12l5 5", "M9 12c-3 1-5.5 4-6 9 5 .5 8 0 11-4", "M7 15l-2 5", "M10 16l-1 5", "M12 17l1 2"],
+  broom: [
+    "M10 10V4a2 2 0 0 1 4 0v6",
+    "M6 10h12a2 2 0 0 1 2 2v2H4v-2a2 2 0 0 1 2-2",
+    "M4.5 14 3 22h18l-1.5-8",
+    "M9 22l.75-3.5M15 22l-.75-3.5",
+  ],
 } as const;
 export type IconName = keyof typeof paths;
 export function icon(name: IconName): SVGSVGElement {

@@ -34,7 +34,7 @@ try {
   await pause(250);
 
   assert.deepEqual(
-    await run(`Array.from(document.querySelectorAll('.details-drawer .detail-card > h3')).map((heading) => heading.firstChild.textContent)`),
+    await run(`Array.from(document.querySelectorAll('.details-drawer .detail-card-header > h3')).map((heading) => heading.firstChild.textContent)`),
     ["Bookmark", "Website data"],
     "Details expose the identity and website-data sections",
   );

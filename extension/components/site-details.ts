@@ -5,9 +5,9 @@ import type {
   SiteRecord,
 } from "../core/types.js";
 import { analyzeImpact } from "../core/impact.js";
-import { dateText, el } from "./dom.js";
+import { button, dateText, el } from "./dom.js";
 import { affectedBookmarks } from "./affected-bookmarks.js";
-import { iconButton } from "./icons.js";
+import { icon, iconButton } from "./icons.js";
 import { bookmarkLink, bookmarkSummary } from "./bookmark-summary.js";
 import { requestLeave } from "./form-session.js";
 import { reveal } from "./motion.js";
@@ -39,7 +39,9 @@ export interface SiteDetailsOptions {
 
 function detailCard(title: string): HTMLElement {
   const card = el("section", "detail-card");
-  card.append(el("h3", "", title));
+  const header = el("div", "detail-card-header");
+  header.append(el("h3", "", title));
+  card.append(header);
   return card;
 }
 
@@ -243,13 +245,14 @@ export function siteDetails(
     websiteData.append(shared);
   }
   if (options.onCleanup) {
-    const actions = el("div", "detail-cleanup-actions");
-    const clean = iconButton("broom", inspected ? "Clean up this bookmark…" : "Clean up this site…", () => {
+    const label = inspected ? "Clean up this bookmark…" : "Clean up this site…";
+    const clean = button("", () => {
       void requestLeave().then(allowed => { if (allowed) options.onCleanup?.(site, inspected); });
-    });
-    clean.classList.add("detail-cleanup");
-    actions.append(clean);
-    websiteData.append(actions);
+    }, "primary detail-cleanup");
+    clean.append(icon("broom"), el("span", "", "Clean up"));
+    clean.setAttribute("aria-label", label);
+    clean.title = label;
+    websiteData.querySelector(".detail-card-header")!.append(clean);
   }
   panel.append(basic, websiteData);
   return panel;

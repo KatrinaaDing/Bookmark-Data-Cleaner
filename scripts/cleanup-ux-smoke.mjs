@@ -41,9 +41,9 @@ try {
   }
   await capture('bookmark-details');
   await capture('bookmark-details-narrow',390,844);
-  await run(`document.querySelector('.details-drawer').scrollTop=document.querySelector('.details-drawer').scrollHeight`);
+  await run(`document.querySelector('.detail-cleanup').scrollIntoView({block:'nearest'})`);
   await pause(100);
-  assert.equal(await run(`document.querySelector('.details-drawer').scrollTop > 0 && document.querySelector('.detail-cleanup').getBoundingClientRect().bottom <= innerHeight - 16`),true,'Bottom cleanup action is reachable in the narrow details panel');
+  assert.equal(await run(`document.querySelector('.detail-cleanup').getBoundingClientRect().bottom <= innerHeight - 16`),true,'Cleanup action is reachable in the narrow details panel');
   const actionShot = await browser.cmd('Page.captureScreenshot',{format:'png'},page.sessionId);
   await writeFile(`${out}/bookmark-details-action.png`,Buffer.from(actionShot.data,'base64'));
   await run(`document.querySelector('.detail-cleanup').click()`);
@@ -92,7 +92,7 @@ try {
     assert.equal(await run(`document.querySelector('.details-drawer').matches(':modal')`),true);
     assert.equal(await run(`document.querySelector('.details-drawer').scrollWidth <= document.querySelector('.details-drawer').clientWidth`),true);
     await capture('bookmark-details',1360,900);
-    assert.equal(await run(`!!(document.querySelector('.detail-shared-data')?.compareDocumentPosition(document.querySelector('.detail-cleanup')) & Node.DOCUMENT_POSITION_FOLLOWING)`),true,'Cleanup follows the related-page subsection');
+    assert.equal(await run(`!!document.querySelector('.detail-card:has(.detail-shared-data) > .detail-card-header .detail-cleanup')`),true,'Cleanup leads the Website data section');
     assert.equal(await run(`document.querySelector('.detail-cleanup').getAttribute('aria-label')`),'Clean up this bookmark…','The broom keeps an explicit action name');
     const filter = `document.querySelector('input[aria-label="Find a bookmark"]')`;
     await run(`${filter}.value='Selected A'; ${filter}.dispatchEvent(new Event('input'))`);
