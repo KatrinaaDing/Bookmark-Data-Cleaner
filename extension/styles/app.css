@@ -357,6 +357,10 @@ button.danger:hover:not(:disabled) {
 .row-title:hover:not(:disabled) {
   background: transparent;
 }
+.bookmark-row .row-title,
+.bookmark-row .affected-title {
+  font-weight: 400;
+}
 .row-host {
   margin-left: auto;
   color: var(--muted);
@@ -367,7 +371,7 @@ button.danger:hover:not(:disabled) {
   max-width: 28%;
 }
 .folder-toggle {
-  font-weight: 600;
+  font-weight: 700;
   text-align: left;
   background: none;
   border: 0;

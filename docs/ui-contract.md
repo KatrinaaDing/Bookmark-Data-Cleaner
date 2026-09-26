@@ -34,7 +34,7 @@ Keep DOM helpers simple and shared component APIs typed. Prefer explicit handles
 | Help | Small non-layout-shifting popover on hover/focus and tap; Escape closes it. Native disclosure is reserved for substantial optional content such as technical cleanup details. |
 | Feedback | Field errors local; operation loading next to the action; outcome toast for user actions; durable cleanup report for details/partial or uncertain outcomes. |
 | Text | Domain, full bookmark URL, affected page, selected bookmark and duplicate are distinct concepts. No unmeasured data counts or generic success when work is partial/unverified. |
-| Typography | Reuse the system font and size tokens. Page/detail titles carry the strongest weight; section and row titles use medium weight, metadata regular weight. Blue may distinguish section headings; do not add bold to every level. |
+| Typography | Reuse the system font and size tokens. Section and site row titles use medium weight, metadata regular weight. Bookmark list/search titles use regular (400); folder titles use bold (700). Blue may distinguish section headings; do not add bold to every level. |
 | Inspection rows | Row titles are buttons opening local details, without link underlines. Actual URLs remain links. Trailing icon/count metadata needs a descriptive accessible name and an explicit unavailable state. |
 | Site-level details | Combine saved bookmarks with website-data context; show each bookmark ID once and retain additional shared-data effects. Explain that site-data cleanup keeps bookmarks saved. This grouping never changes cleanup scope. |
 

@@ -8,7 +8,7 @@ White surfaces, neutral text (`#212529`) and the original blue accent (`#0b5ed7`
 
 Use 15px row titles, 14px supporting controls, 13px metadata, 24px details headings and 27–32px page headings. Inherit the root font on body to avoid Chromium extension default sizing. Use shared tokens for semantic colors, control sizes, focus and motion; `components.css` holds common interactive patterns.
 
-Detail section headings use blue at medium weight; bookmark titles use medium-weight neutral text. Subheadings, dates, folder paths and URLs are quieter. Reserve semibold for page/detail titles rather than every line of content.
+Detail section headings use blue at medium weight; detail bookmark titles use medium-weight neutral text. In the bookmark list and search results, individual bookmark titles use regular weight (400), while folder titles use bold (700). Subheadings, dates, folder paths and URLs are quieter. Reserve semibold for page/detail titles rather than every line of content.
 
 ## Workspaces
 
