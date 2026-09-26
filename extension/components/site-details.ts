@@ -76,8 +76,12 @@ export function siteDetails(
   panel.append(el("h2", "", title));
 
   const basic = detailCard("Basic information");
+  const dates = el("details", "detail-metadata");
+  dates.append(el("summary", "", "Visit history"));
   basic.append(
     valueRow(inspected ? "Bookmark URL" : "Domain", inspected ? "" : site.host),
+  );
+  dates.append(
     inspected
       ? valueRow(
           "Bookmark last opened",
@@ -89,13 +93,14 @@ export function siteDetails(
         ),
   );
   if (inspected)
-    basic.append(
+    dates.append(
       valueRow(
         "Website last visited",
         options.loadingDates ? "Loading visit dates…" : dateText(site.lastVisit),
       ),
     );
   if (inspected) basic.querySelector(".detail-value > :last-child")!.append(bookmarkLink(inspected.url));
+  basic.append(dates);
 
   const bookmark = inspected ? detailCard("Bookmark") : el("section", "detail-bookmarks");
   if (!inspected) bookmark.append(el("h4", "", "Saved bookmarks"));
@@ -184,7 +189,11 @@ export function siteDetails(
       addEditor(item, heading, saved);
       list.append(item);
     }
-    bookmark.append(list);
+    if (site.bookmarks.length > 3) {
+      const disclosure = el("details", "related-disclosure saved-pages-disclosure");
+      disclosure.append(el("summary", "", `${site.bookmarks.length} saved pages — view and edit`), list);
+      bookmark.append(disclosure);
+    } else bookmark.append(list);
   } else {
     bookmark.append(el("p", "fine", "No bookmarks saved for this website. Use Save bookmark to add one."));
     addEditor(bookmark, bookmark.querySelector("h4")!);
@@ -205,12 +214,21 @@ export function siteDetails(
         : String(site.cookies.length),
     ),
   );
+  websiteData.append(el("p", "detail-consequence", inspected
+    ? "Website data is shared across pages. Clearing it may sign you out or remove offline and unsynced work."
+    : "Cleanup keeps your bookmarks saved. Clearing website data may sign you out or remove offline and unsynced work."));
+  if (options.onCleanup) {
+    const clean = el("button", "primary detail-cleanup", inspected ? "Clean up this bookmark…" : "Clean up this site…");
+    clean.type = "button";
+    clean.addEventListener("click", () => { void requestLeave().then(allowed => { if (allowed) options.onCleanup?.(site, inspected); }); });
+    websiteData.append(clean);
+  }
   if (inspected) {
     websiteData.append(impact.duplicates.length && !impact.relatedBookmarks.length && !impact.relatedSites.length
       ? el("p", "fine", "Other bookmarks for this URL share its website data.")
       : affectedBookmarks({ ...impact, duplicates: [] }));
   } else {
-    websiteData.append(el("p", "fine", "Cleanup keeps your bookmarks saved. Clearing website data may sign you out or remove offline content."), bookmark);
+    websiteData.append(bookmark);
     // These bookmarks already have their full details and actions above. Keep
     // broader cookie/origin effects visible without listing the same ID twice.
     const shownIds = new Set(site.bookmarks.map(saved => saved.id));
@@ -221,14 +239,7 @@ export function siteDetails(
     if (additionalImpact.relatedBookmarks.length || additionalImpact.relatedSites.length)
       websiteData.append(affectedBookmarks(additionalImpact, "Other pages that may share this data"));
   }
-  if (options.onCleanup) {
-    const clean = el("button", "primary detail-cleanup", "Clean up data");
-    clean.type = "button";
-    clean.addEventListener("click", () => { void requestLeave().then(allowed => { if (allowed) options.onCleanup?.(site, inspected); }); });
-    websiteData.append(clean);
-  }
-  panel.append(basic);
+  panel.append(basic, websiteData);
   if (inspected) panel.append(bookmark);
-  panel.append(websiteData);
   return panel;
 }

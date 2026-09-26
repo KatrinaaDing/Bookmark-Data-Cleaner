@@ -54,7 +54,7 @@ try {
   await waitFor(`!document.querySelector('.bookmark-editor')`);
   assert.equal(await run(`!!document.querySelector('.bookmark-editor')`),false,'Discard removes the form state');
   assert.equal(await run(`Math.abs(document.querySelector('.workspace-list').getBoundingClientRect().width / document.querySelector('.details-rail').getBoundingClientRect().width - 1.5) < .02`), true, "List and details use a 3:2 split");
-  assert.deepEqual(await run(`Array.from(document.querySelectorAll('.detail-card > h3')).map((heading) => heading.firstChild.textContent)`), ["Basic information", "Bookmark", "Website data"], "Details use the three approved sections");
+  assert.deepEqual(await run(`Array.from(document.querySelectorAll('.detail-card > h3')).map((heading) => heading.firstChild.textContent)`), ["Basic information", "Website data", "Bookmark"], "Details use the three approved sections");
   assert.equal(await run(`document.querySelector('.details-drawer').textContent.includes('Refinement fixtures')`), true, "Saved folder is recognizable");
   assert.equal(await run(`document.querySelector('.bookmark-row .row-title').getAttribute('aria-current')`), 'true', "The inspected row is marked separately from cleanup selection");
   await run(`document.querySelectorAll('.bookmark-row')[1].click()`);
@@ -180,7 +180,7 @@ try {
     await pause(300);
     assert.equal(await run(`Array.from(document.querySelectorAll('.bookmark-editor input, .bookmark-editor select')).every(field=>{
       const rect=field.getBoundingClientRect(), form=field.closest('form').getBoundingClientRect(), card=field.closest('.detail-card').getBoundingClientRect();
-      return rect.width>0 && rect.left>=form.left-1 && rect.right<=form.right+1 && rect.right<card.right;
+      return rect.width>0 && rect.left>=form.left-1 && rect.right<=form.right+1 && rect.right<=card.right+1;
     })`), true, 'Edit and create controls fit with long values at '+width+'px');
     assert.equal(await run(`document.querySelector('.details-drawer').scrollWidth <= document.querySelector('.details-drawer').clientWidth`), true, 'Drawer has no horizontal overflow');
     const info = `document.querySelector('.details .info-control button')`;

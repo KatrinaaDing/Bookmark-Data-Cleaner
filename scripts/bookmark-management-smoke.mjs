@@ -35,7 +35,7 @@ try {
 
   assert.deepEqual(
     await run(`Array.from(document.querySelectorAll('.details-drawer .detail-card > h3')).map((heading) => heading.firstChild.textContent)`),
-    ["Basic information", "Bookmark", "Website data"],
+    ["Basic information", "Website data", "Bookmark"],
     "Details expose the three approved sections",
   );
   assert.match(

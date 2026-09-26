@@ -56,13 +56,9 @@ html { scrollbar-gutter: stable; }
 }
 .detail-card {
   margin-top: 1rem;
-  padding: 1rem;
-  border: 1px solid #dbe6f5;
-  border-radius: 11px;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
 }
-.detail-card:nth-of-type(1) { background: #f4f8ff; }
-.detail-card:nth-of-type(2) { background: #f7f9fc; }
-.detail-card:nth-of-type(3) { background: #f3f8f7; }
 .detail-card > h3 {
   margin: 0 0 0.8rem;
   font-size: var(--text-body);
@@ -149,7 +145,11 @@ html { scrollbar-gutter: stable; }
   font-size: var(--text-meta);
   font-weight: 400;
 }
-.detail-cleanup { margin-top: 1rem; }
+.detail-consequence { margin: .5rem 0 .85rem; font-size: var(--text-control); }
+.detail-metadata { margin-top: .5rem; color: var(--muted); font-size: var(--text-meta); }
+.related-disclosure { margin-top: .75rem; font-size: var(--text-control); }
+.related-disclosure > summary, .detail-metadata > summary { padding: .45rem 0; cursor: pointer; }
+.related-disclosure[open] > summary { margin-bottom: .5rem; }
 .icon {
   width: 19px;
   height: 19px;

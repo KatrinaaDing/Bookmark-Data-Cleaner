@@ -12,25 +12,28 @@ function bookmarkLine(bookmark: BookmarkRef): HTMLElement {
 export function affectedBookmarks(impact: CleanupImpact, relatedTitle = "Other pages affected by this cleanup"): HTMLElement {
   const content = el("div", "affected-bookmarks");
   if (impact.duplicates.length) {
-    content.append(
-      el("h4", "", "Other bookmarks for this URL"),
-    );
+    const disclosure = el("details", "related-disclosure duplicate-disclosure");
+    disclosure.append(el("summary", "", `${impact.duplicates.length} other ${impact.duplicates.length === 1 ? "bookmark" : "bookmarks"} for this exact URL`));
     const list = el("ul");
     for (const bookmark of impact.duplicates) list.append(bookmarkLine(bookmark));
-    content.append(list);
+    disclosure.append(list);
+    content.append(disclosure);
   }
   if (impact.relatedBookmarks.length || impact.relatedSites.length) {
-    content.append(
-      el("h4", "", relatedTitle),
-    );
+    const disclosure = el("details", "related-disclosure");
+    disclosure.append(el("summary", "", impact.relatedBookmarks.length
+      ? `${impact.relatedBookmarks.length} saved ${impact.relatedBookmarks.length === 1 ? "page" : "pages"} may be affected`
+      : `${impact.relatedSites.length} other ${impact.relatedSites.length === 1 ? "site" : "sites"} may be affected`));
+    disclosure.append(el("p", "fine", relatedTitle));
     if (impact.relatedBookmarks.length) {
       const list = el("ul");
       for (const bookmark of impact.relatedBookmarks)
         list.append(bookmarkLine(bookmark));
-      content.append(list);
+      disclosure.append(list);
     }
     for (const site of impact.relatedSites)
-      content.append(el("p", "affected-site", site.host));
+      disclosure.append(el("p", "affected-site", site.host));
+    content.append(disclosure);
   }
   if (!content.childElementCount)
     content.append(
