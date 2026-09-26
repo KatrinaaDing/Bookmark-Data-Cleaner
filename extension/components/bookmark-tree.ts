@@ -106,6 +106,7 @@ export function bookmarkTree(
       const host = el("span", "row-host");
       try {
         host.textContent = new URL(node.url).hostname;
+        host.title = "Bookmark domain";
       } catch {
         host.textContent = "Bookmark";
       }
