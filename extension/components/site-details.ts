@@ -78,9 +78,11 @@ export function siteDetails(
 
   const basic = detailCard(inspected ? "Bookmark" : "Site");
   const dates = el("div", "detail-metadata");
-  basic.append(
-    valueRow(inspected ? "Bookmark URL" : "Domain", inspected ? "" : site.host),
-  );
+  if (inspected) {
+    const address = valueRow("Bookmark URL", "");
+    address.lastElementChild!.append(bookmarkLink(inspected.url));
+    basic.append(address, valueRow("Saved in", inspected.path || "Bookmarks"));
+  } else basic.append(valueRow("Domain", site.host));
   dates.append(
     inspected
       ? valueRow(
@@ -99,11 +101,6 @@ export function siteDetails(
         options.loadingDates ? "Loading visit dates…" : dateText(site.lastVisit),
       ),
     );
-  if (inspected) {
-    basic.querySelector(".detail-value")!.classList.add("bookmark-address");
-    basic.querySelector(".detail-value > :last-child")!.append(bookmarkLink(inspected.url));
-    basic.append(valueRow("Saved in", inspected.path || "Bookmarks"));
-  }
   basic.append(dates);
 
   const bookmark = el("section", "detail-bookmarks");
@@ -182,7 +179,7 @@ export function siteDetails(
     actions.append(copy);
   }
   if (inspected) {
-    addEditor(basic, basic.querySelector("h3")!, inspected);
+    addEditor(basic, basic.querySelector<HTMLElement>(".detail-card-header")!, inspected);
   } else if (site.bookmarks.length) {
     const list = el("ul", "saved-pages");
     for (const saved of site.bookmarks) {

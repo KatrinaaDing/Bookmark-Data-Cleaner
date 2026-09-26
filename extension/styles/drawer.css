@@ -125,9 +125,6 @@ html { scrollbar-gutter: stable; }
   overflow-wrap: anywhere;
 }
 .detail-label { color: var(--muted); }
-.bookmark-address { display: block; }
-.bookmark-address .detail-label { display: block; margin-bottom: .25rem; font-size: var(--text-meta); }
-.bookmark-address > :last-child { display: block; text-align: left; }
 .bookmark-editor {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -191,9 +188,8 @@ html { scrollbar-gutter: stable; }
 .detail-shared-data .detail-bookmarks { margin-top: 0; }
 .detail-cleanup { display: inline-flex; align-items: center; gap: .4rem; flex-shrink: 0; min-height: var(--control-size); padding-inline: .8rem .95rem; font-size: var(--text-control); font-weight: 500; }
 .detail-cleanup .icon { width: 17px; height: 17px; }
-.detail-metadata { margin-top: .5rem; color: var(--muted); font-size: var(--text-meta); }
 .related-disclosure { margin-top: .75rem; font-size: var(--text-control); }
-.related-disclosure > summary, .detail-metadata > summary { padding: .45rem 0; cursor: pointer; }
+.related-disclosure > summary { padding: .45rem 0; cursor: pointer; }
 .related-disclosure[open] > summary { margin-bottom: .5rem; }
 .icon {
   width: 19px;
@@ -242,3 +238,7 @@ html { scrollbar-gutter: stable; }
 }
 .saved-page-description { display: grid; min-width: 0; gap: 0.1rem; }
 .empty-folder { padding: 0.5rem 0.75rem; }
+/* Pull icon-only actions out by their hit-area padding so glyphs line up with right-aligned values. */
+.bookmark-actions { margin-right: calc((19px - var(--control-size)) / 2); }
+.saved-page-heading .bookmark-actions { margin-top: calc((1.55rem - var(--control-size)) / 2); }
+.detail-card-header.bookmark-heading { align-items: center; }
