@@ -9,6 +9,7 @@ export interface DetailsDrawer {
   isOpen(key?: string): boolean;
   close(): void;
   syncInspection(): void;
+  setCleanupBusy(busy: boolean): void;
 }
 
 let shared: DetailsDrawer | undefined;
@@ -18,6 +19,13 @@ export function detailsDrawer(): DetailsDrawer {
   const dialog = el("dialog", "details-drawer");
   dialog.setAttribute("aria-label", "Site details");
   const body = el("div", "drawer-content");
+  const cleanupOverlay = el("div", "drawer-cleanup-overlay");
+  const cleanupMessage = el("div", "drawer-cleanup-message");
+  const cleanupSpinner = el("span", "spinner");
+  cleanupSpinner.setAttribute("aria-hidden", "true");
+  cleanupMessage.append(cleanupSpinner, el("span", "", "Cleanup in progress…"));
+  cleanupOverlay.append(cleanupMessage);
+  cleanupOverlay.hidden = true;
   let request = 0;
   let trigger: HTMLElement | undefined;
   let motionRevision = 0;
@@ -27,7 +35,7 @@ export function detailsDrawer(): DetailsDrawer {
   const closeButton = iconButton("close", "Close details", close);
   const header = el("div", "drawer-header");
   header.append(closeButton);
-  dialog.append(header, body);
+  dialog.append(header, body, cleanupOverlay);
   const rail = el("div", "details-rail");
   rail.append(dialog);
 
@@ -82,12 +90,21 @@ export function detailsDrawer(): DetailsDrawer {
     markInspected();
     opened = false;
     closing = false;
+    setCleanupBusy(false);
     rail.closest(".workspace")?.classList.remove("has-details");
     rail.remove();
     if (restoreFocus) returnFocus();
   }
 
   function close() { void requestLeave().then(allowed => { if (allowed) closeNow(); }); }
+
+  function setCleanupBusy(busy: boolean) {
+    cleanupOverlay.hidden = !busy;
+    body.inert = busy;
+    dialog.classList.toggle("is-cleaning", busy);
+    dialog.setAttribute("aria-busy", String(busy));
+    if (busy && body.contains(document.activeElement)) closeButton.focus({ preventScroll: true });
+  }
 
   function closeNow() {
     if (!opened || closing) return;
@@ -177,6 +194,7 @@ export function detailsDrawer(): DetailsDrawer {
       document.querySelectorAll('[data-focus-key][aria-current="true"]').forEach(node => node.removeAttribute("aria-current"));
       document.querySelector(`[data-focus-key="${CSS.escape(key)}"]`)?.setAttribute("aria-current", "true");
     },
+    setCleanupBusy,
   };
   return shared;
 }

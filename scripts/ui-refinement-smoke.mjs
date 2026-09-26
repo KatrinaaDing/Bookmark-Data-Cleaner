@@ -106,8 +106,10 @@ try {
   assert.equal(await run(`document.querySelectorAll('[data-focus-key][aria-current="true"]').length`), 0, "Closing clears the inspected state");
   // A delayed details request must not reopen the card after the user closes it.
   await run(
-    `(async()=>{const {detailsDrawer}=await import('./components/details-drawer.js');window.testDrawer=detailsDrawer();const token=window.testDrawer.open(document.createElement('section'),document.querySelector('.row-title'));window.testDrawer.close();await new Promise(r=>setTimeout(r,350));window.testDrawer.update(document.createElement('section'),token);})()`,
+    `(async()=>{const {detailsDrawer}=await import('./components/details-drawer.js');window.testDrawer=detailsDrawer();window.testDrawerRequest=window.testDrawer.open(document.createElement('section'),document.querySelector('.row-title'));window.testDrawer.close();})()`,
   );
+  await waitFor(`!document.querySelector('.details-drawer[open]')`);
+  await run(`window.testDrawer.update(document.createElement('section'),window.testDrawerRequest)`);
   assert.equal(
     await run(`!!document.querySelector('.details-drawer[open]')`),
     false,
@@ -183,18 +185,9 @@ try {
       return rect.width>0 && rect.left>=form.left-1 && rect.right<=form.right+1 && rect.right<=card.right+1;
     })`), true, 'Edit and create controls fit with long values at '+width+'px');
     assert.equal(await run(`document.querySelector('.details-drawer').scrollWidth <= document.querySelector('.details-drawer').clientWidth`), true, 'Drawer has no horizontal overflow');
-    const info = `document.querySelector('.details .info-control button')`;
-    await run(`${info}.blur();${info}.focus()`);
-    assert.equal(await run(`!!document.querySelector('.details .info-popover:popover-open')`),true,'Keyboard focus opens explanatory help without expanding the card');
-    await browser.cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27},page.sessionId);
-    assert.equal(await run(`!!document.querySelector('.details .info-popover:popover-open')`),false,'Escape closes help before the drawer');
-    assert.equal(await run(`!!document.querySelector('.details-drawer[open]')`),true);
     if (width !== 800) {
       await run(`document.querySelector('.bookmark-editor').scrollIntoView({block:'start'})`);
       await capture('long-editor-'+width,width,900);
-      await run(`${info}.scrollIntoView({block:'center'});${info}.click()`);
-      await capture('website-help-'+width,width,900);
-      await run(`${info}.click()`);
     }
 
   }

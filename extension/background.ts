@@ -30,13 +30,13 @@ async function openManager(): Promise<void> {
   } else await chrome.tabs.create({ url });
 }
 chrome.runtime.onMessage.addListener(
-  (message: { type?: string; plan?: CleanupPlan }, sender, respond) => {
+  (message: { type?: string; plan?: CleanupPlan; initiatingBookmarkIds?: string[] }, sender, respond) => {
     if (sender.id !== chrome.runtime.id) return;
     let operation: Promise<unknown>;
     if (message.type === "open-manager") operation = openManager();
     else if (message.type === "get-job") operation = jobs.get();
     else if (message.type === "start-cleanup" && message.plan)
-      operation = jobs.start(message.plan);
+      operation = jobs.start(message.plan, message.initiatingBookmarkIds);
     else return;
     void operation.then(
       (value) => respond({ ok: true, value }),

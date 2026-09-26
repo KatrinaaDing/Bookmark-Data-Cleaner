@@ -2,6 +2,10 @@
 
 ## Resume here
 
+**Follow-up:** the user has now reviewed the screenshots. The [bookmark review feedback pass](../improvements/history/2026-09-26-bookmark-review-feedback.md) implements six requested improvements, including always-visible history and explicit opt-in deletion of affected bookmarks without expanding website-data scope. It supersedes the layout and verification notes below. These follow-up changes are in the working tree, not committed.
+
+A later progress-feedback follow-up adds persistent job toasts and in-context busy states for the affected bookmark rows and open details panel. The same follow-up record describes the resulting job and UI contract. These changes also remain uncommitted.
+
 Continue refining **details and cleanup review**, the area the user identified as least finished. The user explicitly rejected moving to release preparation: “it's not yet ready for release. let's continue refining the product, and UX/UI.” Passing checks does not establish usability or release readiness.
 
 The latest refinement is implemented and committed. There is no unfinished implementation or known failing check from this pass. Start by inspecting the current UI and latest records; do not assume historical findings remain open. Identify the next concrete UX issue before adding more controls or explanations.

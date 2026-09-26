@@ -34,7 +34,7 @@ export class JobCoordinator {
     await this.ready;
     return this.current;
   }
-  async start(input: CleanupPlan): Promise<Job> {
+  async start(input: CleanupPlan, initiatingBookmarkIds: string[] = []): Promise<Job> {
     await this.ready;
     if (this.current?.status === "running")
       throw Error("A cleanup is already running.");
@@ -45,6 +45,10 @@ export class JobCoordinator {
       completed: 0,
       total: plan.sites.length,
       outcomes: [],
+      busyBookmarkIds: [...new Set([
+        ...initiatingBookmarkIds,
+        ...plan.sites.flatMap(site => site.bookmarks.map(bookmark => bookmark.id)),
+      ])],
     };
     const previous = this.current;
     this.current = job;

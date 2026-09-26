@@ -14,6 +14,7 @@ for (const test of [
   "ui-contract",
   "bookmark-search",
   "cleanup-ux",
+  "affected-cleanup",
   "site-discovery",
   "results",
 ]) {

@@ -27,40 +27,50 @@ function toastHost(): HTMLElement {
   if (!host.matches(':popover-open')) host.showPopover();
   return host;
 }
-export function toast(message: string, kind: 'success' | 'error' | 'info' = 'success'): void {
+export interface ToastHandle { dismiss(): void; }
+export function toast(message: string | HTMLElement, kind: 'success' | 'error' | 'info' = 'success', options: { persistent?: boolean; busy?: boolean; className?: string } = {}): ToastHandle {
   const container = toastHost();
-  const item = el('div', `toast toast-${kind}`);
-  const text = el('span', '', message);
-  text.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+  const item = el('div', `toast toast-${kind}${options.persistent ? ' toast-persistent' : ''}${options.busy ? ' toast-progress' : ''}${options.className ? ` ${options.className}` : ''}`);
+  const content = typeof message === 'string' ? el('span', '', message) : message;
+  if (typeof message === 'string') content.setAttribute('role', kind === 'error' ? 'alert' : 'status');
   let timer: ReturnType<typeof setTimeout> | undefined;
   let dismissing = false;
   const stop = () => clearTimeout(timer);
+  const remove = () => {
+    stop();
+    item.remove();
+    if (!container.childElementCount) container.hidePopover();
+  };
   const dismiss = () => {
     if (dismissing) return;
     dismissing = true;
     stop();
-    void transition(item, [{ opacity: 1 }, { opacity: 0 }], motionDuration('feedback')).then(() => {
-      item.remove();
-      if (!container.childElementCount) container.hidePopover();
-    });
+    void transition(item, [{ opacity: 1 }, { opacity: 0 }], motionDuration('feedback')).then(remove);
   };
   const schedule = () => {
     stop();
-    if (kind !== 'error' && !item.matches(':hover, :focus-within')) timer = setTimeout(dismiss, 6000);
+    if (!options.persistent && kind !== 'error' && !item.matches(':hover, :focus-within')) timer = setTimeout(dismiss, 6000);
   };
-  item.append(text, iconButton('close', 'Dismiss notification', dismiss));
+  if (options.busy) {
+    const spinner = el('span', 'spinner');
+    spinner.setAttribute('aria-hidden', 'true');
+    item.append(spinner);
+  }
+  item.append(content);
+  if (!options.persistent) item.append(iconButton('close', 'Dismiss notification', dismiss));
   item.addEventListener('mouseenter', stop);
   item.addEventListener('mouseleave', schedule);
   item.addEventListener('focusin', stop);
   item.addEventListener('focusout', () => queueMicrotask(schedule));
   // Keep persistent errors; bound transient notification noise.
-  const transient = container.querySelectorAll('.toast:not(.toast-error)');
+  const transient = container.querySelectorAll('.toast:not(.toast-error):not(.toast-persistent)');
   if (transient.length >= 3) transient[transient.length - 1].dispatchEvent(new Event('dismiss-toast'));
   item.addEventListener('dismiss-toast', dismiss);
   container.prepend(item);
   container.scrollTop = 0;
   enter(item, 1);
   schedule();
+  return { dismiss: remove };
 }
 
 export function infoPopover(label: string, content: string): HTMLElement {

@@ -63,3 +63,33 @@ test("a failed initial status write does not permanently lock cleanup", async ()
   fail = false;
   await assert.doesNotReject(coordinator.start(plan));
 });
+
+test("running job persists initiating and reviewed bookmark IDs without changing deletion scope", async () => {
+  let saved: Job | undefined;
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  const removed: string[] = [];
+  const coordinator = new JobCoordinator({
+    read: async () => saved,
+    write: async job => { saved = structuredClone(job); },
+  }, {
+    removeData: async () => { await pending; },
+    removeBookmark: async id => { removed.push(id); },
+    removeFolder: async () => {},
+  });
+  const plan = {
+    sites: [{ id: "example.test", host: "example.test", origins: ["https://example.test"], urls: ["https://example.test/a"], cookies: [], bookmarks: [
+      { id: "copy", title: "Copy", url: "https://example.test/a", path: "Saved" },
+    ] }],
+    options: { cookies: false, savedData: true, cache: false, workers: false, bookmarks: true },
+    folders: [],
+  };
+  const started = await coordinator.start(plan, ["base", "base"]);
+  assert.deepEqual(started.busyBookmarkIds, ["base", "copy"]);
+  assert.deepEqual(saved?.busyBookmarkIds, ["base", "copy"]);
+  assert.deepEqual(plan.sites[0].bookmarks.map(bookmark => bookmark.id), ["copy"]);
+  release();
+  for (let i = 0; i < 20 && (await coordinator.get())?.status === "running"; i++)
+    await new Promise(resolve => setTimeout(resolve, 0));
+  assert.deepEqual(removed, ["copy"], "Display-only initiating IDs never become deletion targets");
+});

@@ -8,7 +8,6 @@ import { analyzeImpact } from "../core/impact.js";
 import { dateText, el } from "./dom.js";
 import { affectedBookmarks } from "./affected-bookmarks.js";
 import { iconButton } from "./icons.js";
-import { infoPopover } from "./feedback.js";
 import { bookmarkLink, bookmarkSummary } from "./bookmark-summary.js";
 import { requestLeave } from "./form-session.js";
 import { reveal } from "./motion.js";
@@ -76,8 +75,7 @@ export function siteDetails(
   panel.append(el("h2", "", title));
 
   const basic = detailCard(inspected ? "Bookmark" : "Site");
-  const dates = el("details", "detail-metadata");
-  dates.append(el("summary", "", "Visit history"));
+  const dates = el("div", "detail-metadata");
   basic.append(
     valueRow(inspected ? "Bookmark URL" : "Domain", inspected ? "" : site.host),
   );
@@ -207,7 +205,6 @@ export function siteDetails(
     : { ...site, bookmarks: [] };
   const impact = analyzeImpact([target], allBookmarks, detectedSites);
   const websiteData = detailCard("Website data");
-  websiteData.querySelector("h3")!.append(infoPopover("About website data cleanup", "Cleanup can sign you out or remove offline and unsynced website data. Other pages can share this data even when their bookmarks remain. You will review each category before anything is removed."));
   if (impact.duplicates.length) bookmark.append(affectedBookmarks({ ...impact, relatedBookmarks: [], relatedSites: [] }));
   websiteData.append(
     valueRow(
@@ -240,7 +237,7 @@ export function siteDetails(
       relatedBookmarks: impact.relatedBookmarks.filter(saved => !shownIds.has(saved.id)),
     };
     if (additionalImpact.relatedBookmarks.length || additionalImpact.relatedSites.length)
-      websiteData.append(affectedBookmarks(additionalImpact, "Other pages that may share this data"));
+      websiteData.append(affectedBookmarks(additionalImpact));
   }
   panel.append(basic, websiteData);
   if (inspected && bookmark.childElementCount) panel.append(bookmark);

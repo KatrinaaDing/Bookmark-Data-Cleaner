@@ -32,7 +32,7 @@ Keep DOM helpers simple and shared component APIs typed. Prefer explicit handles
 | Forms | Consistent field labels, spacing, validation and bottom action row. Shared submit/cancel lifecycle for edit and copy. Errors identify the field or failed operation. |
 | Bookmark summaries | Title first, folder path as a secondary line; optional full URL when useful. Reused in details, search and review. Rendering a row does not change selection or decide eligibility. |
 | Help | Small non-layout-shifting popover on hover/focus and tap; Escape closes it. Native disclosure is reserved for substantial optional content such as technical cleanup details. |
-| Feedback | Field errors local; operation loading next to the action; outcome toast for user actions; durable cleanup report for details/partial or uncertain outcomes. |
+| Feedback | Field errors local; operation loading next to the action; outcome toast for user actions; persistent cleanup-results toast with details for completed, partial or uncertain outcomes. |
 | Text | Domain, full bookmark URL, affected page, selected bookmark and duplicate are distinct concepts. No unmeasured data counts or generic success when work is partial/unverified. |
 | Typography | Reuse the system font and size tokens. Section and site row titles use medium weight, metadata regular weight. Bookmark list/search titles use regular (400); folder titles use bold (700). Blue may distinguish section headings; do not add bold to every level. |
 | Inspection rows | Row titles are buttons opening local details, without link underlines. Actual URLs remain links. Trailing icon/count metadata needs a descriptive accessible name and an explicit unavailable state. |
@@ -65,12 +65,14 @@ Extend existing tokens with semantic success/danger foreground and subtle backgr
 - Associate a reviewed snapshot with the exact options/duplicate decisions and the request revision that produced it. Confirm is enabled only for a successful current review with no preparation/start pending.
 - Any scope change invalidates confirmation immediately. Rebuild success replaces the plan; failure keeps confirmation unavailable with visible recovery actions. There is no fallback to the previous plan.
 - Back clears transient feedback, invalidates stale reads and retains user decisions. Defaults initialize eligible duplicate choices once; rerenders do not override an explicit deselection.
-- Review has one scrolling content region with actions and the irreversible warning outside it. Rebuilding a duplicate decision preserves open supporting disclosures, scroll position and checkbox focus while invalidating confirmation. Underlying details must defer responsive modal transitions while a confirmation overlay is open.
+- Review has one scrolling content region with actions and the irreversible warning outside it. Rebuilding a copy or affected-bookmark decision preserves open supporting disclosures, scroll position and checkbox focus while invalidating confirmation. Underlying details must defer responsive modal transitions while a confirmation overlay is open.
+- Additional affected bookmarks are opt-in deletions with unchanged website-data scope. Preparation rechecks eligibility from fresh bookmarks and selected data; managed entries remain protected. Bookmarks shared by several targets wait for all dependencies and remain if any data cleanup fails.
 - Starting uses the reviewed snapshot exactly once. A disconnected view does not imply the background job stopped; durable job status is the source of truth for its outcome.
+- The job carries presentation IDs for initiating and reviewed bookmarks. They never authorize deletion. While that job is running, list and details views derive their busy state from its ID and status; completion removes the busy state and reconciles the actual result. Closing details cannot hide the row-level progress state.
 
 ### Selection and navigation
 
-- Keep the inspected item independent of selection. Review carries its entry identity or bulk object counts; shared website-data effects are prepared separately from that entry scope. Reapply inspection by stable key when restoring a cached list.
+- Keep the inspected item independent of selection. Review carries its entry title/folder or bulk object counts; shared website-data effects are prepared separately from that entry scope. Reapply inspection by stable key when restoring a cached list.
 - One selection model owns IDs. Eligibility and matching belong to each workspace; shared helpers can derive result selection, mixed state and outside-results counts from sets of IDs.
 - Header unselect-all affects eligible current results; Clear selection affects all. Inspection, tree expansion and search text are independent state. Filtering never silently changes deletion targets.
 - Overlay ownership explicitly resolves Escape/focus: dismiss the topmost help/confirmation/modal first. Returning focus uses a connected visible trigger or a defined replacement/fallback.

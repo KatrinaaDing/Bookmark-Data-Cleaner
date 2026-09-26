@@ -30,6 +30,29 @@ html { scrollbar-gutter: stable; }
   background: var(--surface);
   box-shadow: 0 8px 24px rgb(32 45 67 / 8%);
 }
+.drawer-cleanup-overlay[hidden] { display: none; }
+.drawer-cleanup-overlay {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 3.5rem 1rem 1rem;
+  background: rgb(255 255 255 / 78%);
+  pointer-events: auto;
+}
+.drawer-cleanup-message {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .8rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgb(32 45 67 / 12%);
+}
 .details-drawer::backdrop { background: rgb(23 44 53 / 42%); }
 .drawer-header {
   position: sticky;

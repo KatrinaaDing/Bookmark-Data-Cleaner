@@ -2,7 +2,7 @@ import type { Job, Outcome } from "../core/types.js";
 import { el, status } from "./dom.js";
 import { iconButton } from "./icons.js";
 
-export function operationStatus(job: Job): HTMLElement {
+export function operationStatus(job: Job, onDismiss?: () => void): HTMLElement {
   const panel = el("section", "operation");
   panel.setAttribute("aria-label", "Cleanup results");
   const completed = job.outcomes.filter(outcome => outcome.status === "completed");
@@ -19,7 +19,7 @@ export function operationStatus(job: Job): HTMLElement {
     : interrupted ? "Cleanup interrupted — review before retrying"
       : attention.length ? "Cleanup finished with items to review" : "Selected cleanup requests completed", running));
   if (!running) header.append(iconButton("close", "Dismiss results", () => {
-    panel.remove();
+    if (onDismiss) onDismiss(); else panel.remove();
     document.getElementById("content")?.focus({preventScroll:true});
   }));
   panel.append(header);

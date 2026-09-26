@@ -6,6 +6,22 @@ export interface TreeView {
   folders: () => FolderRef[];
   update: () => void;
   ids: () => Set<string>;
+  setCleanupBusy: (ids: ReadonlySet<string>, blocked: boolean) => void;
+}
+export function setBookmarkRowBusy(row: HTMLElement, busy: boolean): void {
+  row.classList.toggle("is-cleaning", busy);
+  if (busy) row.setAttribute("aria-busy", "true");
+  else row.removeAttribute("aria-busy");
+  const title = row.querySelector<HTMLButtonElement>(".row-title");
+  if (title) title.disabled = busy;
+  row.querySelector(".row-cleanup-status")?.remove();
+  if (busy) {
+    const marker = el("span", "row-cleanup-status");
+    const spinner = el("span", "spinner");
+    spinner.setAttribute("aria-hidden", "true");
+    marker.append(spinner, el("span", "sr-only", "Cleanup in progress"));
+    row.append(marker);
+  }
 }
 export function bookmarkTree(
   nodes: chrome.bookmarks.BookmarkTreeNode[],
@@ -15,9 +31,12 @@ export function bookmarkTree(
   changed: () => void,
 ): TreeView {
   const root = el("div", "bookmark-tree");
+  const bookmarkRows = new Map<string, HTMLElement>();
+  let cleanupBlocked = false;
   const checks: {
     input: HTMLInputElement;
     ids: string[];
+    baseDisabled: boolean;
     count?: HTMLElement;
     folder?: FolderRef;
   }[] = [];
@@ -61,18 +80,21 @@ export function bookmarkTree(
     const item = el("div", node.url ? "bookmark-row" : "folder");
     const row = node.url ? item : el("div", "folder-row");
     const { label, input } = checkbox("", (value) => {
+      if (cleanupBlocked) return;
       for (const id of ids) selection.set(id, value);
       update();
     });
     input.setAttribute("aria-label", `Select ${node.title || "untitled"}`);
     input.disabled = protectedNode || !ids.length;
+    const baseDisabled = input.disabled;
     if (protectedNode) label.title = "Managed by your browser or organization.";
     row.append(label);
     const folder: FolderRef | undefined =
       !node.url && node.parentId !== "0" ? { id: node.id, depth } : undefined;
     const counter = !node.url ? el("span", "count") : undefined;
-    checks.push({ input, ids, folder, count: counter });
+    checks.push({ input, ids, baseDisabled, folder, count: counter });
     if (node.url) {
+      bookmarkRows.set(node.id, row);
       const title = button(
         node.title || "Untitled",
         () => inspect(node.id, title),
@@ -127,7 +149,12 @@ export function bookmarkTree(
   return {
     element: root,
     update,
-    ids: () => new Set(checks.flatMap(check => check.input.disabled ? [] : check.ids)),
+    ids: () => new Set(checks.flatMap(check => check.baseDisabled ? [] : check.ids)),
+    setCleanupBusy: (ids, blocked) => {
+      cleanupBlocked = blocked;
+      for (const check of checks) check.input.disabled = check.baseDisabled || blocked;
+      for (const [id, row] of bookmarkRows) setBookmarkRowBusy(row, ids.has(id));
+    },
     folders: () =>
       checks
         .filter((c) => c.folder && c.input.checked && !c.input.disabled)

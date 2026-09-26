@@ -5,11 +5,11 @@ import { bookmarkSummary } from "./bookmark-summary.js";
 
 function bookmarkLine(bookmark: BookmarkRef): HTMLElement {
   const line = el("li", "affected-entry");
-  line.append(bookmarkSummary(bookmark, true));
+  line.append(bookmarkSummary(bookmark, false, true));
   return line;
 }
 
-export function affectedBookmarks(impact: CleanupImpact, relatedTitle = "Other pages affected by this cleanup"): HTMLElement {
+export function affectedBookmarks(impact: CleanupImpact): HTMLElement {
   const content = el("div", "affected-bookmarks");
   if (impact.duplicates.length) {
     const disclosure = el("details", "related-disclosure duplicate-disclosure");
@@ -24,7 +24,7 @@ export function affectedBookmarks(impact: CleanupImpact, relatedTitle = "Other p
     disclosure.append(el("summary", "", impact.relatedBookmarks.length
       ? `${impact.relatedBookmarks.length} saved ${impact.relatedBookmarks.length === 1 ? "page" : "pages"} may be affected`
       : `${impact.relatedSites.length} other ${impact.relatedSites.length === 1 ? "site" : "sites"} may be affected`));
-    disclosure.append(el("p", "fine", relatedTitle));
+
     if (impact.relatedBookmarks.length) {
       const list = el("ul");
       for (const bookmark of impact.relatedBookmarks)

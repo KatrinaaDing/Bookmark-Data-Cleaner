@@ -71,6 +71,8 @@ export interface Job {
   completed: number;
   total: number;
   outcomes: Outcome[];
+  /** Presentation targets, including initiating bookmarks kept during data-only cleanup. */
+  busyBookmarkIds?: string[];
 }
 export const noCleanup: CleanupOptions = {
   cookies: false,

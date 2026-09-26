@@ -54,12 +54,12 @@ try {
     const selectedIds = `Array.from(document.querySelectorAll('.bookmark-row input:checked')).map(input=>input.closest('.bookmark-row').querySelector('[data-focus-key]').dataset.focusKey)`;
     const expectedSelection = [`bookmark:${fixture.a}`, `bookmark:${fixture.b}`];
     assert.deepEqual(await run(selectedIds), expectedSelection);
-    assert.match(await run(`document.querySelector('.cleanup-entry').textContent`), /This bookmark: Inspected C.*https:\/\/shared.test\/article/);
+    assert.match(await run(`document.querySelector('.cleanup-entry').textContent`), /Inspected C.*UX sample library/);
     assert.deepEqual(await run(`Array.from(document.querySelectorAll('.selected-bookmark .affected-title')).map(el=>el.textContent)`), ['Inspected C']);
     assert.equal(await run(`document.querySelector('.duplicate-choices input').dataset.bookmarkId`), fixture.copy);
-    assert.equal(await run(`document.querySelector('.selected-bookmark .bookmark-address-text').textContent`),'https://shared.test/article','Review identifies the full saved URL');
+    assert.equal(await run(`document.querySelector('.selected-bookmark a').href`),'https://shared.test/article','Review identifies the full saved URL');
     assert.equal(await run(`document.querySelector('.cleanup-footer').textContent.includes('Deletion cannot be undone.')`),true);
-    assert.match(await run(`document.querySelector('.scope-additions').textContent`), /1 additional bookmark/);
+    assert.match(await run(`document.querySelector('.duplicate-choices legend').textContent`), /1 selected/);
     assert.equal(await run(`document.querySelector('.related-warning details').open`), false);
     assert.equal(await run(`document.querySelectorAll('.related-warning .affected-entry').length`), 12);
     assert.match(await run(`document.querySelector('.related-warning').textContent`), /12 saved pages may be affected/);
@@ -107,7 +107,9 @@ try {
     assert.equal(await run(`document.querySelector('.details h2').textContent`),'Inspected C','Checkbox does not switch details');
     await run(`document.querySelector('input[aria-label="Select Selected A"]').click(); document.querySelector('.detail-cleanup').click()`);
     await waitFor(`!!document.querySelector('.cleanup-dialog')`);
+    await waitFor(`document.querySelector('#cleanup-count-bookmarks')?.textContent.includes('bookmark')`);
     await run(`document.querySelector('#cleanup-count-bookmarks').closest('.cleanup-choice').querySelector('input').click()`);
+    assert.equal(await run(`document.querySelector('#cleanup-count-bookmarks').closest('.cleanup-choice').querySelector('input').checked`),false);
     await click('Next');
     await waitFor(`document.querySelector('#cleanup-title')?.textContent.includes('Step 2')`);
     assert.equal(await run(`document.querySelector('.bookmark-removals')===null`),true);

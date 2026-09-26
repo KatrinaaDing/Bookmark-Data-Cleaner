@@ -51,6 +51,12 @@ try {
   assert.equal(await run(`${review}.disabled`), false);
   assert.equal(await run(`!!document.querySelector(".cleanup-feedback .spinner")`), false, "Back clears the completed preparation spinner");
 
+  await run(`document.querySelector('.cleanup-section-heading .info-control button').focus()`);
+  assert.equal(await run(`!!document.querySelector('.cleanup-dialog .info-popover:popover-open')`),true,'Category help opens from keyboard focus');
+  await browser.cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27},page.sessionId);
+  assert.equal(await run(`!!document.querySelector('.cleanup-dialog .info-popover:popover-open')`),false,'Escape dismisses category help first');
+  assert.equal(await run(`document.querySelector('.cleanup-dialog').open`),true,'Dismissing help keeps cleanup choices open');
+
   // An unavailable cookie choice must not leave a checked, disabled category in the next plan.
   await run(`${category("Delete bookmarks")}.click(); ${category("Cookies and sign-in data")}.click(); ${review}.click()`);
   await pause(80);

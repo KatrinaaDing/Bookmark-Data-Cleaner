@@ -9,7 +9,7 @@ import { readBookmarks } from "../browser/bookmarks.js";
 import { readHistory, requestHistory } from "../browser/history.js";
 import { hasSiteAccess, readCookies } from "../browser/site-data.js";
 import { sitesFromBookmarks } from "../core/inventory.js";
-import { analyzeImpact } from "../core/impact.js";
+import { analyzeImpact, withBookmarkRemovals } from "../core/impact.js";
 import { Selection } from "../core/state.js";
 import type {
   BookmarkFolder,
@@ -18,7 +18,7 @@ import type {
   Job,
   SiteRecord,
 } from "../core/types.js";
-import { bookmarkTree, type TreeView } from "../components/bookmark-tree.js";
+import { bookmarkTree, setBookmarkRowBusy, type TreeView } from "../components/bookmark-tree.js";
 import { cleanupDialog } from "../components/cleanup-dialog.js";
 import { button, checkbox, clickableRow, el, heading, status } from "../components/dom.js";
 import {
@@ -31,6 +31,7 @@ export interface WorkspacePage {
   load: () => Promise<void>;
   refresh: () => Promise<void>;
   invalidate: () => void;
+  setCleanupJob: (job?: Job, unavailable?: boolean) => void;
 }
 
 export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
@@ -56,9 +57,13 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   let generation = 0;
   let inspectedId: string | undefined;
   let inspectedRequest = 0;
+  let cleanupJob: Job | undefined;
+  let cleanupUnavailable = true;
   const list = el("div", "workspace-list");
   const feedback = el("div");
   const drawer = detailsDrawer();
+  const cleanupBlocked = () => cleanupUnavailable || cleanupJob?.status === "running";
+  const busyBookmarkIds = () => new Set(cleanupJob?.status === "running" ? cleanupJob.busyBookmarkIds ?? [] : []);
 
   function inventory(items: BookmarkRef[], cookies = cachedCookies) {
     return cookies === undefined
@@ -86,17 +91,19 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     const site = siteFor(id);
     if (!inspected || !site)
       return status("This bookmark is no longer available. Close details to continue.");
-    return siteDetails(site, {
+    const content = siteDetails(site, {
       inspectedBookmark: inspected,
       allBookmarks: records,
       folders,
       detectedSites: detailSites,
       loadingDates: detailsLoading,
       onCleanup: (_site, bookmark) => {
-        if (bookmark) openDirectCleanup(bookmark);
+        if (bookmark && !cleanupBlocked()) openDirectCleanup(bookmark);
       },
       onMutation: reconcileMutation,
     });
+    content.querySelector<HTMLButtonElement>(".detail-cleanup")?.toggleAttribute("disabled", !!cleanupBlocked());
+    return content;
   }
 
   let enrichmentDeferred = false;
@@ -112,6 +119,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       return;
     }
     drawer.update(detailsFor(inspectedId), inspectedRequest);
+    drawer.setCleanupBusy(busyBookmarkIds().has(inspectedId));
   }
 
   function matches() {
@@ -120,18 +128,19 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   }
   const all = selectionControl(selection,
     () => search.value.trim() ? new Set(matches().filter(bookmark => !bookmark.unmodifiable).map(bookmark => bookmark.id)) : treeView?.ids() ?? new Set(),
-    () => !!search.value.trim(), () => { treeView?.update(); renderTree(false); });
+    () => !!search.value.trim(), () => { treeView?.update(); renderTree(false); }, cleanupBlocked);
   function renderTree(rebuild = true) {
     if (rebuild || !treeView) treeView = bookmarkTree(tree, selection, expanded, (id, trigger) => { void inspect(id, trigger); }, changed);
     if (search.value.trim()) {
       const results = el("div", "search-results");
       for (const bookmark of matches()) {
         const row = el("div", "bookmark-row");
-        const check = checkbox("", value => { selection.set(bookmark.id, value); changed(); });
+        const check = checkbox("", value => { if (cleanupBlocked()) return; selection.set(bookmark.id, value); changed(); });
         check.input.setAttribute("aria-label", `Select ${bookmark.title || "untitled"}`);
-        check.input.checked = selection.ids.has(bookmark.id); check.input.disabled = !!bookmark.unmodifiable;
+        check.input.checked = selection.ids.has(bookmark.id); check.input.disabled = !!bookmark.unmodifiable || !!cleanupBlocked();
         const title = button("", () => { void inspect(bookmark.id, title); }, "row-title");
         title.append(bookmarkSummary(bookmark)); title.dataset.focusKey = `bookmark:${bookmark.id}`;
+        row.dataset.bookmarkId = bookmark.id;
         row.append(check.label, title); clickableRow(row, title); results.append(row);
       }
       if (!results.childElementCount) results.append(status("No bookmarks match this search. Try a title, URL or folder name."));
@@ -140,6 +149,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       list.replaceChildren(all.element, treeView!.element);
       if (!records.length) list.append(status("No bookmarks yet. Saved bookmarks will appear here."));
     }
+    syncCleanupPresentation();
     drawer.syncInspection();
     changed();
   }
@@ -195,18 +205,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     const contextual = cookies === undefined
       ? sitesFromBookmarks(base, undefined, cachedHistory)
       : sitesFromBookmarks(base, cookies, cachedHistory);
-    const eligibleExtras = analyzeImpact(contextual, fresh.bookmarks, detailSites, options).duplicates.filter(bookmark => !bookmark.unmodifiable && extras.has(bookmark.id)).map(bookmark => bookmark.id);
-    const removalIds = options.bookmarks
-      ? new Set([...baseIds, ...eligibleExtras])
-      : new Set<string>();
-    const removal = fresh.bookmarks.filter((bookmark) => removalIds.has(bookmark.id));
-    const planSites = cookies === undefined
-      ? sitesFromBookmarks(removal, undefined, cachedHistory)
-      : sitesFromBookmarks(removal, cookies, cachedHistory);
-    if (!options.bookmarks) {
-      for (const site of contextual)
-        planSites.push({ ...site, bookmarks: [] });
-    }
+    const planSites = withBookmarkRemovals(contextual, fresh.bookmarks, options, extras);
     return {
       sites: planSites,
       folders: selectedFolders,
@@ -216,19 +215,21 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   }
 
   function openDirectCleanup(bookmark: BookmarkRef) {
+    if (cleanupBlocked()) return;
     const ids = new Set([bookmark.id]);
     const current = records.find(item => item.id === bookmark.id) ?? bookmark;
     cleanupDialog(
       (options, extras) => prepareBookmarks(ids, options, extras),
       true,
       onStarted,
-      { label: `This bookmark: ${current.title || "Untitled"}`, url: current.url },
+      { label: current.title || "Untitled", bookmark: current },
     );
   }
 
   const clean = button(
     "Clean up selected…",
     async () => {
+      if (cleanupBlocked()) return;
       if (!(await requestLeave())) return;
       const ids = new Set(selection.ids);
       const selectedFolders = treeView?.folders() ?? [];
@@ -267,7 +268,20 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   function changed() {
     count.textContent = all.update();
     clear.hidden = selection.ids.size === 0;
-    clean.disabled = busy || !selection.ids.size;
+    clean.disabled = busy || !!cleanupBlocked() || !selection.ids.size;
+  }
+
+  function syncCleanupPresentation() {
+    const ids = busyBookmarkIds();
+    treeView?.setCleanupBusy(ids, !!cleanupBlocked());
+    for (const row of list.querySelectorAll<HTMLElement>(".search-results .bookmark-row"))
+      setBookmarkRowBusy(row, ids.has(row.dataset.bookmarkId ?? ""));
+    if (inspectedId && drawer.isOpen(`bookmark:${inspectedId}`)) {
+      drawer.setCleanupBusy(ids.has(inspectedId));
+      const clean = document.querySelector<HTMLButtonElement>(".details-drawer .detail-cleanup");
+      if (clean) clean.disabled = !!cleanupBlocked();
+    }
+    changed();
   }
 
   async function inspect(id: string, trigger: HTMLElement) {
@@ -275,6 +289,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     inspectedId = id;
     const source = list.querySelector<HTMLElement>(`[data-focus-key="bookmark:${CSS.escape(id)}"]`) ?? trigger;
     inspectedRequest = drawer.open(detailsFor(id), source);
+    drawer.setCleanupBusy(busyBookmarkIds().has(id));
   }
 
   async function load(force = false, announce = force) {
@@ -348,6 +363,13 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     element: page,
     load: () => load(),
     refresh: () => (loaded && !currentForm() ? load(true, false) : Promise.resolve()),
+    setCleanupJob: (job, unavailable = false) => {
+      if (cleanupUnavailable === unavailable && cleanupJob?.id === job?.id &&
+          cleanupJob?.status === job?.status) return;
+      cleanupJob = job;
+      cleanupUnavailable = unavailable;
+      syncCleanupPresentation();
+    },
     invalidate: () => {
       generation++;
       loaded = false;

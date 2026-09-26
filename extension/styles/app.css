@@ -734,7 +734,7 @@ button.danger:hover:not(:disabled) {
 .check:hover:not(:has(input:disabled)), summary:hover { background: var(--tint); }
 summary { padding: .65rem .75rem; border-radius: 6px; }
 .url { padding: .4rem .5rem; border-radius: 5px; }
-.url:hover { background: var(--tint); }
+a.url:hover { background: var(--tint); }
 input[type="checkbox"] {
   appearance: none;
   display: inline-grid;

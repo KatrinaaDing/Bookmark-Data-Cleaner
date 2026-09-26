@@ -48,6 +48,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
   let generation = 0;
   let inspectedSiteId: string | undefined;
   let inspectedRequest = 0;
+  let cleanupBlocked = true;
   const selection = new Selection();
   const feedback = el("div");
   const list = el("div", "workspace-list");
@@ -110,18 +111,21 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
   function changed() {
     count.textContent = all.update();
     clear.hidden = selection.ids.size === 0;
-    clean.disabled = busy || !selection.ids.size;
+    clean.disabled = busy || cleanupBlocked || !selection.ids.size;
   }
 
   function detailsFor(site: SiteRecord): HTMLElement {
-    return siteDetails(site, {
+    const content = siteDetails(site, {
       allBookmarks,
       folders,
       detectedSites: sites,
       loadingDates: datesLoading,
-      onCleanup: (target) => openDirectCleanup(target),
+      onCleanup: (target) => { if (!cleanupBlocked) openDirectCleanup(target); },
       onMutation: reconcileMutation,
     });
+    const clean = content.querySelector<HTMLButtonElement>(".detail-cleanup");
+    if (clean) clean.disabled = cleanupBlocked;
+    return content;
   }
 
   async function inspect(site: SiteRecord, trigger: HTMLElement) {
@@ -230,16 +234,18 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
   }
 
   function openDirectCleanup(site: SiteRecord) {
+    if (cleanupBlocked) return;
     const ids = new Set([site.id]);
     cleanupDialog((options) => prepareSites(ids, options), false, onStarted, { label: `This site: ${site.host}` });
   }
 
   const clean = button("Clean up selected…", async () => {
+    if (cleanupBlocked) return;
     if (!(await requestLeave())) return;
     const ids = new Set(selection.ids);
     cleanupDialog((options) => prepareSites(ids, options), false, onStarted, { label: `Selected: ${ids.size} ${ids.size === 1 ? "site" : "sites"}` });
   }, "primary");
-  const all = selectionControl(selection, () => new Set(visible().map(site => site.id)), () => !!search.value.trim() || bookmarkFilter.value !== "all", render);
+  const all = selectionControl(selection, () => new Set(visible().map(site => site.id)), () => !!search.value.trim() || bookmarkFilter.value !== "all", render, () => cleanupBlocked);
   const clear = iconButton("clear", "Clear selection", () => {
     selection.ids.clear();
     render();
@@ -330,6 +336,13 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     element: page,
     load: () => load(),
     refresh: () => (loaded && !currentForm() ? load(true, false) : Promise.resolve()),
+    setCleanupJob: (job, unavailable = false) => {
+      const nextBlocked = unavailable || job?.status === "running";
+      if (cleanupBlocked === nextBlocked) return;
+      cleanupBlocked = nextBlocked;
+      changed();
+      updateOpenDetails();
+    },
     invalidate: () => {
       generation++;
       loaded = false;

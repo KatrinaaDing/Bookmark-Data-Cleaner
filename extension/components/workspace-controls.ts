@@ -7,7 +7,7 @@ export function workspaceToolbar(filters: HTMLElement[], actions: HTMLElement[])
   left.append(...filters); right.append(...actions); toolbar.append(left, right);
   return toolbar;
 }
-export function selectionControl(selection: Selection, results: () => Set<string>, filtered: () => boolean, changed: () => void) {
+export function selectionControl(selection: Selection, results: () => Set<string>, filtered: () => boolean, changed: () => void, blocked: () => boolean = () => false) {
   const header = el('div', 'list-selection');
   const choice = checkbox('Select all', selected => { selection.setMany(results(), selected); changed(); choice.input.focus({ preventScroll: true }); });
   header.append(choice.label);
@@ -16,7 +16,7 @@ export function selectionControl(selection: Selection, results: () => Set<string
     const state = selection.summary(ids);
     choice.input.checked = ids.size > 0 && state.inResults === ids.size;
     choice.input.indeterminate = state.inResults > 0 && state.inResults < ids.size;
-    choice.input.disabled = !ids.size;
+    choice.input.disabled = !ids.size || blocked();
     choice.label.querySelector('span')!.textContent = filtered() ? 'Select all results' : 'Select all';
     return state.outside ? `${selection.ids.size} selected · ${state.outside} outside results` : `${selection.ids.size} selected`;
   }};

@@ -1,6 +1,6 @@
 import { requestLeave } from "./components/form-session.js";
 import { enter } from "./components/motion.js";
-import { toast } from "./components/feedback.js";
+import { toast, type ToastHandle } from "./components/feedback.js";
 import { dashboard } from "./pages/dashboard.js";
 import { bookmarksPage } from "./pages/bookmarks.js";
 import { sitesPage } from "./pages/sites.js";
@@ -11,14 +11,36 @@ const pages = document.getElementById("pages")!,
   operation = document.getElementById("operation")!;
 let timer: number | undefined,
   lastJob = "";
-let previousJobStatus = "";
+let progressToast: { jobId: string; handle: ToastHandle } | undefined;
+let resultToast: { jobId: string; handle: ToastHandle } | undefined;
 function showJob(job: Job) {
-  if (previousJobStatus === "running" && job.status !== "running") {
-    const incomplete = job.status === "unverified" || job.outcomes.some(outcome => outcome.status !== "completed");
-    toast(incomplete ? "Cleanup finished with items to review. See cleanup results." : "Selected cleanup requests completed.", incomplete ? "error" : "success");
+  bookmarks.setCleanupJob(job);
+  sites.setCleanupJob(job);
+  if (job.status === "running" && resultToast) {
+    resultToast.handle.dismiss();
+    resultToast = undefined;
   }
-  previousJobStatus = job.status;
-  operation.replaceChildren(operationStatus(job));
+  if (job.status === "running" && progressToast?.jobId !== job.id) {
+    progressToast?.handle.dismiss();
+    progressToast = {
+      jobId: job.id,
+      handle: toast("Cleanup in progress…", "info", { persistent: true, busy: true }),
+    };
+  }
+  if (job.status !== "running" && progressToast?.jobId === job.id) {
+    progressToast.handle.dismiss();
+    progressToast = undefined;
+  }
+  if (job.status !== "running" && resultToast?.jobId !== job.id) {
+    const incomplete = job.status === "unverified" || job.outcomes.some(outcome => outcome.status !== "completed");
+    resultToast?.handle.dismiss();
+    let handle: ToastHandle;
+    const report = operationStatus(job, () => handle.dismiss());
+    handle = toast(report, incomplete ? "error" : "success", { persistent: true, className: "toast-operation" });
+    resultToast = { jobId: job.id, handle };
+  }
+  if (job.status === "running") operation.replaceChildren(operationStatus(job));
+  else operation.replaceChildren();
   lastJob = JSON.stringify(job);
   if (job.status === "running" && !timer)
     timer = window.setInterval(() => {
@@ -39,7 +61,15 @@ async function checkJob() {
     if (!response.ok) throw Error(response.error);
     if (response.value && JSON.stringify(response.value) !== lastJob)
       showJob(response.value);
+    else if (!response.value) {
+      bookmarks.setCleanupJob();
+      sites.setCleanupJob();
+    }
   } catch {
+    bookmarks.setCleanupJob(undefined, true);
+    sites.setCleanupJob(undefined, true);
+    progressToast?.handle.dismiss();
+    progressToast = undefined;
     toast("Cleanup status is unavailable. Reopen the app before starting another cleanup.", "error");
     operation.replaceChildren(
       status(
@@ -60,6 +90,7 @@ document.addEventListener("bookmarks-changed", (event) => {
   if (source !== "bookmarks") bookmarks.invalidate();
   if (source !== "sites") sites.invalidate();
 });
+document.addEventListener("cleanup-review-opened", () => resultToast?.handle.dismiss());
 pages.append(home, bookmarks.element, sites.element);
 function route() {
   const current = location.hash.slice(1) || "home";
