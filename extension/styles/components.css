@@ -23,6 +23,8 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
 .editor-feedback:empty { display: none; }
 .editor-feedback .status { background: var(--danger-soft); color: var(--danger); }
 .list-selection { display: flex; align-items: center; gap: 1rem; padding: .5rem .75rem; border-bottom: 1px solid var(--line); margin-bottom: .5rem; font-size: var(--text-control); }
+.list-results { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-control); padding: 0 .75rem .5rem; }
+.list-results .reset-filters { font-size: var(--text-meta); padding: .25rem .5rem; }
 .toolbar-filters, .toolbar-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-control); min-width: 0; }
 .toolbar-actions { margin-left: auto; }
 .toolbar-actions .selection-count { margin: 0; }

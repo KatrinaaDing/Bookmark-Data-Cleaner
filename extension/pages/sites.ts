@@ -24,7 +24,6 @@ import { Selection } from "../core/state.js";
 import { cleanupDialog } from "../components/cleanup-dialog.js";
 import {
   button,
-  checkbox,
   el,
   heading,
   status,
@@ -67,7 +66,13 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     option.value = value;
     order.append(option);
   }
-  const bookmarked = checkbox("Bookmarked only", () => render());
+  const bookmarkFilter = el("select");
+  bookmarkFilter.setAttribute("aria-label", "Filter sites by bookmark status");
+  for (const [value, label] of [["all", "All sites"], ["saved", "Bookmarked"], ["unsaved", "Not bookmarked"]]) {
+    const option = el("option", "", label);
+    option.value = value;
+    bookmarkFilter.append(option);
+  }
   const refresh = iconButton("refresh", "Refresh", () => void load(true));
   const count = el("span", "selection-count");
   const access = permissionAction({
@@ -87,7 +92,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
       .filter(
         (site) =>
           site.host.includes(search.value.trim().toLowerCase()) &&
-          (!bookmarked.input.checked || site.bookmarks.length),
+          (bookmarkFilter.value === "all" || (bookmarkFilter.value === "saved" ? site.bookmarks.length > 0 : site.bookmarks.length === 0)),
       )
       .sort((a, b) => {
         if (datesLoading) return a.host.localeCompare(b.host);
@@ -153,8 +158,22 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     order.disabled = datesLoading;
     order.title = datesLoading ? "Visit dates are still loading" : "";
     const filtered = visible();
+    const resultCount = el("span", "fine result-count", `${filtered.length} of ${sites.length} sites`);
+    resultCount.setAttribute("role", "status");
+    const reset = button("Reset filters", () => {
+      search.value = "";
+      bookmarkFilter.value = "all";
+      render();
+      search.focus();
+    }, "quiet reset-filters");
+    const filtersActive = !!search.value.trim() || bookmarkFilter.value !== "all";
+    reset.hidden = !filtersActive;
+    const resultInfo = el("div", "list-results");
+    resultInfo.append(resultCount, reset);
+    resultInfo.hidden = !loaded;
     list.replaceChildren(
       all.element,
+      resultInfo,
       filtered.length
         ? siteTimeline(filtered, selection, inspect, changed)
         : status(
@@ -220,18 +239,19 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     const ids = new Set(selection.ids);
     cleanupDialog((options) => prepareSites(ids, options), false, onStarted, { label: `Selected: ${ids.size} ${ids.size === 1 ? "site" : "sites"}` });
   }, "primary");
-  const all = selectionControl(selection, () => new Set(visible().map(site => site.id)), () => !!search.value.trim() || bookmarked.input.checked, render);
+  const all = selectionControl(selection, () => new Set(visible().map(site => site.id)), () => !!search.value.trim() || bookmarkFilter.value !== "all", render);
   const clear = iconButton("clear", "Clear selection", () => {
     selection.ids.clear();
     render();
   });
-  const toolbar = workspaceToolbar([refresh, search, order, bookmarked.label, history], [clear, count, clean]);
+  const toolbar = workspaceToolbar([refresh, search, order, bookmarkFilter, history], [clear, count, clean]);
   page.append(toolbar, access, feedback);
   const workspace = el("div", "workspace");
   workspace.append(list);
   page.append(workspace);
   search.addEventListener("input", render);
   order.addEventListener("change", render);
+  bookmarkFilter.addEventListener("change", render);
 
   async function load(force = false, announce = force) {
     if (busy || (loaded && !force)) return;
