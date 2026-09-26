@@ -1,5 +1,5 @@
 import { button, el } from './dom.js';
-import { iconButton } from './icons.js';
+import { icon, iconButton } from './icons.js';
 import { enter, motionDuration, transition } from './motion.js';
 let host: HTMLElement | undefined;
 let serial = 0;
@@ -79,15 +79,11 @@ export function infoPopover(label: string, content: string): HTMLElement {
   help.id = `info-${++serial}`;
   help.popover = 'manual';
   help.setAttribute('role', 'tooltip');
-  let pointerWasOpen: boolean | undefined;
-  const control = iconButton('info', label, () => {
-    const wasOpen = pointerWasOpen ?? help.matches(':popover-open');
-    pointerWasOpen = undefined;
-    if (wasOpen) hide(); else show();
-  });
-  control.addEventListener('pointerdown', () => { pointerWasOpen = help.matches(':popover-open'); });
-  control.classList.add('detail-info');
-  control.removeAttribute('title');
+  const control = el('span', 'detail-info');
+  control.append(icon('info'));
+  control.tabIndex = 0;
+  control.setAttribute('role', 'img');
+  control.setAttribute('aria-label', label);
   control.setAttribute('aria-describedby', help.id);
   let timer: ReturnType<typeof setTimeout> | undefined;
   let watching: MutationObserver | undefined;
@@ -127,6 +123,7 @@ export function infoPopover(label: string, content: string): HTMLElement {
   const leave = () => { clearTimeout(timer); timer = setTimeout(() => { if (!wrapper.matches(':hover, :focus-within') && !help.matches(':hover')) hide(); }, 150); };
   control.addEventListener('mouseenter', show);
   control.addEventListener('focus', show);
+  control.addEventListener('pointerup', event => { if (event.pointerType !== 'mouse') control.focus(); });
   control.addEventListener('mouseleave', leave);
   control.addEventListener('blur', leave);
   help.addEventListener('mouseenter', () => clearTimeout(timer));

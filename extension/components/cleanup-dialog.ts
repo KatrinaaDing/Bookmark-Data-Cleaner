@@ -164,7 +164,7 @@ export function cleanupDialog(
       }
     }
     const dataHeading = el("h3", "cleanup-section-heading", "Website data");
-    dataHeading.append(infoPopover("About website data categories", "Saved site data includes Local Storage, IndexedDB and files. Background workers are service workers. Cleanup uses detected cookies and known origins. Stored item counts and sizes are unavailable."));
+    dataHeading.append(infoPopover("About website data categories", "Cookies can be counted. Saved site data includes Local Storage, IndexedDB and files; background workers are service workers. The browser clears these and cached resources for the listed addresses if present, but does not report their counts or sizes."));
     body.append(dataHeading);
     for (const [key, label, description] of choices) {
       if (key === "bookmarks") body.append(el("h3", "", "Bookmarks"));
@@ -460,7 +460,7 @@ export function cleanupDialog(
     if (hasData(plan.options)) {
       const details = el("details", "technical-details");
       details.dataset.reviewDisclosure = "technical";
-      details.append(el("summary", "", "Technical details"), summary, el("p", "fine", "These are the exact website addresses and cookie domains targeted. Unknown ports and storage-only sites may not be discovered. History, passwords and downloads are kept."));
+      details.append(el("summary", "", "Technical details"), summary, el("p", "fine", "These are the exact website addresses and cookie domains targeted. Only cookies can be counted; the presence of other website data cannot be checked here. Unknown ports and storage-only sites may not be discovered. History, passwords and downloads are kept."));
       dataSection.append(details);
     }
     const result = el("div", "cleanup-result");

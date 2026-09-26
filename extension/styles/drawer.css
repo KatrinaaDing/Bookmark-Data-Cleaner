@@ -95,12 +95,17 @@ html { scrollbar-gutter: stable; }
   gap: 0.35rem;
 }
 .detail-info {
-  width: 32px;
-  height: 32px;
-  border-color: transparent;
-  color: #536474;
-  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--muted);
+  cursor: default;
 }
+.detail-info .icon { width: 16px; height: 16px; }
+.detail-info:hover { color: var(--accent); }
+.detail-info:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 50%; }
 .detail-value {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);

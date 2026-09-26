@@ -38,7 +38,7 @@ export function siteTimeline(
     const cookies = el("span", "site-cookie-count");
     const cookieLabel = site.cookiesAvailable === false
       ? "Cookies not checked"
-      : `${site.cookies.length} detected ${site.cookies.length === 1 ? "cookie" : "cookies"}`;
+      : `Detected cookies: ${site.cookies.length}`;
     cookies.setAttribute("role", "img");
     cookies.setAttribute("aria-label", cookieLabel);
     cookies.title = cookieLabel;

@@ -18,6 +18,7 @@ try {
   })()`);
   await browser.cmd('Page.reload',{},page.sessionId);
   await waitFor(`!!document.querySelector('[data-focus-key="site:unsaved.test"]')`);
+  assert.equal(await run(`document.querySelector('.site-row .site-cookie-count').title`),'Detected cookies: 1','Cookie count has a hover explanation');
   await run(`const search=document.querySelector('input[aria-label="Find a website"]');search.value='.test';search.dispatchEvent(new Event('input'))`);
   const out = `dist/product-ux/${before?'before':'after'}`;
   await mkdir(out,{recursive:true});

@@ -51,8 +51,10 @@ try {
   assert.equal(await run(`${review}.disabled`), false);
   assert.equal(await run(`!!document.querySelector(".cleanup-feedback .spinner")`), false, "Back clears the completed preparation spinner");
 
-  await run(`document.querySelector('.cleanup-section-heading .info-control button').focus()`);
+  await run(`document.querySelector('.cleanup-section-heading .detail-info').focus()`);
   assert.equal(await run(`!!document.querySelector('.cleanup-dialog .info-popover:popover-open')`),true,'Category help opens from keyboard focus');
+  assert.equal(await run(`getComputedStyle(document.querySelector('.cleanup-dialog .info-popover')).backgroundColor`),'rgb(255, 255, 255)','Category help uses the light surface');
+  assert.equal(await run(`getComputedStyle(document.querySelector('.cleanup-section-heading .detail-info')).cursor`),'default','Help icon does not imply a button');
   await browser.cmd('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27},page.sessionId);
   assert.equal(await run(`!!document.querySelector('.cleanup-dialog .info-popover:popover-open')`),false,'Escape dismisses category help first');
   assert.equal(await run(`document.querySelector('.cleanup-dialog').open`),true,'Dismissing help keeps cleanup choices open');
@@ -129,6 +131,8 @@ try {
   await run(`window.failReview=false;Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button=>button.textContent==='Retry review').click()`); await pause(80);
   assert.equal(await run(`Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button=>button.textContent==='Confirm cleanup').disabled`),false);
   assert.match(await run(`document.querySelector('.cleanup-targets').textContent`),/review.test/,'Review names its target websites outside technical details');
+  await run(`document.querySelector('.technical-details').open=true`);
+  assert.notEqual(await run(`getComputedStyle(document.querySelector('.technical-details')).backgroundColor`),'rgba(0, 0, 0, 0)','Expanded technical details have a visible surface');
   for (const [name,width,height] of [['review-duplicates-desktop',1360,900],['review-duplicates-narrow',390,844]]) {
     await browser.cmd('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false},page.sessionId);
     await pause(220);

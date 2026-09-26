@@ -13,7 +13,7 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
 .bookmark-url { overflow-wrap: anywhere; text-underline-offset: .2em; }
 .bookmark-summary .fine { font-weight: 400; }
 .info-control { display: inline-flex; vertical-align: middle; }
-.info-popover { position: fixed; inset: auto; margin: 0; padding: .8rem 1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--ink); color: var(--canvas); font-size: var(--text-control); line-height: 1.5; box-shadow: 0 5px 18px rgb(0 0 0 / 15%); }
+.info-popover { position: fixed; inset: auto; margin: 0; padding: .7rem .85rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--muted); font-size: var(--text-meta); font-weight: 400; line-height: 1.5; box-shadow: 0 5px 18px rgb(32 45 67 / 12%); }
 .toast-host { position: fixed; inset: auto 20px 20px auto; margin: 0; padding: 0; border: 0; background: transparent; width: min(420px, calc(100vw - 40px)); max-height: 45vh; overflow: auto; }
 .cleanup-dialog .toast-host, .unsaved-dialog .toast-host { inset: 20px 20px auto auto; }
 .toast { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .8rem 1rem; margin-top: .6rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); box-shadow: 0 8px 24px rgb(32 45 67 / 15%); font-size: var(--text-control); }
@@ -61,6 +61,8 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
 .remaining-copies { color: var(--danger); }
 .technical-details { margin: 1rem 0; }
 .technical-details > summary { padding: .5rem 0; cursor: pointer; }
+.technical-details[open] { padding: .65rem .85rem; border-radius: 8px; background: var(--canvas); }
+.technical-details[open] > summary { font-weight: 500; }
 .bookmark-actions .icon-button { background: transparent; color: var(--accent); border-color: transparent; padding: 0; }
 .bookmark-actions .icon-button:hover:not(:disabled) { background: var(--tint); border-color: var(--accent); }
 
@@ -82,7 +84,6 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
 .cleanup-dialog .bookmark-summary { font-size: var(--text-control); }
 .bookmark-summary a.affected-title { color: var(--ink); text-decoration-color: var(--line); }
 .bookmark-summary a.affected-title:hover { color: var(--accent); text-decoration-color: currentColor; }
-.info-popover { font-weight: 400; }
 @media (max-width: 480px) { .website-data-review .selected-categories { grid-template-columns: 1fr; } }
 
 .related-warning .check { align-items: flex-start; }
