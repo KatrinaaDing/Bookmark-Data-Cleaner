@@ -65,6 +65,7 @@ Extend existing tokens with semantic success/danger foreground and subtle backgr
 - Associate a reviewed snapshot with the exact options/duplicate decisions and the request revision that produced it. Confirm is enabled only for a successful current review with no preparation/start pending.
 - Any scope change invalidates confirmation immediately. Rebuild success replaces the plan; failure keeps confirmation unavailable with visible recovery actions. There is no fallback to the previous plan.
 - Back clears transient feedback, invalidates stale reads and retains user decisions. Defaults initialize eligible duplicate choices once; rerenders do not override an explicit deselection.
+- Review has one scrolling content region with actions and the irreversible warning outside it. Rebuilding a duplicate decision preserves open supporting disclosures, scroll position and checkbox focus while invalidating confirmation. Underlying details must defer responsive modal transitions while a confirmation overlay is open.
 - Starting uses the reviewed snapshot exactly once. A disconnected view does not imply the background job stopped; durable job status is the source of truth for its outcome.
 
 ### Selection and navigation

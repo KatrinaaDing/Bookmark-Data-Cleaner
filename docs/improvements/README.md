@@ -4,6 +4,8 @@ The current goal is **public adoption first, portfolio value second**, confirmed
 
 ## Start here
 
+- [Details and cleanup review — 26 September 2026](history/2026-09-26-details-review-ux.md): grouped identity controls, visible review actions, stable reading position and overlay focus.
+
 - [Discovery and results refinement — 26 September 2026](history/2026-09-26-discovery-results-ux.md): unbookmarked-site filtering and compact, outcome-specific results.
 
 - [Cleanup scope and details refinement — 26 September 2026](history/2026-09-26-cleanup-ux.md): audit, implementation, synthetic screenshots, verification and unchanged product decisions.
