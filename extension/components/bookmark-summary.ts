@@ -1,8 +1,9 @@
 import type { BookmarkRef } from '../core/types.js';
 import { el } from './dom.js';
-export function bookmarkSummary(bookmark: BookmarkRef): HTMLElement {
+export function bookmarkSummary(bookmark: BookmarkRef, includeUrl = false): HTMLElement {
   const summary = el('span', 'bookmark-summary');
   summary.append(el('span', 'affected-title', bookmark.title || 'Untitled'), el('span', 'fine', bookmark.path || 'Bookmarks'));
+  if (includeUrl) summary.append(el('span', 'fine bookmark-address-text', bookmark.url));
   return summary;
 }
 export function bookmarkLink(url: string): HTMLElement {

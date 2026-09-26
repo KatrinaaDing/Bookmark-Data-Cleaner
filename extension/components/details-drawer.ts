@@ -121,11 +121,15 @@ export function detailsDrawer(): DetailsDrawer {
       close();
     }
   });
-  window.addEventListener("resize", () => {
+  function updatePresentation() {
     if (!opened || closing || wantsModal() === modal) return;
+    // A responsive transition must not move the underlying drawer above review.
+    if (document.querySelector("dialog.cleanup-dialog[open], dialog.unsaved-dialog[open]")) return;
     present();
     closeButton.focus({ preventScroll: true });
-  });
+  }
+  window.addEventListener("resize", updatePresentation);
+  document.addEventListener("close", () => queueMicrotask(updatePresentation), true);
   document.addEventListener("workspace-route", () => {
     request++;
     if (opened) finishClose(false);

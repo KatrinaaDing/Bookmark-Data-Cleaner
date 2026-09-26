@@ -5,7 +5,7 @@ import { bookmarkSummary } from "./bookmark-summary.js";
 
 function bookmarkLine(bookmark: BookmarkRef): HTMLElement {
   const line = el("li", "affected-entry");
-  line.append(bookmarkSummary(bookmark));
+  line.append(bookmarkSummary(bookmark, true));
   return line;
 }
 

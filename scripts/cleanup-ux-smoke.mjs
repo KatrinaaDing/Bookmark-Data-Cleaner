@@ -32,6 +32,10 @@ try {
   async function capture(name, width=1360, height=900) {
     await browser.cmd('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false},page.sessionId);
     await pause(300);
+    if (!before && await run(`!!document.querySelector('.cleanup-dialog')`)) {
+      assert.equal(await run(`Array.from(document.querySelectorAll('.cleanup-footer button')).every(button=>{const r=button.getBoundingClientRect();return r.width>0 && r.top>=0 && r.bottom<=innerHeight})`),true,'Review actions stay visible without scrolling the content');
+      assert.equal(await run(`document.querySelector('.cleanup-dialog').scrollHeight<=document.querySelector('.cleanup-dialog').clientHeight`),true,'Only the review body scrolls');
+    }
     const shot = await browser.cmd('Page.captureScreenshot',{format:'png'},page.sessionId);
     await writeFile(`${out}/${name}.png`,Buffer.from(shot.data,'base64'));
   }
@@ -40,9 +44,11 @@ try {
   await run(`document.querySelector('.detail-cleanup').click()`);
   await waitFor(`document.querySelector('.cleanup-dialog') && !document.querySelector('.cleanup-count').textContent.includes('Checking')`);
   await capture('choices');
+  if (!before) await capture('choices-narrow',390,844);
   await click('Next');
   await waitFor(`document.querySelector('#cleanup-title')?.textContent.includes('Step 2') && document.querySelector('.cleanup-dialog').getAttribute('aria-busy')==='false'`);
   await capture('review');
+  if (!before) await capture('review-narrow',390,844);
   if (before) console.log('Before screenshots captured with synthetic A/B selection and C inspection.');
   else {
     const selectedIds = `Array.from(document.querySelectorAll('.bookmark-row input:checked')).map(input=>input.closest('.bookmark-row').querySelector('[data-focus-key]').dataset.focusKey)`;
@@ -51,11 +57,20 @@ try {
     assert.match(await run(`document.querySelector('.cleanup-entry').textContent`), /This bookmark: Inspected C.*https:\/\/shared.test\/article/);
     assert.deepEqual(await run(`Array.from(document.querySelectorAll('.selected-bookmark .affected-title')).map(el=>el.textContent)`), ['Inspected C']);
     assert.equal(await run(`document.querySelector('.duplicate-choices input').dataset.bookmarkId`), fixture.copy);
+    assert.equal(await run(`document.querySelector('.selected-bookmark .bookmark-address-text').textContent`),'https://shared.test/article','Review identifies the full saved URL');
+    assert.equal(await run(`document.querySelector('.cleanup-footer').textContent.includes('Deletion cannot be undone.')`),true);
     assert.match(await run(`document.querySelector('.scope-additions').textContent`), /1 additional bookmark/);
     assert.equal(await run(`document.querySelector('.related-warning details').open`), false);
     assert.equal(await run(`document.querySelectorAll('.related-warning .affected-entry').length`), 12);
     assert.match(await run(`document.querySelector('.related-warning').textContent`), /12 saved pages may be affected/);
     assert.equal(await run(`document.activeElement.id`), 'cleanup-title');
+    await run(`document.querySelector('.technical-details').open=true;const choice=document.querySelector('.duplicate-choices input');choice.focus();window.reviewScroll=document.querySelector('.cleanup-body').scrollTop;choice.click()`);
+    await waitFor(`document.querySelector('.cleanup-dialog').getAttribute('aria-busy')==='false'`);
+    assert.equal(await run(`document.querySelector('.technical-details').open`),true,'Scope rebuild preserves disclosure context');
+    assert.equal(await run(`Math.abs(document.querySelector('.cleanup-body').scrollTop-window.reviewScroll)<2`),true,'Scope rebuild preserves reading position');
+    assert.equal(await run(`document.activeElement.dataset.bookmarkId`),fixture.copy,'Scope rebuild restores the duplicate checkbox focus');
+    await run(`document.querySelector('.duplicate-choices input').click()`);
+    await waitFor(`document.querySelector('.cleanup-dialog').getAttribute('aria-busy')==='false'`);
     await click('Cancel');
     await waitFor(`!document.querySelector('.cleanup-dialog')`);
     assert.deepEqual(await run(selectedIds), expectedSelection, 'Cancelling C preserves A/B');

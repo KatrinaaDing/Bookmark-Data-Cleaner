@@ -496,14 +496,19 @@ button.danger:hover:not(:disabled) {
 .cleanup-dialog {
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 0;
   width: min(600px, calc(100% - 2rem));
   max-height: 85vh;
-  overflow: auto;
+  overflow: hidden;
   color: var(--ink);
   background: var(--surface);
   box-shadow: 0 20px 60px #152c3526;
 }
+.cleanup-dialog[open] { display: flex; flex-direction: column; }
+.cleanup-body { min-height: 0; overflow: auto; padding: 1.5rem; scroll-padding-block: 1.5rem; }
+.cleanup-footer { flex: none; padding: 1rem 1.5rem; border-top: 1px solid var(--line); background: var(--surface); }
+.cleanup-footer .dialog-actions { margin-top: 0; flex-wrap: wrap; }
+.cleanup-final-warning { margin: 0 0 .65rem; color: var(--danger); font-size: var(--text-control); }
 .cleanup-dialog::backdrop {
   background: #172c3566;
 }
@@ -638,9 +643,8 @@ button.danger:hover:not(:disabled) {
   .selection-count {
     margin-left: 0;
   }
-  .cleanup-dialog {
-    padding: 1.3rem;
-  }
+  .cleanup-body { padding: 1.25rem; }
+  .cleanup-footer { padding: .85rem 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .spinner {

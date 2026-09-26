@@ -41,7 +41,8 @@ export function cleanupDialog(
   if (document.querySelector("dialog.cleanup-dialog[open]")) return;
   const dialog = el("dialog", "cleanup-dialog");
   dialog.setAttribute("aria-labelledby", "cleanup-title");
-  const body = el("div");
+  const body = el("div", "cleanup-body");
+  const footer = el("div", "cleanup-footer");
   const title = el("h2", "", "Step 1 — Choose what to remove");
   title.id = "cleanup-title";
   title.tabIndex = -1;
@@ -252,7 +253,8 @@ export function cleanupDialog(
     actions.append(close, review);
     const technical = el("details", "technical-details");
     technical.append(el("summary", "", "Technical details"), el("p", "fine", "Saved site data includes Local Storage, IndexedDB and files. Background workers are service workers. Counts are a preview; stored item counts and sizes are unavailable. Cleanup uses detected cookies and known origins, not just a single page URL."));
-    body.append(previewNotice, technical, accessButton, feedback, actions);
+    body.append(previewNotice, technical, accessButton, feedback);
+    footer.replaceChildren(actions);
     title.focus();
     enter(body, -1);
   }
@@ -295,7 +297,7 @@ export function cleanupDialog(
         snapshot,
         prepared.contextualBookmarks,
       );
-      if (focusedDuplicate) body.querySelector<HTMLInputElement>(`input[data-bookmark-id="${CSS.escape(focusedDuplicate)}"]`)?.focus();
+      if (focusedDuplicate) body.querySelector<HTMLInputElement>(`input[data-bookmark-id="${CSS.escape(focusedDuplicate)}"]`)?.focus({ preventScroll: true });
     } catch (error) {
       if (current === revision) {
         validReview = false;
@@ -313,6 +315,8 @@ export function cleanupDialog(
     contextualBookmarks: BookmarkRef[] = [],
   ) {
     const newStep = title.textContent !== "Step 2 — Review this cleanup";
+    const scrollTop = newStep ? 0 : body.scrollTop;
+    const openDisclosures = new Set(Array.from(body.querySelectorAll<HTMLDetailsElement>("details[open][data-review-disclosure]")).map(details => details.dataset.reviewDisclosure));
     title.textContent = "Step 2 — Review this cleanup";
     reviewAction = undefined;
     nextButton = undefined;
@@ -324,8 +328,8 @@ export function cleanupDialog(
         "p",
         "warning",
         hasData(plan.options)
-          ? "Deletion cannot be undone. Selected website data may include sign-ins, offline copies or unsynced work."
-          : `Deletion cannot be undone. Only the reviewed bookmarks${plan.folders.length ? " and empty folders" : ""} will be removed.`,
+          ? "Selected website data may include sign-ins, offline copies or unsynced work."
+          : `Only the reviewed bookmarks${plan.folders.length ? " and empty folders" : ""} will be removed.`,
       ),
     );
     const selected = choices
@@ -350,7 +354,7 @@ export function cleanupDialog(
       section.append(el("h3", "", bookmarks.size ? `Bookmarks to delete (${bookmarks.size})` : "Folders to remove if empty"));
       for (const bookmark of bookmarks.values()) {
         if (duplicateCandidates.has(bookmark.id)) continue;
-        const row = el("p", "selected-bookmark"); row.append(bookmarkSummary(bookmark)); section.append(row);
+        const row = el("p", "selected-bookmark"); row.append(bookmarkSummary(bookmark, true)); section.append(row);
       }
       if (duplicateCandidates.size) {
         const added = [...duplicateCandidates.keys()].filter(id => bookmarks.has(id)).length;
@@ -368,7 +372,7 @@ export function cleanupDialog(
           choice.input.dataset.permission = duplicate.unmodifiable ? "off" : "on";
           choice.input.disabled = !!duplicate.unmodifiable;
           const caption = choice.label.querySelector("span")!;
-          caption.append(bookmarkSummary(duplicate));
+          caption.append(bookmarkSummary(duplicate, true));
           if (duplicate.unmodifiable) caption.append(el("span", "fine", "Managed by your browser or organization. This bookmark will remain."));
           if (!choice.input.checked && hasData(plan.options)) caption.append(el("span", "fine remaining-copies", "This bookmark will remain. Its website data will still be included in this cleanup."));
           choiceInputs.push(choice.input); copies.append(choice.label);
@@ -393,13 +397,14 @@ export function cleanupDialog(
         warning.append(el("h3", "", "Bookmarks kept but potentially affected"), el("p", "fine", "These bookmarks stay saved. The selected website data may be shared across their pages."));
         if (retainedBookmarks.length > 3) {
           const disclosure = el("details", "related-disclosure");
+          disclosure.dataset.reviewDisclosure = "retained";
           disclosure.append(el("summary", "", `${retainedBookmarks.length} saved pages may be affected`));
           warning.append(disclosure);
           entries = disclosure;
         }
       }
       for (const bookmark of retainedBookmarks) {
-        const row = el("p", "affected-entry"); row.append(bookmarkSummary(bookmark)); entries.append(row);
+        const row = el("p", "affected-entry"); row.append(bookmarkSummary(bookmark, true)); entries.append(row);
       }
       if (impact?.relatedSites.length) warning.append(el("h3", "", "Other sites sharing selected data"));
       for (const site of impact?.relatedSites ?? [])
@@ -434,6 +439,7 @@ export function cleanupDialog(
     }
     if (hasData(plan.options)) {
       const details = el("details", "technical-details");
+      details.dataset.reviewDisclosure = "technical";
       details.append(el("summary", "", "Technical details"), summary, el("p", "fine", "These are the exact website addresses and cookie domains targeted. Unknown ports and storage-only sites may not be discovered. History, passwords and downloads are kept."));
       body.append(details);
     }
@@ -460,17 +466,22 @@ export function cleanupDialog(
     const confirm = confirmButton.element;
     confirmAction = confirm;
     activeControls = [back, cancel, confirm];
-    const footer = el("div", "dialog-actions");
-    footer.append(back, cancel, confirm);
-    body.append(feedback, result, footer);
-    title.focus();
+    const actions = el("div", "dialog-actions");
+    actions.append(back, cancel, confirm);
+    footer.replaceChildren(el("p", "cleanup-final-warning", "Deletion cannot be undone."), actions);
+    body.append(feedback, result);
+    for (const disclosure of body.querySelectorAll<HTMLDetailsElement>("details[data-review-disclosure]"))
+      disclosure.open = openDisclosures.has(disclosure.dataset.reviewDisclosure);
+    if (newStep) title.focus();
+    body.scrollTop = scrollTop;
     if (newStep) enter(body, 1);
   }
 
-  dialog.append(body);
+  dialog.append(body, footer);
   document.body.append(dialog);
   renderChoices();
   dialog.showModal();
+  title.focus();
   dialog.addEventListener("cancel", (event) => {
     if (busy) event.preventDefault();
   });
