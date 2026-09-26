@@ -12,7 +12,7 @@ Detail section headings use blue at medium weight; detail bookmark titles use me
 
 ## Workspaces
 
-Both workspaces use short descriptions and optional info popovers. Refresh is first on the left, then search and applicable filters. The cleanup action group remains right-aligned with or without selection; narrow windows stack it on a consistent second row.
+Both workspaces use short descriptions and optional info popovers. Refresh is first on the left, then search and applicable filters. The cleanup action group remains right-aligned with or without selection; narrow windows stack it on a consistent second row. `Clean up selected…` sits beside the count, including zero, and remains disabled without a selection. Details actions say `Clean up this bookmark…` or `Clean up this site…`; both enter review.
 
 List-header checkboxes say Select all or Select all results. They select all eligible matching results, including rows below the viewport. Unchecking affects current results only; Clear selection clears all. Totals disclose selections outside the current results.
 
@@ -26,19 +26,19 @@ Row titles open details and never acquire link underlines on hover. Site rows pl
 
 A shared sticky details panel uses a 3:2 list-to-details split on desktop. At 760px and below it becomes a native modal. Resize preserves inspection. Stable row keys restore focus after mutation replaces a row. Unsaved changes are guarded before close, item changes, workspace navigation, refresh or cleanup entry.
 
-Bookmark details have Basic information, Bookmark and Website data cards and display the full saved URL as a wrapping link. Site-level details have Basic information and a combined Website data card containing the cookie count, saved bookmarks and their actions. Bookmarks are listed once by ID; additional pages sharing cookies/origins remain visible. A visible explanation states that site-data cleanup keeps bookmarks saved. Site-level details accurately label the Domain and show saved-page URLs with their bookmark entries. No separate Open page link is needed; visiting a URL remains an explicit user action.
+Bookmark details order Basic information, Website data and Bookmark as lightly divided sections. The full saved URL stays visible as a wrapping link; visit history is disclosed on demand. Cookie counts, shared-data consequences and cleanup precede supporting lists. Site-level details combine cookie context, cleanup and saved-bookmark actions. Bookmarks are listed once by ID; additional pages sharing cookies/origins remain visible. A visible explanation states that site-data cleanup keeps bookmarks saved. Site-level details accurately label the Domain and show saved-page URLs with their bookmark entries. No separate Open page link is needed; visiting a URL remains an explicit user action.
 
 Edit and copy are adjacent pencil/copy actions with accessible names and tooltips. Each saved bookmark has its own copy action; an unbookmarked site offers Save bookmark. Only one form is active. Both use the shared form session, bottom confirm/cancel icons, validation, pending exclusion and draft reset behavior.
 
 The check button saves directly. Leaving a dirty form offers Save changes / Discard / Keep editing. Saving disables fields and conflicting actions, with a spinner in the submit button. Success reconciles actual state, closes the form and shows a toast. Failure retains the draft and inline error. A successful create followed by failed refresh retries reconciliation without creating another bookmark. Partial update/move failures remain explicit.
 
-Other bookmarks for this URL appears in the Bookmark card and means identical full saved URLs, regardless of folder/title. Website data distinguishes affected pages from bookmark duplication. General help opens on hover, keyboard focus or tap without expanding the layout; Escape dismisses help before underlying dialogs.
+The exact-URL copy disclosure in the Bookmark section means identical full saved URLs, regardless of folder/title. Related-page lists use counted disclosure summaries, and site details disclose saved-page lists longer than three entries. Complete entries and editing actions remain available when expanded, without another scrolling region. Website data distinguishes affected pages from bookmark duplication. General help opens on hover, keyboard focus or tap without expanding the layout; Escape dismisses help before underlying dialogs.
 
 ## Cleanup review
 
 Step 1 — Choose what to remove groups website data and bookmark removal. Available categories start checked, including bookmark removal in Bookmarks. Cookie and bookmark counts are deduplicated previews; other data says If present, without fabricated item/byte counts. Missing cookie permission stays unchecked and disabled. Next is unavailable when no available category is selected.
 
-Step 2 — Review this cleanup names the selected data categories and target websites, lists bookmark deletions with folder captions, and separates effects on retained pages. Technical details contains cookie domains, partitions, exact origins and discovery limits. Consequences and the irreversible-operation warning stay visible outside that disclosure.
+Both review steps carry the initiating bookmark title/URL, site domain, or bulk object counts. Step 2 — Review this cleanup names the selected data categories and target websites, lists bookmark deletions with folder captions, and separates effects on retained bookmarks, including the initiating bookmarks when removal is off and explicitly unchecked copies. Counted disclosures reduce long retained lists. An additional-copy count explains how the prepared deletion scope differs from the initial selection. Technical details contains cookie domains, partitions, exact origins and discovery limits. Consequences and the irreversible-operation warning stay visible outside that disclosure.
 
 Eligible additional bookmarks for identical URLs start checked in one checklist. Managed duplicates remain unavailable. Explicit deselections survive Back/Next and refreshes, and carry a local website-data warning only when data cleanup is selected. If all copies are selected, review explicitly says none will remain. Site-data-only cleanup does not gain bookmark deletion.
 
@@ -55,3 +55,5 @@ Control feedback is about 120ms; form/disclosure reveals and step transitions us
 The 20 September implementation passed typecheck/build, 42 unit tests and all 13 browser suites on disposable Edge 153 profiles. Targeted checks after follow-up changes cover guarded save-then-switch navigation, reconciliation-only retries, current-plan confirmation, popovers, new-toast visibility and reduced motion. Desktop/narrow captures use synthetic data under ignored `dist/audit/`, `dist/refinement/`, `dist/review/` and `dist/contract/`.
 
 See the [implementation record](docs/improvements/history/2026-09-20-interaction-system.md) for focused commits, diagnostics and limitations. These checks do not establish complete accessibility compliance or close the existing minimum/current Chrome and enterprise-policy release gates.
+
+The 26 September scope/hierarchy refinement passed typecheck/build, 42 unit tests and all 14 browser suites on disposable Edge 154 profiles. See [audit and verification](docs/improvements/history/2026-09-26-cleanup-ux.md), including before/after synthetic captures and unchanged defaults.

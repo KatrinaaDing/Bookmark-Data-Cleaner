@@ -4,6 +4,8 @@ The current goal is **public adoption first, portfolio value second**, confirmed
 
 ## Start here
 
+- [Cleanup scope and details refinement — 26 September 2026](history/2026-09-26-cleanup-ux.md): audit, implementation, synthetic screenshots, verification and unchanged product decisions.
+
 - [Latest evaluation — 19 September 2026](evaluations/2026-09-19-extension-evaluation.md): findings, verification, product assessment, and value versus complexity.
 - [Active implementation plan](plans/2026-09-19-public-release-plan.md): phased tasks, acceptance criteria, recommendation coverage, and release gates. Branch: `codex/public-release-improvements`.
 - [Next interaction tranche — 20 September 2026](plans/2026-09-20-interaction-consistency-plan.md): agreed toolbar/search, form, feedback, cleanup-review and motion changes; implemented with [verification evidence](history/2026-09-20-interaction-system.md). Supersedes older duplicate opt-in defaults within this scope.
@@ -28,6 +30,7 @@ The current goal is **public adoption first, portfolio value second**, confirmed
 | 2026-09-19 | [Browsing and cleanup choices](history/2026-09-19-browsing-cleanup-choices.md) | Empty states, bookmark edit actions, cleaner entry labels and default-selected count previews |
 | 2026-09-20 | [Interaction consistency plan](plans/2026-09-20-interaction-consistency-plan.md) | Implemented fixes, shared UI contract and motion; see the verification record |
 | 2026-09-20 | [Interaction system implementation](history/2026-09-20-interaction-system.md) | Shared UI lifecycles, guarded forms, search, cleanup review and verified limits |
+| 2026-09-26 | [Cleanup scope and details refinement](history/2026-09-26-cleanup-ux.md) | Explicit entry scope, compact details, complete retained-bookmark review and 14 browser suites |
 
 ## Interpreting old findings
 
