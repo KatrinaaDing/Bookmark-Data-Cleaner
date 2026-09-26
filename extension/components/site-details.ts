@@ -75,7 +75,7 @@ export function siteDetails(
   const title = inspected?.title || site.host;
   panel.append(el("h2", "", title));
 
-  const basic = detailCard("Basic information");
+  const basic = detailCard(inspected ? "Bookmark" : "Site");
   const dates = el("details", "detail-metadata");
   dates.append(el("summary", "", "Visit history"));
   basic.append(
@@ -99,10 +99,14 @@ export function siteDetails(
         options.loadingDates ? "Loading visit dates…" : dateText(site.lastVisit),
       ),
     );
-  if (inspected) basic.querySelector(".detail-value > :last-child")!.append(bookmarkLink(inspected.url));
+  if (inspected) {
+    basic.querySelector(".detail-value")!.classList.add("bookmark-address");
+    basic.querySelector(".detail-value > :last-child")!.append(bookmarkLink(inspected.url));
+    basic.append(valueRow("Saved in", inspected.path || "Bookmarks"));
+  }
   basic.append(dates);
 
-  const bookmark = inspected ? detailCard("Bookmark") : el("section", "detail-bookmarks");
+  const bookmark = el("section", "detail-bookmarks");
   if (!inspected) bookmark.append(el("h4", "", "Saved bookmarks"));
   const rerenderAfterMutation = async (result: BookmarkMutation) => {
     const snapshot = await options.onMutation?.(result.id, result);
@@ -175,8 +179,7 @@ export function siteDetails(
     actions.append(copy);
   }
   if (inspected) {
-    bookmark.append(valueRow("Saved in", inspected.path || "Bookmarks"));
-    addEditor(bookmark, bookmark.querySelector("h3")!, inspected);
+    addEditor(basic, basic.querySelector("h3")!, inspected);
   } else if (site.bookmarks.length) {
     const list = el("ul", "saved-pages");
     for (const saved of site.bookmarks) {
@@ -240,6 +243,6 @@ export function siteDetails(
       websiteData.append(affectedBookmarks(additionalImpact, "Other pages that may share this data"));
   }
   panel.append(basic, websiteData);
-  if (inspected) panel.append(bookmark);
+  if (inspected && bookmark.childElementCount) panel.append(bookmark);
   return panel;
 }

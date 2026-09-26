@@ -54,7 +54,7 @@ try {
   await waitFor(`!document.querySelector('.bookmark-editor')`);
   assert.equal(await run(`!!document.querySelector('.bookmark-editor')`),false,'Discard removes the form state');
   assert.equal(await run(`Math.abs(document.querySelector('.workspace-list').getBoundingClientRect().width / document.querySelector('.details-rail').getBoundingClientRect().width - 1.5) < .02`), true, "List and details use a 3:2 split");
-  assert.deepEqual(await run(`Array.from(document.querySelectorAll('.detail-card > h3')).map((heading) => heading.firstChild.textContent)`), ["Basic information", "Website data", "Bookmark"], "Details use the three approved sections");
+  assert.deepEqual(await run(`Array.from(document.querySelectorAll('.detail-card > h3')).map((heading) => heading.firstChild.textContent)`), ["Bookmark", "Website data"], "Details use the identity and website-data sections");
   assert.equal(await run(`document.querySelector('.details-drawer').textContent.includes('Refinement fixtures')`), true, "Saved folder is recognizable");
   assert.equal(await run(`document.querySelector('.bookmark-row .row-title').getAttribute('aria-current')`), 'true', "The inspected row is marked separately from cleanup selection");
   await run(`document.querySelectorAll('.bookmark-row')[1].click()`);
@@ -216,7 +216,7 @@ try {
   );
   await capture("home", 1360, 900);
   console.log(
-    "Refinement: animated folders, three detail sections, editor disclosure, responsive modal, focus, reduced motion and route cleanup passed.",
+    "Refinement: animated folders, identity and website-data sections, editor disclosure, responsive modal, focus, reduced motion and route cleanup passed.",
   );
 } finally {
   await browser.close();

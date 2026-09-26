@@ -90,6 +90,9 @@ html { scrollbar-gutter: stable; }
   overflow-wrap: anywhere;
 }
 .detail-label { color: var(--muted); }
+.bookmark-address { display: block; }
+.bookmark-address .detail-label { display: block; margin-bottom: .25rem; font-size: var(--text-meta); }
+.bookmark-address > :last-child { display: block; text-align: left; }
 .bookmark-editor {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
