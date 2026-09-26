@@ -113,3 +113,22 @@ test("mixed-category failure reports each category and keeps dependent bookmarks
   );
   assert.deepEqual(calls, ["cookies", "cache"]);
 });
+
+
+test("a bookmark shared by multiple cleanup targets waits for every dependency and is removed once", async () => {
+  for (const failedHost of ["first.test", "last.test", undefined]) {
+    const calls: string[] = [];
+    const result = await executeCleanup(buildCleanupPlan(
+      [site("first.test", "shared"), site("last.test", "shared")],
+      { ...noCleanup, cookies: true, bookmarks: true },
+    ), {
+      removeData: async target => { calls.push(target.host); if (target.host === failedHost) throw Error("Denied"); },
+      removeBookmark: async id => { calls.push(id); },
+      removeFolder: async () => {},
+    });
+    assert.deepEqual(calls, failedHost ? ["first.test", "last.test"] : ["first.test", "last.test", "shared"]);
+    const bookmarks = result.filter(outcome => outcome.kind === "bookmark");
+    assert.equal(bookmarks.length, 1);
+    assert.equal(bookmarks[0].retained, failedHost ? true : undefined);
+  }
+});

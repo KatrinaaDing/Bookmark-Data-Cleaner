@@ -119,3 +119,22 @@ export function analyzeImpact(
   });
   return { duplicates, relatedBookmarks, relatedSites };
 }
+
+/** Add only explicitly chosen, currently affected bookmarks without widening data targets.
+ * A bookmark shared by several targets belongs to each dependency; execution waits
+ * for all of them before deciding whether the bookmark can be removed.
+ */
+export function withBookmarkRemovals(
+  targets: SiteRecord[],
+  allBookmarks: BookmarkRef[],
+  options: CleanupOptions,
+  extraIds: ReadonlySet<string>,
+): SiteRecord[] {
+  const candidates = allBookmarks.filter(bookmark => !bookmark.unmodifiable && extraIds.has(bookmark.id));
+  return targets.map(target => {
+    if (!options.bookmarks) return { ...target, bookmarks: [] };
+    const impact = analyzeImpact([target], candidates, [], options);
+    const extras = [...impact.duplicates, ...impact.relatedBookmarks];
+    return { ...target, bookmarks: [...new Map([...target.bookmarks, ...extras].map(bookmark => [bookmark.id, bookmark])).values()] };
+  });
+}

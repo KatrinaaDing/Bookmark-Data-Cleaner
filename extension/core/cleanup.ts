@@ -74,6 +74,11 @@ export async function executeCleanup(
 ): Promise<Outcome[]> {
   const outcomes: Outcome[] = [];
   const removed = new Set<string>();
+  const retained = new Set<string>();
+  const lastDependency = new Map<string, number>();
+  plan.sites.forEach((site, index) => {
+    for (const bookmark of site.bookmarks) lastDependency.set(bookmark.id, index);
+  });
   for (const [index, site] of plan.sites.entries()) {
     let dataSucceeded = true;
     const categories = [
@@ -105,7 +110,9 @@ export async function executeCleanup(
     if (plan.options.bookmarks)
       for (const bookmark of site.bookmarks) {
         if (removed.has(bookmark.id)) continue;
-        if (!dataSucceeded) {
+        if (!dataSucceeded) retained.add(bookmark.id);
+        if (lastDependency.get(bookmark.id) !== index) continue;
+        if (retained.has(bookmark.id)) {
           outcomes.push({
             target: bookmark.id,
             label: bookmark.title || bookmark.url,
