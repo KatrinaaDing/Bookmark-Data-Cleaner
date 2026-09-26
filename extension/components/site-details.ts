@@ -205,11 +205,10 @@ export function siteDetails(
       actions.append(remove);
     }
   }
-  if (inspected) {
-    addEditor(basic, basic.querySelector<HTMLElement>(".detail-card-header")!, inspected);
-  } else if (site.bookmarks.length) {
+  // Every bookmark entry listed in details shares one layout: summary, URL, edit/copy/delete.
+  function savedPageList(bookmarks: BookmarkRef[]): HTMLElement {
     const list = el("ul", "saved-pages");
-    for (const saved of site.bookmarks) {
+    for (const saved of bookmarks) {
       const item = el("li", "saved-page");
       const heading = el("div", "saved-page-heading");
       const description = el("div", "saved-page-description");
@@ -219,6 +218,12 @@ export function siteDetails(
       addEditor(item, heading, saved, true);
       list.append(item);
     }
+    return list;
+  }
+  if (inspected) {
+    addEditor(basic, basic.querySelector<HTMLElement>(".detail-card-header")!, inspected);
+  } else if (site.bookmarks.length) {
+    const list = savedPageList(site.bookmarks);
     if (site.bookmarks.length > 3) {
       const disclosure = el("details", "related-disclosure saved-pages-disclosure");
       disclosure.append(el("summary", "", `${site.bookmarks.length} saved pages — view and edit`), list);
@@ -249,8 +254,15 @@ export function siteDetails(
     if (impact.duplicates.length || impact.relatedBookmarks.length || impact.relatedSites.length) {
       const shared = el("section", "detail-shared-data");
       shared.append(el("h4", "", "Other pages sharing this data"));
-      if (impact.duplicates.length) shared.append(el("p", "fine", "Other bookmarks for this URL share its website data."));
-      shared.append(affectedBookmarks(impact));
+      if (impact.duplicates.length) {
+        shared.append(el("p", "fine", "Other bookmarks for this URL share its website data."));
+        const count = impact.duplicates.length;
+        const disclosure = el("details", "related-disclosure duplicate-disclosure");
+        disclosure.append(el("summary", "", `${count} other ${count === 1 ? "bookmark" : "bookmarks"} for this exact URL`), savedPageList(impact.duplicates));
+        shared.append(disclosure);
+      }
+      if (impact.relatedBookmarks.length || impact.relatedSites.length)
+        shared.append(affectedBookmarks({ ...impact, duplicates: [] }));
       websiteData.append(shared);
     }
   } else {

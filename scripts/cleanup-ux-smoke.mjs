@@ -86,6 +86,8 @@ try {
     await browser.cmd('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13},page.sessionId);
     assert.equal(await run(`document.querySelector('.details .related-disclosure').open`),true,'Native disclosure opens from keyboard');
     assert.equal(await run(`document.querySelectorAll('.details .related-disclosure li').length`),13,'All related pages and exact copies remain available');
+    assert.equal(await run(`!!document.querySelector('.duplicate-disclosure .saved-page .bookmark-delete-action')`),true,'Exact-URL copies reuse the saved-bookmark actions');
+    await capture('bookmark-details-copies',1360,900);
     await run(`document.querySelector('.details .related-disclosure summary').click()`);
     await waitFor(`!document.querySelector('.details .related-disclosure').open`);
     await capture('bookmark-details-narrow',390,844);
