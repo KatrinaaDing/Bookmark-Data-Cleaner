@@ -99,8 +99,8 @@
 
 ### R07. Site bookmark-status filter
 
-- [ ] Replace Bookmarked only with All / Bookmarked / Not bookmarked.
-- [ ] Preserve search/date ordering, unknown-history groups, selected counts, and review scope when filters change.
+- [x] Replace Bookmarked only with All / Bookmarked / Not bookmarked.
+- [x] Preserve search/date ordering, unknown-history groups, selected counts, and review scope when filters change.
 
 **Acceptance:** unbookmarked cookie-discovered sites are easy to find, and hidden selections remain explicit. One focused feature commit with meaningful filter/selection verification.
 
@@ -127,11 +127,13 @@
 
 - [ ] Present sites processed, bookmarks removed/kept, and category failures/unverified work with explicit units. Separate “kept” from “uncertain” when facts support the distinction.
 - [ ] Keep readable target identifiers, expandable operation detail, explicit manual retry guidance, and honest API-completion language.
-- [ ] Compact the completion panel so it does not dominate the next task; preserve accessible status announcements without repeated noise.
+- [x] Compact the completion panel so it does not dominate the next task; preserve accessible status announcements without repeated noise.
 
 **Files:** `core/types.ts` / `core/cleanup.ts` if structured result fields are needed, `components/operation-status.ts`, job tests.
 
 **Acceptance:** counts reconcile with outcomes for mixed success, bookmark-only, empty-folder, failure, and interrupted jobs. Never invent bytes saved or “all traces removed.” Separate result-model changes from presentation.
+
+**26 September follow-up:** [Discovery/results evidence](../history/2026-09-26-discovery-results-ux.md) records implemented filtering, explicit outcome units, readable bookmark labels and known retention. Historical results without explicit metadata remain uncertain. Broader manual accessibility and interruption assessment remain separate work.
 
 ### R11. Durable minimal interruption marker
 

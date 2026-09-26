@@ -11,3 +11,5 @@ Constraints: offline local assets, TypeScript/native modules, native controls/cu
 See docs/improvements/history/2026-09-06-rebranding-plan.md for scope and docs/architecture.md for tested boundaries.
 
 UI preferences: reduce visible text, retain the original blue/white identity, use familiar labeled icons, animate folder transitions, and show details in a wide card sliding from the right. Avoid nested scrolling. Keep commits focused on one intent.
+
+Current iteration: continue refining product usefulness and UX/UI. Passing automated checks does not end product refinement or imply release readiness.

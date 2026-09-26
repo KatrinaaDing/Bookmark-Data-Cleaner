@@ -18,7 +18,7 @@ List-header checkboxes say Select all or Select all results. They select all eli
 
 Bookmark search matches title, full URL and folder path case-insensitively. Results are flat bookmark rows with folder captions; clearing search restores the existing tree and expansion state. Search does not rebuild the entire tree for each keystroke. Managed entries remain protected. Empty-folder selection retains the normal tree semantics.
 
-Folder and site rows remain clickable independently of their padded checkbox targets. Closed folders are inert and hidden from assistive technology. The site timeline retains date groups and a separate unknown-history group.
+Folder and site rows remain clickable independently of their padded checkbox targets. Closed folders are inert and hidden from assistive technology. The site timeline retains date groups and a separate unknown-history group. A native All sites / Bookmarked / Not bookmarked filter combines with search and date ordering. Result counts report matching versus detected sites; Reset filters clears search and bookmark status without clearing selection or changing sort order.
 
 Row titles open details and never acquire link underlines on hover. Site rows place a cookie icon/count at the right, with a descriptive accessible name and tooltip. An unavailable count shows a dash rather than zero.
 
@@ -46,7 +46,7 @@ Every scope change invalidates confirmation immediately and prepares a fresh imm
 
 ## Feedback and motion
 
-Outcome toasts use a shared host that follows the active native modal. Newest messages appear first. Success/info notifications dismiss after a readable interval, paused on hover/focus; errors remain dismissible. Durable cleanup results retain details, failures and unverified work. Background polling does not repeatedly announce the same outcome.
+Outcome toasts use a shared host that follows the active native modal. Newest messages appear first. Success/info notifications dismiss after a readable interval, paused on hover/focus; errors remain dismissible. Durable cleanup results use a compact header and explicit units for completed data requests, removed bookmarks/folders, known-kept bookmarks, failures and uncertain outcomes. Items needing review expand by default after completion; completed operation details remain collapsed. A single close icon dismisses results and returns focus to the workspace container. Known retention requires explicit execution evidence; older ambiguous results remain uncertain. Starting progress uses the result panel without a duplicate start toast. Background polling does not repeatedly announce the same outcome.
 
 Control feedback is about 120ms; form/disclosure reveals and step transitions use the shared 200ms duration; desktop drawer movement is 240ms. Existing folder expansion remains 220ms. Brief transitions explain state changes rather than animate every list row or job update. New requests cancel old motion; reduced motion removes spatial transitions/continuous rotation and settles active shared animations. Logical state, write completion and draft protection do not depend on animations succeeding.
 
@@ -57,3 +57,5 @@ The 20 September implementation passed typecheck/build, 42 unit tests and all 13
 See the [implementation record](docs/improvements/history/2026-09-20-interaction-system.md) for focused commits, diagnostics and limitations. These checks do not establish complete accessibility compliance or close the existing minimum/current Chrome and enterprise-policy release gates.
 
 The 26 September scope/hierarchy refinement passed typecheck/build, 42 unit tests and all 14 browser suites on disposable Edge 154 profiles. See [audit and verification](docs/improvements/history/2026-09-26-cleanup-ux.md), including before/after synthetic captures and unchanged defaults.
+
+The follow-up discovery/results pass passed typecheck/build, 42 unit tests and five focused browser suites. See [product refinement evidence](docs/improvements/history/2026-09-26-discovery-results-ux.md).
