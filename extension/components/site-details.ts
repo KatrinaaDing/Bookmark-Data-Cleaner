@@ -206,13 +206,15 @@ export function siteDetails(
     }
   }
   // Every bookmark entry listed in details shares one layout: summary, URL, edit/copy/delete.
-  function savedPageList(bookmarks: BookmarkRef[]): HTMLElement {
+  // Exact-URL copies omit the URL: it repeats the inspected bookmark's address above.
+  function savedPageList(bookmarks: BookmarkRef[], showUrl = true): HTMLElement {
     const list = el("ul", "saved-pages");
     for (const saved of bookmarks) {
       const item = el("li", "saved-page");
       const heading = el("div", "saved-page-heading");
       const description = el("div", "saved-page-description");
-      description.append(bookmarkSummary(saved), bookmarkLink(saved.url));
+      description.append(bookmarkSummary(saved));
+      if (showUrl) description.append(bookmarkLink(saved.url));
       heading.append(description);
       item.append(heading);
       addEditor(item, heading, saved, true);
@@ -258,7 +260,7 @@ export function siteDetails(
         shared.append(el("p", "fine", "Other bookmarks for this URL share its website data."));
         const count = impact.duplicates.length;
         const disclosure = el("details", "related-disclosure duplicate-disclosure");
-        disclosure.append(el("summary", "", `${count} other ${count === 1 ? "bookmark" : "bookmarks"} for this exact URL`), savedPageList(impact.duplicates));
+        disclosure.append(el("summary", "", `${count} other ${count === 1 ? "bookmark" : "bookmarks"} for this exact URL`), savedPageList(impact.duplicates, false));
         shared.append(disclosure);
       }
       if (impact.relatedBookmarks.length || impact.relatedSites.length)
