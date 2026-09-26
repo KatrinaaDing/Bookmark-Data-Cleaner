@@ -24,14 +24,14 @@ Keep DOM helpers simple and shared component APIs typed. Prefer explicit handles
 
 | Pattern | Standard |
 |---|---|
-| Actions | Explicit primary, secondary, quiet, destructive, positive-icon and negative-icon variants. Final deletion uses destructive; entering cleanup uses primary. Name the entry scope: Clean up selected… in toolbars, Clean up this bookmark… / Clean up this site… in details. Editing cancel/discard does not inherit final-deletion wording. |
+| Actions | Explicit primary, secondary, quiet, destructive, positive-icon and negative-icon variants. Final deletion uses destructive; entering cleanup uses primary in toolbars and a broom icon at the end of Website data in details. Name the entry scope: Clean up selected… in toolbars, Clean up this bookmark… / Clean up this site… on detail actions. Editing cancel/discard does not inherit final-deletion wording. |
 | Icon actions | Use the shared SVG set, accessible name and tooltip. Button hit area is independent of glyph size. Familiar secondary actions may be icon-only; Next and Confirm cleanup remain labelled. |
 | Button state | Idle, disabled and pending use the same API. Pending preserves dimensions, prevents repeated invocation, exposes a meaningful loading label and restores the correct disabled state afterward. |
 | Focus | Shared visible focus treatment; logical focus return after overlays/forms close. No automatic focus on destructive confirmation. Color/animation never replaces labels or focus indication. |
 | Toolbars | Refresh/filter group left, cleanup group right; stable placement at zero selection. Consistent stacked behavior at narrow widths. List-wide selection belongs at the list header. |
 | Forms | Consistent field labels, spacing, validation and bottom action row. Shared submit/cancel lifecycle for edit and copy. Errors identify the field or failed operation. |
 | Bookmark summaries | Title first, folder path as a secondary line; optional full URL when useful. Reused in details, search and review. Rendering a row does not change selection or decide eligibility. |
-| Help | Small non-layout-shifting popover on hover/focus and tap; Escape closes it. Native disclosure is reserved for substantial optional content such as technical cleanup details. |
+| Help | Small focusable icon with no button hover treatment or pointer cursor; a light, non-layout-shifting popover opens on hover/focus/touch and Escape closes it. Native disclosure is reserved for substantial optional content such as technical cleanup details; expanded content uses a light surface. |
 | Feedback | Field errors local; operation loading next to the action; outcome toast for user actions; persistent cleanup-results toast with details for completed, partial or uncertain outcomes. |
 | Text | Domain, full bookmark URL, affected page, selected bookmark and duplicate are distinct concepts. No unmeasured data counts or generic success when work is partial/unverified. |
 | Typography | Reuse the system font and size tokens. Section and site row titles use medium weight, metadata regular weight. Bookmark list/search titles use regular (400); folder titles use bold (700). Blue may distinguish section headings; do not add bold to every level. |

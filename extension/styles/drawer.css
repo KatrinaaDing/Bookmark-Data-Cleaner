@@ -159,7 +159,7 @@ html { scrollbar-gutter: stable; }
   overflow-wrap: anywhere;
 }
 .affected-title { font-weight: 500; }
-.affected-bookmarks { margin-top: 0.9rem; }
+.affected-bookmarks { margin-top: 0.65rem; }
 .affected-bookmarks h4,
 .detail-bookmarks > h4 {
   margin: 0.85rem 0 0.25rem;
@@ -176,7 +176,15 @@ html { scrollbar-gutter: stable; }
   font-size: var(--text-meta);
   font-weight: 400;
 }
-.detail-consequence { margin: .5rem 0 .85rem; font-size: var(--text-control); }
+.detail-consequence { margin: -.15rem 0 .8rem; font-size: var(--text-control); }
+.detail-detection-note { margin: .3rem 0 0; }
+.detail-shared-data { margin-top: 1.35rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.detail-shared-data > h4 { margin: 0 0 .35rem; font-size: var(--text-control); font-weight: 500; color: var(--muted); }
+.detail-shared-data > .fine { margin: .35rem 0 .8rem; }
+.detail-shared-data .detail-bookmarks { margin-top: 0; }
+.detail-cleanup-actions { display: flex; justify-content: flex-end; margin-top: 1.15rem; }
+.detail-cleanup { color: var(--accent); border-color: var(--line); background: var(--surface); }
+.detail-cleanup:hover:not(:disabled) { color: var(--accent-hover); background: var(--tint); }
 .detail-metadata { margin-top: .5rem; color: var(--muted); font-size: var(--text-meta); }
 .related-disclosure { margin-top: .75rem; font-size: var(--text-control); }
 .related-disclosure > summary, .detail-metadata > summary { padding: .45rem 0; cursor: pointer; }
@@ -209,7 +217,8 @@ html { scrollbar-gutter: stable; }
     inset: 16px;
     width: auto;
     max-width: none;
-    max-height: none;
+    height: calc(100vh - 32px);
+    max-height: calc(100vh - 32px);
     margin: 0;
     padding: 20px;
   }

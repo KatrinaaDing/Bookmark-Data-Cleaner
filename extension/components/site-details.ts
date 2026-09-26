@@ -205,7 +205,9 @@ export function siteDetails(
     : { ...site, bookmarks: [] };
   const impact = analyzeImpact([target], allBookmarks, detectedSites);
   const websiteData = detailCard("Website data");
-  if (impact.duplicates.length) bookmark.append(affectedBookmarks({ ...impact, relatedBookmarks: [], relatedSites: [] }));
+  websiteData.append(el("p", "detail-consequence", inspected
+    ? "Website data is shared across pages. Clearing it may sign you out or remove offline and unsynced work."
+    : "Cleanup keeps your bookmarks saved. Clearing website data may sign you out or remove offline and unsynced work."));
   websiteData.append(
     valueRow(
       "Detected cookies",
@@ -213,22 +215,19 @@ export function siteDetails(
         ? "Not checked"
         : String(site.cookies.length),
     ),
+    el("p", "fine detail-detection-note", "Other website data cannot be counted here; selected categories are cleared if present."),
   );
-  websiteData.append(el("p", "detail-consequence", inspected
-    ? "Website data is shared across pages. Clearing it may sign you out or remove offline and unsynced work."
-    : "Cleanup keeps your bookmarks saved. Clearing website data may sign you out or remove offline and unsynced work."));
-  if (options.onCleanup) {
-    const clean = el("button", "primary detail-cleanup", inspected ? "Clean up this bookmark…" : "Clean up this site…");
-    clean.type = "button";
-    clean.addEventListener("click", () => { void requestLeave().then(allowed => { if (allowed) options.onCleanup?.(site, inspected); }); });
-    websiteData.append(clean);
-  }
   if (inspected) {
-    websiteData.append(impact.duplicates.length && !impact.relatedBookmarks.length && !impact.relatedSites.length
-      ? el("p", "fine", "Other bookmarks for this URL share its website data.")
-      : affectedBookmarks({ ...impact, duplicates: [] }));
+    if (impact.duplicates.length || impact.relatedBookmarks.length || impact.relatedSites.length) {
+      const shared = el("section", "detail-shared-data");
+      shared.append(el("h4", "", "Other pages sharing this data"));
+      if (impact.duplicates.length) shared.append(el("p", "fine", "Other bookmarks for this URL share its website data."));
+      shared.append(affectedBookmarks(impact));
+      websiteData.append(shared);
+    }
   } else {
-    websiteData.append(bookmark);
+    const shared = el("section", "detail-shared-data");
+    shared.append(bookmark);
     // These bookmarks already have their full details and actions above. Keep
     // broader cookie/origin effects visible without listing the same ID twice.
     const shownIds = new Set(site.bookmarks.map(saved => saved.id));
@@ -237,9 +236,18 @@ export function siteDetails(
       relatedBookmarks: impact.relatedBookmarks.filter(saved => !shownIds.has(saved.id)),
     };
     if (additionalImpact.relatedBookmarks.length || additionalImpact.relatedSites.length)
-      websiteData.append(affectedBookmarks(additionalImpact));
+      shared.append(affectedBookmarks(additionalImpact));
+    websiteData.append(shared);
+  }
+  if (options.onCleanup) {
+    const actions = el("div", "detail-cleanup-actions");
+    const clean = iconButton("broom", inspected ? "Clean up this bookmark…" : "Clean up this site…", () => {
+      void requestLeave().then(allowed => { if (allowed) options.onCleanup?.(site, inspected); });
+    });
+    clean.classList.add("detail-cleanup");
+    actions.append(clean);
+    websiteData.append(actions);
   }
   panel.append(basic, websiteData);
-  if (inspected && bookmark.childElementCount) panel.append(bookmark);
   return panel;
 }

@@ -41,6 +41,11 @@ try {
   }
   await capture('bookmark-details');
   await capture('bookmark-details-narrow',390,844);
+  await run(`document.querySelector('.details-drawer').scrollTop=document.querySelector('.details-drawer').scrollHeight`);
+  await pause(100);
+  assert.equal(await run(`document.querySelector('.details-drawer').scrollTop > 0 && document.querySelector('.detail-cleanup').getBoundingClientRect().bottom <= innerHeight - 16`),true,'Bottom cleanup action is reachable in the narrow details panel');
+  const actionShot = await browser.cmd('Page.captureScreenshot',{format:'png'},page.sessionId);
+  await writeFile(`${out}/bookmark-details-action.png`,Buffer.from(actionShot.data,'base64'));
   await run(`document.querySelector('.detail-cleanup').click()`);
   await waitFor(`document.querySelector('.cleanup-dialog') && !document.querySelector('.cleanup-count').textContent.includes('Checking')`);
   await capture('choices');
@@ -87,7 +92,8 @@ try {
     assert.equal(await run(`document.querySelector('.details-drawer').matches(':modal')`),true);
     assert.equal(await run(`document.querySelector('.details-drawer').scrollWidth <= document.querySelector('.details-drawer').clientWidth`),true);
     await capture('bookmark-details',1360,900);
-    assert.equal(await run(`document.querySelector('.detail-cleanup').getBoundingClientRect().bottom < innerHeight`),true,'Cleanup is visible before long supporting lists');
+    assert.equal(await run(`!!(document.querySelector('.detail-shared-data')?.compareDocumentPosition(document.querySelector('.detail-cleanup')) & Node.DOCUMENT_POSITION_FOLLOWING)`),true,'Cleanup follows the related-page subsection');
+    assert.equal(await run(`document.querySelector('.detail-cleanup').getAttribute('aria-label')`),'Clean up this bookmark…','The broom keeps an explicit action name');
     const filter = `document.querySelector('input[aria-label="Find a bookmark"]')`;
     await run(`${filter}.value='Selected A'; ${filter}.dispatchEvent(new Event('input'))`);
     assert.match(await run(`document.querySelector('section:not([hidden]) .selection-count').textContent`),/2 selected · 1 outside results/);
