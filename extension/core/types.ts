@@ -58,6 +58,9 @@ export interface CleanupPlan {
 }
 export interface Outcome {
   target: string;
+  label?: string;
+  /** Deletion was not attempted because required website-data cleanup failed. */
+  retained?: boolean;
   kind: "data" | "bookmark" | "folder";
   status: "completed" | "failed" | "unverified";
   message: string;

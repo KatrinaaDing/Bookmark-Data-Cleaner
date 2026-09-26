@@ -61,6 +61,9 @@ test("failed site cleanup preserves its bookmarks; unrelated success proceeds an
   assert.deepEqual(calls, ["fail.test", "ok.test", "2", "child", "parent"]);
   assert.equal(result.filter((r) => r.status === "failed").length, 1);
   assert.equal(result.find((r) => r.target === "1")?.status, "unverified");
+  assert.equal(result.find((r) => r.target === "1")?.retained, true);
+  assert.equal(result.find((r) => r.target === "1")?.label, "fail.test");
+  assert.equal(result.find((r) => r.target === "2")?.retained, undefined);
 });
 test("bookmark-only cleanup never calls browsing-data APIs", async () => {
   const calls: string[] = [];

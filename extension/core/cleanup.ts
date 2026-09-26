@@ -108,6 +108,8 @@ export async function executeCleanup(
         if (!dataSucceeded) {
           outcomes.push({
             target: bookmark.id,
+            label: bookmark.title || bookmark.url,
+            retained: true,
             kind: "bookmark",
             status: "unverified",
             message: "Kept because site cleanup did not complete.",
@@ -119,6 +121,7 @@ export async function executeCleanup(
           removed.add(bookmark.id);
           outcomes.push({
             target: bookmark.id,
+            label: bookmark.title || bookmark.url,
             kind: "bookmark",
             status: "completed",
             message: `Removed ${bookmark.title || "untitled bookmark"}.`,
@@ -126,6 +129,7 @@ export async function executeCleanup(
         } catch (error) {
           outcomes.push({
             target: bookmark.id,
+            label: bookmark.title || bookmark.url,
             kind: "bookmark",
             status: "failed",
             message: errorMessage(error),
