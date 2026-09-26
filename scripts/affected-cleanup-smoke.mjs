@@ -25,7 +25,8 @@ try {
   await run(`document.querySelectorAll('.folder-toggle[aria-expanded="false"]').forEach(b=>b.click());document.querySelector('[data-focus-key="bookmark:${fixture.base}"]').click()`);
   await waitFor(`!!document.querySelector('.detail-cleanup')`);
   assert.equal(await run(`document.querySelector('.detail-metadata').tagName`),'DIV','History is available without expansion');
-  assert.equal(await run(`!!document.querySelector('.details .info-control')`),false,'The visible website-data warning is not duplicated in a tooltip');
+  assert.match(await run(`document.querySelector('.details .detail-card-header .info-popover').textContent`),/sign you out/,'The website-data warning lives in the heading popover');
+  assert.equal(await run(`Array.from(document.querySelectorAll('.details p')).some(p=>p.textContent.includes('sign you out'))`),false,'The warning is not repeated inline');
   assert.equal(await run(`document.querySelector('.related-disclosure a').getAttribute('rel')`),'noopener noreferrer');
   await run(`document.querySelector('.detail-cleanup').click()`);
   await waitFor(`document.querySelector('#cleanup-count-cookies')?.textContent==='1 detected cookie'`);
