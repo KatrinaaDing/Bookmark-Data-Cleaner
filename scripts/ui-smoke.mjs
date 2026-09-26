@@ -117,7 +117,7 @@ try {
   assert.deepEqual(await run(`Array.from(document.querySelectorAll('.details .affected-title')).map(el=>el.textContent)`), ['An old project'], 'Site details show a saved bookmark once, with its actions, rather than repeating it as an affected page');
   assert.equal(await run(`!!document.querySelector('.detail-bookmarks .bookmark-edit-action')`), true, 'Merged site data keeps bookmark management available');
   await run(
-    `Array.from(document.querySelectorAll('#operation button')).find(b=>b.textContent==='Dismiss results')?.click()`,
+    `document.querySelector('#operation button[aria-label="Dismiss results"]')?.click()`,
   );
   await run(
     `Array.from(document.querySelectorAll('.site-row .row-title')).find(b=>b.textContent==='old.test').click()`,

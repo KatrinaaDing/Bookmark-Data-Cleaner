@@ -1,7 +1,6 @@
 import { actionButton } from "./action-button.js";
 import { bookmarkSummary } from "./bookmark-summary.js";
 import { enter } from "./motion.js";
-import { toast } from "./feedback.js";
 import { LatestRead } from "./async-state.js";
 import { buildCleanupPlan, hasData } from "../core/cleanup.js";
 import type { CleanupImpact } from "../core/impact.js";
@@ -452,7 +451,6 @@ export function cleanupDialog(
             throw Error(response.error ?? "Could not start cleanup.");
           onStarted(response.value);
           dialog.close();
-          toast("Cleanup started. Progress appears in cleanup results.", "info");
         })
         .catch((error) => {
           setBusy(false);

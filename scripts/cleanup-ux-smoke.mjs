@@ -147,8 +147,8 @@ try {
       const {operationStatus}=await import('./components/operation-status.js');
       return ['failed','unverified'].map(status=>operationStatus({id:status,status:status==='unverified'?'unverified':'finished',completed:1,total:1,outcomes:[{target:'synthetic.test',kind:'data',status,message:'Synthetic incomplete outcome'}]}).textContent);
     })()`);
-    assert.match(reports[0],/items to review.*0 completed · 1 failed/);
-    assert.match(reports[1],/interrupted.*0 completed · 0 failed · 1 unverified/);
+    assert.match(reports[0],/items to review.*1 operation failed/);
+    assert.match(reports[1],/interrupted.*1 outcome unverified/);
     assert.equal(reports.some(report=>report.includes('Selected cleanup requests completed')),false,'Failed and unverified results are never labelled successful');
     console.log('Cleanup UX: independent A/B/C scope, cancel, hidden selections, retained effects, disclosure keyboard/editing, desktop/narrow views, duplicate decisions and actual deletion reconciliation passed.');
   }

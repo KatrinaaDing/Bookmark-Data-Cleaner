@@ -468,20 +468,28 @@ button.danger:hover:not(:disabled) {
   }
 }
 .operation {
-  padding: 1rem 1.3rem;
-  background: var(--tint);
+  padding: .8rem 1rem;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  margin-bottom: 1.8rem;
+  margin-bottom: 1.5rem;
 }
+.operation-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-control); }
+.operation-header .status { margin: 0; padding: 0; background: transparent; }
+.operation-header .icon-button { border-color: transparent; color: var(--muted); }
+.operation-counts, .operation-guidance { margin: .35rem 0; }
+.operation-details summary { cursor: pointer; font-size: var(--text-control); }
 .operation details {
   margin: 0.8rem 0;
 }
 .operation ul {
-  padding-left: 1.2rem;
+  list-style: none;
+  padding: 0;
   font-size: var(--text-meta);
   overflow-wrap: anywhere;
 }
+.operation li { display: grid; gap: .1rem; margin: .65rem 0; }
+.result-target { font-weight: 500; }
 .error {
   color: var(--danger);
 }
