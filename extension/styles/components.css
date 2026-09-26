@@ -27,7 +27,11 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
 .toast-operation.toast-success .operation-header .status { color: var(--success); }
 .toast-operation.toast-error .operation-header .status { color: var(--danger); }
 .toast .icon-button { background: transparent; color: inherit; border-color: transparent; }
-.unsaved-dialog { width: min(440px, calc(100vw - 32px)); }
+.unsaved-dialog { width: min(440px, calc(100vw - 32px)); padding: 1.5rem; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--surface); box-shadow: 0 20px 60px #152c3526; }
+.unsaved-dialog::backdrop { background: #172c3566; }
+.unsaved-dialog h2 { margin: 0 0 .5rem; font-size: 1.25rem; }
+.unsaved-dialog p { margin: 0; }
+.unsaved-dialog .dialog-actions { margin-top: 1.4rem; }
 .editor-feedback:empty { display: none; }
 .editor-feedback .status { background: var(--danger-soft); color: var(--danger); }
 .list-selection { display: flex; align-items: center; gap: 1rem; padding: .5rem .75rem; border-bottom: 1px solid var(--line); margin-bottom: .5rem; font-size: var(--text-control); }
