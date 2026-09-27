@@ -95,3 +95,10 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
 .related-warning .check { align-items: flex-start; }
 .related-warning .affected-entry { margin: .8rem 0; }
 .related-warning .check > span { min-width: 0; }
+
+@media print {
+  /* Fixed and sticky boxes repeat on every printed page and cover the list. Print details once, after the list. */
+  .details-drawer[open] { position: static; inset: auto; height: auto; max-height: none; overflow: visible; box-shadow: none; break-inside: avoid; }
+  .details-drawer::backdrop { display: none; }
+  .skip-link, .toast-host, .info-popover, .drawer-header, .drawer-cleanup-overlay { display: none; }
+}
