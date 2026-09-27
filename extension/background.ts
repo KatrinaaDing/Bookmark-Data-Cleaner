@@ -1,7 +1,7 @@
 import { JobCoordinator } from "./core/jobs.js";
 import { removeData } from "./browser/site-data.js";
 import { removeBookmark, removeEmptyFolder } from "./browser/bookmarks.js";
-import { errorMessage } from "./helpers/sites.js";
+import { errorMessage } from "./helpers/errors.js";
 import type { CleanupPlan, Job } from "./core/types.js";
 const jobs = new JobCoordinator(
   {

@@ -46,11 +46,6 @@ export function heading(title: string, description = ""): HTMLElement {
   if (description) node.append(el("p", "muted", description));
   return node;
 }
-export function dateText(time?: number): string {
-  return time
-    ? new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(time)
-    : "No matching history";
-}
 
 export function disclosure(label: string, text: string): HTMLDetailsElement {
   const details = el("details", "help-disclosure");

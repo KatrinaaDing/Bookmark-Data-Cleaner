@@ -3,7 +3,8 @@ import { actionButton } from "./action-button.js";
 import { bookmarkSummary } from "./bookmark-summary.js";
 import { enter } from "./motion.js";
 import { LatestRead } from "./async-state.js";
-import { buildCleanupPlan, hasData } from "../core/cleanup.js";
+import { buildCleanupPlan } from "../core/cleanup.js";
+import { hasData } from "../core/cleanup-options.js";
 import type { CleanupImpact } from "../core/impact.js";
 import {
   type BookmarkRef,
@@ -14,7 +15,8 @@ import {
   type SiteRecord,
 } from "../core/types.js";
 import { hasSiteAccess, requestSiteAccess } from "../browser/site-data.js";
-import { cookieIdentity, errorMessage } from "../helpers/sites.js";
+import { cookieIdentity } from "../helpers/cookies.js";
+import { errorMessage } from "../helpers/errors.js";
 import { button, checkbox, el, status } from "./dom.js";
 
 export interface PreparedCleanup {

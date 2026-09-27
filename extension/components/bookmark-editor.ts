@@ -1,6 +1,7 @@
 import { saveBookmark, updateBookmark } from '../browser/bookmarks.js';
 import type { BookmarkFolder, BookmarkRef } from '../core/types.js';
-import { errorMessage, webOrigin } from '../helpers/sites.js';
+import { errorMessage } from '../helpers/errors.js';
+import { webOrigin } from '../helpers/url.js';
 import { el, status } from './dom.js';
 import { actionButton } from './action-button.js';
 import { activateForm, formSession, requestLeave, type FormSession } from './form-session.js';

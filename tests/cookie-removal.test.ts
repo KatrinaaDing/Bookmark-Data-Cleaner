@@ -1,7 +1,7 @@
 import { afterEach, test } from "node:test";
 import assert from "node:assert/strict";
 import { cookieExpiry, removeSelectedCookies } from "../extension/browser/cookie-removal.js";
-import { cookieIdentity } from "../extension/helpers/sites.js";
+import { cookieIdentity } from "../extension/helpers/cookies.js";
 import type { CookieRef } from "../extension/core/types.js";
 
 const target: CookieRef = {

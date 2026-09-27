@@ -5,9 +5,11 @@ import type {
   SiteRecord,
 } from "../core/types.js";
 import { inventoryFromCookies } from "../core/inventory.js";
+import type { DataCategory } from "../core/cleanup-options.js";
 import { readBookmarks } from "./bookmarks.js";
 import { readHistory } from "./history.js";
-import { cookieIdentity, unique } from "../helpers/sites.js";
+import { cookieIdentity } from "../helpers/cookies.js";
+import { unique } from "../helpers/collections.js";
 import { removeSelectedCookies } from "./cookie-removal.js";
 const access: chrome.permissions.Permissions = {
   permissions: ["cookies"],
@@ -72,36 +74,30 @@ export async function scanSites(
     warnings: visits.warning ? [visits.warning] : [],
   };
 }
+/** browsingData types cleared for each origin-scoped category. */
+const originDataTypes: Record<Exclude<DataCategory, "cookies">, chrome.browsingData.DataTypeSet> = {
+  savedData: { localStorage: true, indexedDB: true, fileSystems: true },
+  cache: { cache: true, cacheStorage: true },
+  workers: { serviceWorkers: true },
+};
 export async function removeData(
   site: SiteRecord,
   options: CleanupOptions,
 ): Promise<void> {
   if (!site.origins.length) throw Error("No valid website origins selected.");
-  const errors: string[] = [];
   if (options.cookies) {
     if (!(await hasSiteAccess()))
       throw Error("Cookie access is required. Bookmarks have been kept.");
     await removeSelectedCookies(site.cookies);
   }
   const data: chrome.browsingData.DataTypeSet = {};
-  if (options.savedData)
-    Object.assign(data, {
-      localStorage: true,
-      indexedDB: true,
-      fileSystems: true,
-    });
-  if (options.cache) Object.assign(data, { cache: true, cacheStorage: true });
-  if (options.workers) data.serviceWorkers = true;
-  if (Object.keys(data).length) {
-    const origins: [string, ...string[]] = [
-      site.origins[0],
-      ...site.origins.slice(1),
-    ];
-    try {
-      await chrome.browsingData.remove({ origins }, data);
-    } catch {
-      errors.push("Some selected site-data requests failed.");
-    }
+  for (const [category, types] of Object.entries(originDataTypes))
+    if (options[category as keyof typeof originDataTypes]) Object.assign(data, types);
+  if (!Object.keys(data).length) return;
+  const origins: [string, ...string[]] = [site.origins[0], ...site.origins.slice(1)];
+  try {
+    await chrome.browsingData.remove({ origins }, data);
+  } catch {
+    throw Error("Some selected site-data requests failed.");
   }
-  if (errors.length) throw Error(errors.join(" "));
 }

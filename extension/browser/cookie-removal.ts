@@ -1,5 +1,6 @@
 import type { CookieRef } from "../core/types.js";
-import { cookieIdentity, unique } from "../helpers/sites.js";
+import { cookieIdentity } from "../helpers/cookies.js";
+import { unique } from "../helpers/collections.js";
 
 function unsupported(cookie: CookieRef, reason: string): never {
   throw Error(

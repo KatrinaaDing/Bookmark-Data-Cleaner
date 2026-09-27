@@ -1,6 +1,7 @@
 import type { SiteRecord } from "../core/types.js";
 import type { Selection } from "../core/state.js";
-import { clickableRow, button, checkbox, dateText, el } from "./dom.js";
+import { clickableRow, button, checkbox, el } from "./dom.js";
+import { dateText } from "../helpers/format.js";
 import { icon } from "./icons.js";
 export function siteTimeline(
   sites: SiteRecord[],

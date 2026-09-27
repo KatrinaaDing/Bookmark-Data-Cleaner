@@ -154,7 +154,7 @@ try {
     pathToFileURL(path.join(output, "extension/core/inventory.js")).href,
   );
   const sites = await import(
-    pathToFileURL(path.join(output, "extension/helpers/sites.js")).href,
+    pathToFileURL(path.join(output, "extension/helpers/cookies.js")).href,
   );
 
   console.log(`Node ${process.version}; V8 ${process.versions.v8}`);

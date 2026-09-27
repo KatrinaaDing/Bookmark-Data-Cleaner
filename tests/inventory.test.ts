@@ -4,11 +4,8 @@ import {
   inventoryFromCookies,
   sitesFromBookmarks,
 } from "../extension/core/inventory.js";
-import {
-  cookieAppliesToUrl,
-  cookieIdentity,
-  webOrigin,
-} from "../extension/helpers/sites.js";
+import { cookieAppliesToUrl, cookieIdentity } from "../extension/helpers/cookies.js";
+import { webOrigin } from "../extension/helpers/url.js";
 import type { CookieRef } from "../extension/core/types.js";
 const cookie: CookieRef = {
   name: "session",

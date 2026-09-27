@@ -1,5 +1,5 @@
 import type { BookmarkFolder, BookmarkRef } from "../core/types.js";
-import { webOrigin } from "../helpers/sites.js";
+import { webOrigin } from "../helpers/url.js";
 export async function readBookmarks(): Promise<{
   tree: chrome.bookmarks.BookmarkTreeNode[];
   bookmarks: BookmarkRef[];

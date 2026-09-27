@@ -5,14 +5,15 @@ import type {
   SiteRecord,
 } from "../core/types.js";
 import { analyzeImpact } from "../core/impact.js";
-import { button, dateText, el } from "./dom.js";
+import { button, el } from "./dom.js";
+import { dateText } from "../helpers/format.js";
 import { affectedBookmarks } from "./affected-bookmarks.js";
 import { icon, iconButton } from "./icons.js";
 import { bookmarkLink, bookmarkSummary } from "./bookmark-summary.js";
 import { requestLeave } from "./form-session.js";
 import { confirmDestructive, infoPopover, toast } from "./feedback.js";
 import { removeBookmark } from "../browser/bookmarks.js";
-import { errorMessage } from "../helpers/sites.js";
+import { errorMessage } from "../helpers/errors.js";
 import { reveal } from "./motion.js";
 import {
   bookmarkEditor,

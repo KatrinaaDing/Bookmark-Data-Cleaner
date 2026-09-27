@@ -24,7 +24,7 @@ try {
   const page = await browser.attach(`chrome-extension://${browser.id}/app.html`);
   const result = await browser.evaluate(page.sessionId, `(async () => {
     const { readCookies, scanSites, removeData } = await import('./browser/site-data.js');
-    const { cookieIdentity } = await import('./helpers/sites.js');
+    const { cookieIdentity } = await import('./helpers/cookies.js');
     const { noCleanup } = await import('./core/types.js');
     const outcomes = [];
     // set() returns a URL/name lookup result, which can be a neighbour. Read the

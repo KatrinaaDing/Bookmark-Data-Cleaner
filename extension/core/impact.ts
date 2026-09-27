@@ -4,27 +4,15 @@ import type {
   CookieRef,
   SiteRecord,
 } from "./types.js";
-import {
-  cookieAppliesToHost,
-  cookieAppliesToUrl,
-  hostOf,
-  webOrigin,
-} from "../helpers/sites.js";
+import { hasData, hasOriginData } from "./cleanup-options.js";
+import { cookieAppliesToHost, cookieAppliesToUrl } from "../helpers/cookies.js";
+import { unique } from "../helpers/collections.js";
+import { hostOf, webOrigin } from "../helpers/url.js";
 
 export interface CleanupImpact {
   duplicates: BookmarkRef[];
   relatedBookmarks: BookmarkRef[];
   relatedSites: SiteRecord[];
-}
-
-function hasWebsiteData(options?: CleanupOptions): boolean {
-  return (
-    options === undefined ||
-    options.cookies ||
-    options.savedData ||
-    options.cache ||
-    options.workers
-  );
 }
 
 function siteHosts(site: SiteRecord): Set<string> {
@@ -53,6 +41,7 @@ function cookieAffectsSite(cookie: CookieRef, site: SiteRecord): boolean {
   ].some((value) => cookieAppliesToUrl(cookie, value));
 }
 
+/** Without explicit options, report the effects of clearing every data category. */
 export function analyzeImpact(
   targets: SiteRecord[],
   allBookmarks: BookmarkRef[],
@@ -70,15 +59,11 @@ export function analyzeImpact(
     (bookmark) =>
       !selectedBookmarkIds.has(bookmark.id) && selectedUrls.has(bookmark.url),
   );
-  if (!hasWebsiteData(options))
+  if (options && !hasData(options))
     return { duplicates, relatedBookmarks: [], relatedSites: [] };
 
-  const includesOriginEffects =
-    options === undefined ||
-    options.savedData ||
-    options.cache ||
-    options.workers;
-  const includesCookieEffects = options === undefined || options.cookies;
+  const includesOriginEffects = !options || hasOriginData(options);
+  const includesCookieEffects = !options || options.cookies;
   const selectedOrigins = new Set(
     targets
       .flatMap((site) => site.origins)
@@ -135,6 +120,6 @@ export function withBookmarkRemovals(
     if (!options.bookmarks) return { ...target, bookmarks: [] };
     const impact = analyzeImpact([target], candidates, [], options);
     const extras = [...impact.duplicates, ...impact.relatedBookmarks];
-    return { ...target, bookmarks: [...new Map([...target.bookmarks, ...extras].map(bookmark => [bookmark.id, bookmark])).values()] };
+    return { ...target, bookmarks: unique([...target.bookmarks, ...extras], bookmark => bookmark.id) };
   });
 }
