@@ -1,4 +1,5 @@
 const preference = matchMedia('(prefers-reduced-motion: reduce)');
+export function prefersReducedMotion(): boolean { return preference.matches; }
 const active = new Map<HTMLElement, Animation>();
 preference.addEventListener('change', () => {
   if (preference.matches) for (const animation of active.values()) animation.finish();

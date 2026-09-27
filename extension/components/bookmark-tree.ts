@@ -1,5 +1,5 @@
 import { Selection } from "../core/state.js";
-import { clickableRow, button, checkbox, el } from "./dom.js";
+import { clickableRow, button, checkbox, el, spinner } from "./dom.js";
 import type { FolderRef } from "../core/types.js";
 export interface TreeView {
   element: HTMLElement;
@@ -17,9 +17,7 @@ export function setBookmarkRowBusy(row: HTMLElement, busy: boolean): void {
   row.querySelector(".row-cleanup-status")?.remove();
   if (busy) {
     const marker = el("span", "row-cleanup-status");
-    const spinner = el("span", "spinner");
-    spinner.setAttribute("aria-hidden", "true");
-    marker.append(spinner, el("span", "sr-only", "Cleanup in progress"));
+    marker.append(spinner(), el("span", "sr-only", "Cleanup in progress"));
     row.append(marker);
   }
 }

@@ -1,29 +1,25 @@
-import { button, el } from './dom.js';
+import { button, el, spinner } from './dom.js';
 import { icon, iconButton } from './icons.js';
 import { enter, motionDuration, transition } from './motion.js';
 let host: HTMLElement | undefined;
 let serial = 0;
+/** Toasts must sit in the top modal dialog, if any, to stay visible and reachable. */
+function placeToastHost(container: HTMLElement): boolean {
+  const parent = [...document.querySelectorAll<HTMLDialogElement>('dialog:modal')].at(-1) ?? document.body;
+  if (container.parentElement === parent) return false;
+  container.hidePopover();
+  parent.append(container);
+  return true;
+}
 function toastHost(): HTMLElement {
   if (!host) {
-    host = el('div', 'toast-host');
-    host.popover = 'manual';
-    const place = () => {
-      if (!host?.childElementCount) return;
-      const modal = [...document.querySelectorAll<HTMLDialogElement>('dialog:modal')].at(-1);
-      const parent = modal ?? document.body;
-      if (host.parentElement !== parent) {
-        host.hidePopover();
-        parent.append(host);
-        host.showPopover();
-      }
-    };
-    new MutationObserver(place).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['open'] });
+    const container = host = el('div', 'toast-host');
+    container.popover = 'manual';
+    new MutationObserver(() => {
+      if (container.childElementCount && placeToastHost(container)) container.showPopover();
+    }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['open'] });
   }
-  const modal = [...document.querySelectorAll<HTMLDialogElement>('dialog:modal')].at(-1);
-  if (host.parentElement !== (modal ?? document.body)) {
-    host.hidePopover();
-    (modal ?? document.body).append(host);
-  }
+  placeToastHost(host);
   if (!host.matches(':popover-open')) host.showPopover();
   return host;
 }
@@ -51,11 +47,7 @@ export function toast(message: string | HTMLElement, kind: 'success' | 'error' |
     stop();
     if (!options.persistent && kind !== 'error' && !item.matches(':hover, :focus-within')) timer = setTimeout(dismiss, 6000);
   };
-  if (options.busy) {
-    const spinner = el('span', 'spinner');
-    spinner.setAttribute('aria-hidden', 'true');
-    item.append(spinner);
-  }
+  if (options.busy) item.append(spinner());
   item.append(content);
   if (!options.persistent) item.append(iconButton('close', 'Dismiss notification', dismiss));
   item.addEventListener('mouseenter', stop);
@@ -132,57 +124,66 @@ export function infoPopover(label: string, content: string): HTMLElement {
   return wrapper;
 }
 
-export function unsavedChoice(): Promise<'save' | 'discard' | 'stay'> {
+interface DialogChoice<T> { label: string; value: T; tone: 'quiet' | 'primary' | 'danger'; focus?: boolean; }
+
+/**
+ * Small modal choice. Both uses share the unsaved-dialog class so drawer Escape
+ * handling stays paused while they are open. Escape resolves to `dismissed`.
+ */
+function choiceDialog<T>(options: { className: string; title: string; message: string; choices: DialogChoice<T>[]; dismissed: T }): Promise<T> {
   return new Promise(resolve => {
-    const dialog = el('dialog', 'unsaved-dialog');
-    dialog.setAttribute('aria-labelledby', 'unsaved-title');
-    dialog.append(el('h2', '', 'Save your changes?'));
-    dialog.querySelector('h2')!.id = 'unsaved-title';
-    dialog.append(el('p', 'muted', 'You have unsaved bookmark changes.'));
+    const dialog = el('dialog', `unsaved-dialog ${options.className}`.trim());
+    const heading = el('h2', '', options.title);
+    heading.id = `dialog-title-${++serial}`;
+    dialog.setAttribute('aria-labelledby', heading.id);
+    dialog.append(heading, el('p', 'muted', options.message));
     let settled = false;
-    const finish = (choice: 'save' | 'discard' | 'stay') => {
+    const finish = (value: T) => {
       if (settled) return;
       settled = true;
       dialog.close();
       dialog.remove();
-      resolve(choice);
+      resolve(value);
     };
     const actions = el('div', 'dialog-actions');
-    const stay = button('Keep editing', () => finish('stay'), 'quiet');
-    actions.append(stay, button('Discard', () => finish('discard'), 'quiet'), button('Save changes', () => finish('save'), 'primary'));
+    let initial: HTMLButtonElement | undefined;
+    for (const choice of options.choices) {
+      const control = button(choice.label, () => finish(choice.value), choice.tone);
+      if (choice.focus) initial = control;
+      actions.append(control);
+    }
     dialog.append(actions);
-    dialog.addEventListener('cancel', event => { event.preventDefault(); finish('stay'); });
+    dialog.addEventListener('cancel', event => { event.preventDefault(); finish(options.dismissed); });
     document.body.append(dialog);
     dialog.showModal();
-    stay.focus();
+    initial?.focus();
     enter(dialog);
   });
 }
 
-/** Destructive confirmation shares the unsaved-dialog shell so drawer Escape handling stays paused. */
+export function unsavedChoice(): Promise<'save' | 'discard' | 'stay'> {
+  return choiceDialog({
+    className: '',
+    title: 'Save your changes?',
+    message: 'You have unsaved bookmark changes.',
+    dismissed: 'stay',
+    choices: [
+      { label: 'Keep editing', value: 'stay', tone: 'quiet', focus: true },
+      { label: 'Discard', value: 'discard', tone: 'quiet' },
+      { label: 'Save changes', value: 'save', tone: 'primary' },
+    ],
+  });
+}
+
 export function confirmDestructive(title: string, message: string, confirmLabel: string): Promise<boolean> {
-  return new Promise(resolve => {
-    const dialog = el('dialog', 'unsaved-dialog confirm-dialog');
-    const heading = el('h2', '', title);
-    heading.id = `confirm-title-${++serial}`;
-    dialog.setAttribute('aria-labelledby', heading.id);
-    dialog.append(heading, el('p', 'muted', message));
-    let settled = false;
-    const finish = (confirmed: boolean) => {
-      if (settled) return;
-      settled = true;
-      dialog.close();
-      dialog.remove();
-      resolve(confirmed);
-    };
-    const actions = el('div', 'dialog-actions');
-    const cancel = button('Cancel', () => finish(false), 'quiet');
-    actions.append(cancel, button(confirmLabel, () => finish(true), 'danger'));
-    dialog.append(actions);
-    dialog.addEventListener('cancel', event => { event.preventDefault(); finish(false); });
-    document.body.append(dialog);
-    dialog.showModal();
-    cancel.focus();
-    enter(dialog);
+  return choiceDialog({
+    className: 'confirm-dialog',
+    title,
+    message,
+    dismissed: false,
+    choices: [
+      { label: 'Cancel', value: false, tone: 'quiet', focus: true },
+      { label: confirmLabel, value: true, tone: 'danger' },
+    ],
   });
 }

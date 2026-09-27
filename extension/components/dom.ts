@@ -1,4 +1,4 @@
-import { cancelTransition, motionDuration, transition } from "./motion.js";
+import { cancelTransition, motionDuration, prefersReducedMotion, transition } from "./motion.js";
 export function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   className = "",
@@ -30,6 +30,12 @@ export function checkbox(
   input.addEventListener("change", () => change(input.checked));
   label.append(input, el("span", "", text));
   return { label, input };
+}
+/** Decorative progress indicator; pair it with a text alternative. */
+export function spinner(): HTMLElement {
+  const node = el("span", "spinner");
+  node.setAttribute("aria-hidden", "true");
+  return node;
 }
 export function status(text: string, busy = false): HTMLElement {
   const node = el("p", "status", text);
@@ -68,7 +74,7 @@ function animateDisclosure(details: HTMLDetailsElement): void {
     cancelTransition(details);
     details.open = target;
     const end = details.getBoundingClientRect().height;
-    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (prefersReducedMotion()) {
       details.style.overflow = ""; moving = false; return;
     }
     moving = true;

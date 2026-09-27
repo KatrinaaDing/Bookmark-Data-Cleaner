@@ -1,6 +1,7 @@
 import type { Job, Outcome } from "../core/types.js";
 import { el, status } from "./dom.js";
 import { iconButton } from "./icons.js";
+import { plural } from "../helpers/format.js";
 
 export function operationStatus(job: Job, onDismiss?: () => void): HTMLElement {
   const panel = el("section", "operation");
@@ -25,8 +26,8 @@ export function operationStatus(job: Job, onDismiss?: () => void): HTMLElement {
   panel.append(header);
 
   const counts: string[] = [];
-  const count = (amount: number, singular: string, plural: string) => {
-    if (amount) counts.push(`${amount} ${amount === 1 ? singular : plural}`);
+  const count = (amount: number, singular: string, pluralForm: string) => {
+    if (amount) counts.push(plural(amount, singular, pluralForm));
   };
   count(completed.filter(outcome => outcome.kind === "data").length, "website-data request completed", "website-data requests completed");
   count(completed.filter(outcome => outcome.kind === "bookmark").length, "bookmark removed", "bookmarks removed");

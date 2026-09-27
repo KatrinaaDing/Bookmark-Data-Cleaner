@@ -1,5 +1,6 @@
-import { cancelTransition, motionDuration, transition } from "./motion.js";
-import { el } from "./dom.js";
+import { cancelTransition, motionDuration, prefersReducedMotion, transition } from "./motion.js";
+import { on } from "./events.js";
+import { el, spinner } from "./dom.js";
 import { requestLeave } from "./form-session.js";
 import { iconButton } from "./icons.js";
 
@@ -13,6 +14,16 @@ export interface DetailsDrawer {
 }
 
 let shared: DetailsDrawer | undefined;
+/** Dialogs stacked above details own Escape and must not be displaced by a mode change. */
+const OVERLYING_DIALOGS = "dialog.cleanup-dialog[open], dialog.unsaved-dialog[open]";
+
+/** Mark only the row for `key` as the inspected one. */
+function highlightInspected(key?: string): void {
+  document
+    .querySelectorAll('[data-focus-key][aria-current="true"]')
+    .forEach((node) => node.removeAttribute("aria-current"));
+  if (key) document.querySelector(`[data-focus-key="${CSS.escape(key)}"]`)?.setAttribute("aria-current", "true");
+}
 
 export function detailsDrawer(): DetailsDrawer {
   if (shared) return shared;
@@ -21,9 +32,7 @@ export function detailsDrawer(): DetailsDrawer {
   const body = el("div", "drawer-content");
   const cleanupOverlay = el("div", "drawer-cleanup-overlay");
   const cleanupMessage = el("div", "drawer-cleanup-message");
-  const cleanupSpinner = el("span", "spinner");
-  cleanupSpinner.setAttribute("aria-hidden", "true");
-  cleanupMessage.append(cleanupSpinner, el("span", "", "Cleanup in progress…"));
+  cleanupMessage.append(spinner(), el("span", "", "Cleanup in progress…"));
   cleanupOverlay.append(cleanupMessage);
   cleanupOverlay.hidden = true;
   let request = 0;
@@ -39,13 +48,10 @@ export function detailsDrawer(): DetailsDrawer {
   const rail = el("div", "details-rail");
   rail.append(dialog);
 
-  const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
   const wantsModal = () => matchMedia("(max-width: 760px)").matches;
 
   function markInspected(source?: HTMLElement) {
-    document
-      .querySelectorAll('[data-focus-key][aria-current="true"]')
-      .forEach((node) => node.removeAttribute("aria-current"));
+    highlightInspected();
     if (source?.dataset.focusKey) {
       dialog.dataset.inspectionKey = source.dataset.focusKey;
       source.setAttribute("aria-current", "true");
@@ -112,7 +118,7 @@ export function detailsDrawer(): DetailsDrawer {
     closing = true;
     rail.closest(".workspace")?.classList.remove("has-details");
     cancelTransition(dialog);
-    if (modal || reduced()) {
+    if (modal || prefersReducedMotion()) {
       finishClose();
       return;
     }
@@ -132,7 +138,7 @@ export function detailsDrawer(): DetailsDrawer {
       event.key === "Escape" &&
       opened &&
       !modal &&
-      !document.querySelector("dialog.cleanup-dialog[open], dialog.unsaved-dialog[open]")
+      !document.querySelector(OVERLYING_DIALOGS)
     ) {
       event.preventDefault();
       close();
@@ -141,13 +147,13 @@ export function detailsDrawer(): DetailsDrawer {
   function updatePresentation() {
     if (!opened || closing || wantsModal() === modal) return;
     // A responsive transition must not move the underlying drawer above review.
-    if (document.querySelector("dialog.cleanup-dialog[open], dialog.unsaved-dialog[open]")) return;
+    if (document.querySelector(OVERLYING_DIALOGS)) return;
     present();
     closeButton.focus({ preventScroll: true });
   }
   window.addEventListener("resize", updatePresentation);
   document.addEventListener("close", () => queueMicrotask(updatePresentation), true);
-  document.addEventListener("workspace-route", () => {
+  on("workspace-route", () => {
     request++;
     if (opened) finishClose(false);
   });
@@ -169,7 +175,7 @@ export function detailsDrawer(): DetailsDrawer {
       opened = true;
       present();
       motionRevision++;
-      if (!alreadyOpen && !reduced() && !modal)
+      if (!alreadyOpen && !prefersReducedMotion() && !modal)
         void transition(dialog,
           [{ transform: "translateX(calc(100% + 20px))", opacity: 0 }, { transform: "translateX(0)", opacity: 1 }],
           motionDuration("panel"),
@@ -191,8 +197,7 @@ export function detailsDrawer(): DetailsDrawer {
     syncInspection() {
       const key = dialog.dataset.inspectionKey;
       if (!opened || closing || !key) return;
-      document.querySelectorAll('[data-focus-key][aria-current="true"]').forEach(node => node.removeAttribute("aria-current"));
-      document.querySelector(`[data-focus-key="${CSS.escape(key)}"]`)?.setAttribute("aria-current", "true");
+      highlightInspected(key);
     },
     setCleanupBusy,
   };
