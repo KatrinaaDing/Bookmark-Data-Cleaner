@@ -1,12 +1,11 @@
-import { permissionAction } from "../components/permission-action.js";
-import { workspaceToolbar, selectionControl } from "../components/workspace-controls.js";
+import { workspaceToolbar, selectionControl, selectionActions, searchInput } from "../components/workspace-controls.js";
 import { bookmarkSummary } from "../components/bookmark-summary.js";
-import { infoPopover, toast } from "../components/feedback.js";
-import { currentForm, requestLeave } from "../components/form-session.js";
-import { iconButton } from "../components/icons.js";
+import { toast } from "../components/feedback.js";
+import { requestLeave } from "../components/form-session.js";
 import { detailsDrawer } from "../components/details-drawer.js";
+import { emit } from "../components/events.js";
 import { readBookmarks } from "../browser/bookmarks.js";
-import { readHistory, requestHistory } from "../browser/history.js";
+import { readHistory } from "../browser/history.js";
 import { hasSiteAccess, readCookies } from "../browser/site-data.js";
 import { sitesFromBookmarks } from "../core/inventory.js";
 import { analyzeImpact, withBookmarkRemovals } from "../core/impact.js";
@@ -14,70 +13,69 @@ import { Selection } from "../core/state.js";
 import type {
   BookmarkFolder,
   BookmarkRef,
+  CleanupOptions,
   CookieRef,
+  FolderRef,
   Job,
   SiteRecord,
 } from "../core/types.js";
+import { plural } from "../helpers/format.js";
 import { bookmarkTree, setBookmarkRowBusy, type TreeView } from "../components/bookmark-tree.js";
-import { cleanupDialog } from "../components/cleanup-dialog.js";
-import { button, checkbox, clickableRow, el, heading, status } from "../components/dom.js";
+import { cleanupDialog, type PreparedCleanup } from "../components/cleanup-dialog.js";
+import { button, checkbox, clickableRow, el, status } from "../components/dom.js";
+import { siteDetails, type DetailsSnapshot } from "../components/site-details.js";
+import type { BookmarkMutation } from "../components/bookmark-editor.js";
 import {
-  siteDetails,
-  type DetailsSnapshot,
-} from "../components/site-details.js";
+  CleanupJobState,
+  Inspection,
+  WorkspaceLoader,
+  historyAccessAction,
+  reportLoadFailure,
+  workspaceLayout,
+  type WorkspacePage,
+} from "./workspace.js";
 
-export interface WorkspacePage {
-  element: HTMLElement;
-  load: () => Promise<void>;
-  refresh: () => Promise<void>;
-  invalidate: () => void;
-  setCleanupJob: (job?: Job, unavailable?: boolean) => void;
+async function freshCookieSnapshot(): Promise<CookieRef[] | undefined> {
+  if (!(await hasSiteAccess())) return undefined;
+  try {
+    return await readCookies();
+  } catch {
+    return undefined;
+  }
 }
 
 export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
-  const page = el("section");
-  page.append(
-    heading("Bookmark cleanup", "Select bookmarks to review their site data."),
-  );
-  page.querySelector("h1")!.append(infoPopover("About bookmark cleanup", "Search saved titles, URLs or folder paths. Select bookmarks to review their website data and choose whether to delete the bookmarks too."));
-  const search = el("input"); search.type = "search"; search.placeholder = "Find a bookmark"; search.setAttribute("aria-label", "Find a bookmark");
-  const count = el("span", "selection-count", "0 selected");
+  const layout = workspaceLayout({
+    title: "Bookmark cleanup",
+    description: "Select bookmarks to review their site data.",
+    infoLabel: "About bookmark cleanup",
+    info: "Search saved titles, URLs or folder paths. Select bookmarks to review their website data and choose whether to delete the bookmarks too.",
+  });
+  const { list, feedback } = layout;
+  const search = searchInput("Find a bookmark");
   const selection = new Selection();
   const expanded = new Set<string>();
+  const cleanupJob = new CleanupJobState();
   let records: BookmarkRef[] = [];
   let folders: BookmarkFolder[] = [];
   let tree: chrome.bookmarks.BookmarkTreeNode[] = [];
   let treeView: TreeView | undefined;
+  /** Contextual site records for details; enriched once cookies and history load. */
   let detailSites: SiteRecord[] = [];
   let cachedCookies: CookieRef[] | undefined;
   let cachedHistory: chrome.history.HistoryItem[] = [];
   let detailsLoading = false;
-  let loaded = false;
-  let busy = false;
-  let generation = 0;
-  let inspectedId: string | undefined;
-  let inspectedRequest = 0;
-  let cleanupJob: Job | undefined;
-  let cleanupUnavailable = true;
-  const list = el("div", "workspace-list");
-  const feedback = el("div");
   const drawer = detailsDrawer();
-  const cleanupBlocked = () => cleanupUnavailable || cleanupJob?.status === "running";
-  const busyBookmarkIds = () => new Set(cleanupJob?.status === "running" ? cleanupJob.busyBookmarkIds ?? [] : []);
+  const inspection = new Inspection({
+    drawer,
+    list,
+    kind: "bookmark",
+    render: detailsFor,
+    afterRender: (id) => drawer.setCleanupBusy(cleanupJob.busyBookmarkIds().has(id)),
+  });
 
   function inventory(items: BookmarkRef[], cookies = cachedCookies) {
-    return cookies === undefined
-      ? sitesFromBookmarks(items, undefined, cachedHistory)
-      : sitesFromBookmarks(items, cookies, cachedHistory);
-  }
-
-  async function freshCookieSnapshot(): Promise<CookieRef[] | undefined> {
-    if (!(await hasSiteAccess())) return undefined;
-    try {
-      return await readCookies();
-    } catch {
-      return undefined;
-    }
+    return sitesFromBookmarks(items, cookies, cachedHistory);
   }
 
   function siteFor(id: string): SiteRecord | undefined {
@@ -98,55 +96,52 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       detectedSites: detailSites,
       loadingDates: detailsLoading,
       onCleanup: (_site, bookmark) => {
-        if (bookmark && !cleanupBlocked()) openDirectCleanup(bookmark);
+        if (bookmark && !cleanupJob.blocked) openDirectCleanup(bookmark);
       },
       onMutation: reconcileMutation,
     });
-    content.querySelector<HTMLButtonElement>(".detail-cleanup")?.toggleAttribute("disabled", !!cleanupBlocked());
+    content.querySelector<HTMLButtonElement>(".detail-cleanup")?.toggleAttribute("disabled", cleanupJob.blocked);
     return content;
   }
 
-  let enrichmentDeferred = false;
-  function deferEnrichmentUpdate() { enrichmentDeferred = true; }
-  document.addEventListener("editor-closed", () => {
-    if (enrichmentDeferred) { enrichmentDeferred = false; updateOpenDetails(); }
-  });
-
-  function updateOpenDetails() {
-    if (!inspectedId || !drawer.isOpen(`bookmark:${inspectedId}`)) return;
-    if (currentForm()) {
-      deferEnrichmentUpdate();
-      return;
-    }
-    drawer.update(detailsFor(inspectedId), inspectedRequest);
-    drawer.setCleanupBusy(busyBookmarkIds().has(inspectedId));
+  /** Replace bookmark data and keep selections that still exist. */
+  function applyBookmarks(result: Awaited<ReturnType<typeof readBookmarks>>) {
+    records = result.bookmarks;
+    folders = result.folders;
+    tree = result.tree;
+    selection.retain(new Set([...records.map(bookmark => bookmark.id), ...folders.map(folder => folder.id)]));
   }
 
+  const query = () => search.value.trim();
   function matches() {
-    const query = search.value.trim().toLowerCase();
-    return records.filter(bookmark => `${bookmark.title} ${bookmark.url} ${bookmark.path}`.toLowerCase().includes(query));
+    const text = query().toLowerCase();
+    return records.filter(bookmark => `${bookmark.title} ${bookmark.url} ${bookmark.path}`.toLowerCase().includes(text));
   }
   const all = selectionControl(selection,
-    () => search.value.trim() ? new Set(matches().filter(bookmark => !bookmark.unmodifiable).map(bookmark => bookmark.id)) : treeView?.ids() ?? new Set(),
-    () => !!search.value.trim(), () => { treeView?.update(); renderTree(false); }, cleanupBlocked);
+    () => query() ? new Set(matches().filter(bookmark => !bookmark.unmodifiable).map(bookmark => bookmark.id)) : treeView?.ids() ?? new Set(),
+    () => !!query(), () => { treeView?.update(); renderTree(false); }, () => cleanupJob.blocked);
+
+  function searchResults(): HTMLElement {
+    const results = el("div", "search-results");
+    for (const bookmark of matches()) {
+      const row = el("div", "bookmark-row");
+      const check = checkbox("", value => { if (cleanupJob.blocked) return; selection.set(bookmark.id, value); changed(); });
+      check.input.setAttribute("aria-label", `Select ${bookmark.title || "untitled"}`);
+      check.input.checked = selection.ids.has(bookmark.id); check.input.disabled = !!bookmark.unmodifiable || cleanupJob.blocked;
+      const title = button("", () => { void inspection.open(bookmark.id, title); }, "row-title");
+      title.append(bookmarkSummary(bookmark)); title.dataset.focusKey = `bookmark:${bookmark.id}`;
+      row.dataset.bookmarkId = bookmark.id;
+      row.append(check.label, title); clickableRow(row, title); results.append(row);
+    }
+    if (!results.childElementCount) results.append(status("No bookmarks match this search. Try a title, URL or folder name."));
+    return results;
+  }
+
   function renderTree(rebuild = true) {
-    if (rebuild || !treeView) treeView = bookmarkTree(tree, selection, expanded, (id, trigger) => { void inspect(id, trigger); }, changed);
-    if (search.value.trim()) {
-      const results = el("div", "search-results");
-      for (const bookmark of matches()) {
-        const row = el("div", "bookmark-row");
-        const check = checkbox("", value => { if (cleanupBlocked()) return; selection.set(bookmark.id, value); changed(); });
-        check.input.setAttribute("aria-label", `Select ${bookmark.title || "untitled"}`);
-        check.input.checked = selection.ids.has(bookmark.id); check.input.disabled = !!bookmark.unmodifiable || !!cleanupBlocked();
-        const title = button("", () => { void inspect(bookmark.id, title); }, "row-title");
-        title.append(bookmarkSummary(bookmark)); title.dataset.focusKey = `bookmark:${bookmark.id}`;
-        row.dataset.bookmarkId = bookmark.id;
-        row.append(check.label, title); clickableRow(row, title); results.append(row);
-      }
-      if (!results.childElementCount) results.append(status("No bookmarks match this search. Try a title, URL or folder name."));
-      list.replaceChildren(all.element, results);
-    } else {
-      list.replaceChildren(all.element, treeView!.element);
+    if (rebuild || !treeView) treeView = bookmarkTree(tree, selection, expanded, (id, trigger) => { void inspection.open(id, trigger); }, changed);
+    if (query()) list.replaceChildren(all.element, searchResults());
+    else {
+      list.replaceChildren(all.element, treeView.element);
       if (!records.length) list.append(status("No bookmarks yet. Saved bookmarks will appear here."));
     }
     syncCleanupPresentation();
@@ -156,28 +151,21 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
 
   async function reconcileMutation(
     id: string | undefined,
-    mutation: { created: boolean; error?: string },
+    mutation: BookmarkMutation,
   ): Promise<DetailsSnapshot | undefined> {
-    const result = await readBookmarks();
-    records = result.bookmarks;
-    folders = result.folders;
-    tree = result.tree;
-    selection.retain(new Set([...records.map(bookmark => bookmark.id), ...folders.map(folder => folder.id)]));
+    applyBookmarks(await readBookmarks());
     detailSites = inventory(records);
     renderTree();
-    changed();
-    document.dispatchEvent(new CustomEvent("bookmarks-changed", { detail: "bookmarks" }));
-    const snapshotId = mutation.created ? id : inspectedId;
+    emit("bookmarks-changed", "bookmarks");
+    const snapshotId = mutation.created ? id : inspection.id;
     const inspected = snapshotId
       ? records.find((bookmark) => bookmark.id === snapshotId)
       : undefined;
-    const site = inspected ? siteFor(inspected.id) : inspectedId ? siteFor(inspectedId) : undefined;
+    const siteId = inspected?.id ?? inspection.id;
+    const site = siteId ? siteFor(siteId) : undefined;
     if (!site) {
-      if (inspectedId && drawer.isOpen(`bookmark:${inspectedId}`))
-        drawer.update(
-          status("This bookmark was removed. Close details to continue."),
-          inspectedRequest,
-        );
+      if (inspection.isOpen())
+        inspection.show(status("This bookmark was removed. Close details to continue."));
       return undefined;
     }
     return {
@@ -189,12 +177,13 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     };
   }
 
+  /** Build a cleanup from fresh browser reads; `extras` are opted-in related bookmarks. */
   async function prepareBookmarks(
     baseIds: ReadonlySet<string>,
-    options: import("../core/types.js").CleanupOptions,
+    options: CleanupOptions,
     extras: ReadonlySet<string>,
-    selectedFolders: import("../core/types.js").FolderRef[] = [],
-  ) {
+    selectedFolders: FolderRef[] = [],
+  ): Promise<PreparedCleanup> {
     const fresh = await readBookmarks();
     const base = fresh.bookmarks.filter((bookmark) => baseIds.has(bookmark.id));
     if (!base.length && !selectedFolders.length)
@@ -202,12 +191,9 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     const cookies = options.cookies ? await freshCookieSnapshot() : undefined;
     if (options.cookies && cookies === undefined)
       throw Error("Cookie access is required to prepare this cleanup.");
-    const contextual = cookies === undefined
-      ? sitesFromBookmarks(base, undefined, cachedHistory)
-      : sitesFromBookmarks(base, cookies, cachedHistory);
-    const planSites = withBookmarkRemovals(contextual, fresh.bookmarks, options, extras);
+    const contextual = sitesFromBookmarks(base, cookies, cachedHistory);
     return {
-      sites: planSites,
+      sites: withBookmarkRemovals(contextual, fresh.bookmarks, options, extras),
       folders: selectedFolders,
       impact: analyzeImpact(contextual, fresh.bookmarks, detailSites, options),
       contextualBookmarks: base,
@@ -215,7 +201,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   }
 
   function openDirectCleanup(bookmark: BookmarkRef) {
-    if (cleanupBlocked()) return;
+    if (cleanupJob.blocked) return;
     const ids = new Set([bookmark.id]);
     const current = records.find(item => item.id === bookmark.id) ?? bookmark;
     cleanupDialog(
@@ -226,10 +212,12 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     );
   }
 
-  const clean = button(
-    "Clean up selected…",
-    async () => {
-      if (cleanupBlocked()) return;
+  const actions = selectionActions({
+    selection,
+    selectAll: all,
+    disabled: () => loader.busy || cleanupJob.blocked,
+    onClean: async () => {
+      if (cleanupJob.blocked) return;
       if (!(await requestLeave())) return;
       const ids = new Set(selection.ids);
       const selectedFolders = treeView?.folders() ?? [];
@@ -239,141 +227,81 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
           prepareBookmarks(ids, options, extras, selectedFolders),
         true,
         onStarted,
-        { label: `Selected: ${bookmarkCount} ${bookmarkCount === 1 ? "bookmark" : "bookmarks"}${selectedFolders.length ? ` · ${selectedFolders.length} ${selectedFolders.length === 1 ? "folder" : "folders"} (only if empty)` : ""}` },
+        { label: `Selected: ${plural(bookmarkCount, "bookmark")}${selectedFolders.length ? ` · ${plural(selectedFolders.length, "folder")} (only if empty)` : ""}` },
       );
     },
-    "primary",
-  );
-  clean.disabled = true;
-  const clear = iconButton("clear", "Clear selection", () => {
-    selection.ids.clear();
-    treeView?.update();
-    renderTree(false);
-    search.focus();
+    onClear: () => {
+      treeView?.update();
+      renderTree(false);
+      search.focus();
+    },
   });
-  clear.hidden = true;
-  const refresh = iconButton("refresh", "Refresh", () => void load(true));
-  const history = permissionAction({
-    label: "Enable visit dates", icon: "history", request: requestHistory,
-    granted: "Visit dates enabled.", declined: "History access declined. Cleanup still works.",
-    onGranted: () => load(true, false),
-  });
-  const toolbar = workspaceToolbar([refresh, search, history], [clear, count, clean]);
-  search.addEventListener("input", () => renderTree(false));
-  page.append(toolbar, feedback);
-  const workspace = el("div", "workspace");
-  workspace.append(list);
-  page.append(workspace);
-
-  function changed() {
-    count.textContent = all.update();
-    clear.hidden = selection.ids.size === 0;
-    clean.disabled = busy || !!cleanupBlocked() || !selection.ids.size;
-  }
-
-  function syncCleanupPresentation() {
-    const ids = busyBookmarkIds();
-    treeView?.setCleanupBusy(ids, !!cleanupBlocked());
-    for (const row of list.querySelectorAll<HTMLElement>(".search-results .bookmark-row"))
-      setBookmarkRowBusy(row, ids.has(row.dataset.bookmarkId ?? ""));
-    if (inspectedId && drawer.isOpen(`bookmark:${inspectedId}`)) {
-      drawer.setCleanupBusy(ids.has(inspectedId));
-      const clean = document.querySelector<HTMLButtonElement>(".details-drawer .detail-cleanup");
-      if (clean) clean.disabled = !!cleanupBlocked();
-    }
-    changed();
-  }
-
-  async function inspect(id: string, trigger: HTMLElement) {
-    if (!(await requestLeave())) return;
-    inspectedId = id;
-    const source = list.querySelector<HTMLElement>(`[data-focus-key="bookmark:${CSS.escape(id)}"]`) ?? trigger;
-    inspectedRequest = drawer.open(detailsFor(id), source);
-    drawer.setCleanupBusy(busyBookmarkIds().has(id));
-  }
-
-  async function load(force = false, announce = force) {
-    if (busy || (loaded && !force)) return;
-    if (force && !(await requestLeave())) return;
-    if (busy) return;
-    const current = ++generation;
-    busy = true;
-    refresh.disabled = true;
-    refresh.setAttribute("aria-busy", "true");
-    refresh.classList.add("refreshing");
-    changed();
-    feedback.replaceChildren(status(loaded ? "Refreshing bookmarks…" : "Loading bookmarks…", true));
-    list.setAttribute("aria-busy", "true");
-    void chrome.permissions.contains({ permissions: ["history"] }).then(
-      (allowed) => { history.hidden = allowed; },
-      () => { history.hidden = false; },
-    );
-    try {
+  const changed = actions.update;
+  const history = historyAccessAction(() => loader.load(true, false));
+  const loader: WorkspaceLoader = new WorkspaceLoader({
+    list,
+    feedback,
+    subject: "bookmarks",
+    changed,
+    beforeLoad: history.sync,
+    run: async ({ isCurrent, announce }) => {
       const result = await readBookmarks();
-      if (current !== generation) return;
-      records = result.bookmarks;
-      folders = result.folders;
-      tree = result.tree;
-      selection.retain(new Set([...records.map(bookmark => bookmark.id), ...folders.map(folder => folder.id)]));
+      if (!isCurrent()) return;
+      applyBookmarks(result);
       cachedCookies = undefined;
       cachedHistory = [];
       detailSites = inventory(records);
       detailsLoading = true;
       renderTree();
-      loaded = true;
+      loader.loaded = true;
       feedback.replaceChildren();
-      updateOpenDetails();
+      inspection.update();
 
+      // Dates and cookie counts enrich details after the list is usable.
       const [visits, cookies] = await Promise.all([
         readHistory(),
         freshCookieSnapshot(),
       ]);
-      if (current !== generation) return;
+      if (!isCurrent()) return;
       cachedHistory = visits.history;
       cachedCookies = cookies;
       detailSites = inventory(records);
       detailsLoading = false;
-      updateOpenDetails();
+      inspection.update();
       if (visits.warning) feedback.replaceChildren(status(visits.warning));
       if (announce) toast("Bookmarks refreshed.");
-    } catch {
-      if (current !== generation) return;
+    },
+    failed: () => {
       detailsLoading = false;
-      toast("Could not refresh bookmarks. Try Refresh again.", "error");
-      feedback.replaceChildren(
-        status(
-          loaded
-            ? "Could not refresh. The previous bookmark list is shown; try Refresh again."
-            : "Could not load bookmarks. Try Refresh again.",
-        ),
-      );
-    } finally {
-      if (current === generation) {
-        busy = false;
-        refresh.disabled = false;
-        refresh.setAttribute("aria-busy", "false");
-        refresh.classList.remove("refreshing");
-        list.removeAttribute("aria-busy");
-        changed();
-      }
+      reportLoadFailure(feedback, "Could not refresh bookmarks. Try Refresh again.",
+        loader.loaded
+          ? "Could not refresh. The previous bookmark list is shown; try Refresh again."
+          : "Could not load bookmarks. Try Refresh again.");
+    },
+  });
+  layout.mount(workspaceToolbar([loader.refreshButton, search, history.element], actions.elements), feedback);
+  search.addEventListener("input", () => renderTree(false));
+
+  function syncCleanupPresentation() {
+    const ids = cleanupJob.busyBookmarkIds();
+    treeView?.setCleanupBusy(ids, cleanupJob.blocked);
+    for (const row of list.querySelectorAll<HTMLElement>(".search-results .bookmark-row"))
+      setBookmarkRowBusy(row, ids.has(row.dataset.bookmarkId ?? ""));
+    if (inspection.isOpen()) {
+      drawer.setCleanupBusy(ids.has(inspection.id));
+      const clean = document.querySelector<HTMLButtonElement>(".details-drawer .detail-cleanup");
+      if (clean) clean.disabled = cleanupJob.blocked;
     }
+    changed();
   }
 
   return {
-    element: page,
-    load: () => load(),
-    refresh: () => (loaded && !currentForm() ? load(true, false) : Promise.resolve()),
+    element: layout.element,
+    load: () => loader.load(),
+    refresh: () => loader.refresh(),
     setCleanupJob: (job, unavailable = false) => {
-      if (cleanupUnavailable === unavailable && cleanupJob?.id === job?.id &&
-          cleanupJob?.status === job?.status) return;
-      cleanupJob = job;
-      cleanupUnavailable = unavailable;
-      syncCleanupPresentation();
+      if (cleanupJob.set(job, unavailable)) syncCleanupPresentation();
     },
-    invalidate: () => {
-      generation++;
-      loaded = false;
-      busy = false;
-    },
+    invalidate: () => loader.invalidate(),
   };
 }
