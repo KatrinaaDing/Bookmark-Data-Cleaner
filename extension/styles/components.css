@@ -101,4 +101,6 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
   .details-drawer[open] { position: static; inset: auto; height: auto; max-height: none; overflow: visible; box-shadow: none; break-inside: avoid; }
   .details-drawer::backdrop { display: none; }
   .skip-link, .toast-host, .info-popover, .drawer-header, .drawer-cleanup-overlay { display: none; }
+  /* Collapsed folders are clipped to zero height on screen, but printing still paginates their rows as blank pages. */
+  .folder-children:not(.is-expanded) { display: none; }
 }
