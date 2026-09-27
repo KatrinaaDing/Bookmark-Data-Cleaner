@@ -1,11 +1,8 @@
+import { sendToWorker } from "./browser/messages.js";
 try {
-  const response = (await chrome.runtime.sendMessage({
-    type: "open-manager",
-  })) as { ok: boolean; error?: string };
-  if (!response.ok) throw Error(response.error);
+  await sendToWorker({ type: "open-manager" });
   window.close();
 } catch {
   document.body.textContent =
     "Could not open the app. Reload the extension and try again.";
 }
-export {};
