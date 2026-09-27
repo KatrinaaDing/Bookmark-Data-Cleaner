@@ -21,6 +21,14 @@
     15px/1.55 -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
+    /* Name CJK faces explicitly: printing can drop glyphs reached only through system font fallback. */
+    "PingFang SC",
+    "Hiragino Sans",
+    "Apple SD Gothic Neo",
+    "Microsoft YaHei",
+    "Yu Gothic",
+    "Malgun Gothic",
+    "Noto Sans CJK SC",
     sans-serif;
   color: var(--ink);
   background: var(--canvas);
