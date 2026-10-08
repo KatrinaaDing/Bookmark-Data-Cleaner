@@ -28,8 +28,22 @@ try {
   assert.equal(await run(`${all}.disabled`),true);
   await setSearch('');
   assert.equal(await run(`!!document.querySelector('.bookmark-tree')`),true);
+  const useFilter = `document.querySelector('select[aria-label="Filter bookmarks by recorded use"]')`;
+  const setFilter = async value => { await run(`${useFilter}.value=${JSON.stringify(value)};${useFilter}.dispatchEvent(new Event('change',{bubbles:true}))`); };
+  // The fixture bookmarks were never opened and the profile has no history, so nothing has a recorded use.
+  await setFilter('365');
+  assert.equal(await run(`document.querySelectorAll('.search-results .bookmark-row').length`),0,'Missing dates are never treated as old');
+  assert.equal(await run(`${all}.disabled`),true);
+  await setFilter('never');
+  assert.equal(await run(`document.querySelectorAll('.search-results .bookmark-row').length`),2,'No recorded use lists undated bookmarks');
+  assert.match(await run(`document.querySelector('.search-results .result-count').textContent`),/2 of 2 bookmarks/);
+  assert.equal(await run(`document.querySelectorAll('.search-results .row-activity[aria-label="No recorded use"]').length`),2);
+  await run(`document.querySelector('.search-results .reset-filters').click()`);
+  assert.equal(await run(`${useFilter}.value`),'all');
+  assert.equal(await run(`!!document.querySelector('.bookmark-tree')`),true,'Reset filters restores the tree');
+  assert.equal(await run(`document.querySelectorAll('.bookmark-tree .bookmark-row .row-host').length`),2,'Tree rows show the domain beside the title');
   await run(`document.querySelector('section:not([hidden]) button[aria-label="Clear selection"]').click()`);
   assert.equal(await run(`${clean}.disabled`),true);
   assert.equal(await run(`${clean}.getBoundingClientRect().right`),before);
-  console.log('Bookmark search, stable action placement, filtered selection and hidden selections passed');
+  console.log('Bookmark search, unused filter, stable action placement, filtered selection and hidden selections passed');
 } finally { await browser.close(); }
