@@ -5,6 +5,7 @@ import { dashboard } from "./pages/dashboard.js";
 import { bookmarksPage } from "./pages/bookmarks.js";
 import { sitesPage } from "./pages/sites.js";
 import { JobMonitor } from "./job-monitor.js";
+import { LINKS } from "./links.js";
 const pages = document.getElementById("pages")!;
 const jobs = new JobMonitor(document.getElementById("operation")!);
 const bookmarks = bookmarksPage(jobs.show),
@@ -16,10 +17,10 @@ on("bookmarks-changed", (source) => {
   if (source !== "sites") sites.invalidate();
 });
 on("cleanup-review-opened", () => jobs.dismissResult());
-pages.append(home, bookmarks.element, sites.element);
+pages.append(home.element, bookmarks.element, sites.element);
 function route() {
   const current = location.hash.slice(1) || "home";
-  home.hidden = current === "bookmarks" || current === "sites";
+  home.element.hidden = current === "bookmarks" || current === "sites";
   bookmarks.element.hidden = current !== "bookmarks";
   sites.element.hidden = current !== "sites";
   for (const link of document.querySelectorAll<HTMLAnchorElement>("nav a")) {
@@ -32,6 +33,7 @@ function route() {
   }
   if (current === "bookmarks") void bookmarks.load();
   if (current === "sites") void sites.load();
+  if (!home.element.hidden) home.refresh();
 }
 let activeHash = location.hash || "#home";
 let routing = false;
@@ -61,6 +63,18 @@ window.addEventListener("hashchange", () => {
 });
 route();
 void jobs.check();
+
+const footer = document.querySelector(".app-footer")!;
+footer.querySelector(".app-version")!.textContent = `Version ${chrome.runtime.getManifest().version}`;
+for (const [key, label] of [["privacy", "Privacy"], ["issues", "Report an issue"]] as const) {
+  if (!LINKS[key]) continue;
+  const link = document.createElement("a");
+  link.href = LINKS[key];
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = label;
+  footer.querySelector(".app-links")!.append(link);
+}
 
 document.querySelector(".skip-link")?.addEventListener("click", (event) => {
   event.preventDefault();

@@ -193,6 +193,13 @@ main {
 .feature-card p {
   color: var(--muted);
 }
+.feature-card .card-stat {
+  min-height: 1.55em;
+  margin-top: -0.6rem;
+  color: var(--accent);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
 .card-action {
   margin-top: auto;
   border-bottom: 1px solid var(--accent);
@@ -215,6 +222,16 @@ main {
   padding: 1.3rem 3.5%;
   color: var(--muted);
   font-size: var(--text-meta);
+}
+.app-links {
+  display: flex;
+  gap: 1.2rem;
+}
+.app-links a {
+  color: var(--muted);
+}
+.app-links a:hover {
+  color: var(--accent);
 }
 .toolbar {
   display: flex;
