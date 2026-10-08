@@ -1,6 +1,6 @@
 # Public-release improvement plan — 19 September 2026
 
-**Status:** implementation started on 19 September 2026. R02, R03 and R05 are implemented; the R01 scope correction and remaining compatibility gate are recorded in the [first refinement](../history/2026-09-19-release-foundations.md). The overall release and remaining phases are not complete.
+**Status:** implementation started on 19 September 2026. The [8 October 2026 record](../history/2026-10-08-first-run-usability.md) closed R08 and most of R09, R12, R14 and R16; remaining pre-upload items are listed there. R02, R03 and R05 are implemented; the R01 scope correction and remaining compatibility gate are recorded in the [first refinement](../history/2026-09-19-release-foundations.md). The overall release and remaining phases are not complete.
 
 **Next tranche:** the user accepted the [20 September interaction consistency plan](2026-09-20-interaction-consistency-plan.md), which specifies toolbar/search, forms, feedback, cleanup review and motion. For that scope, its default-selected additional duplicates and flat bookmark search replace the older duplicate opt-in and filtered-tree assumptions below. This tranche is now implemented; see its [verification record](../history/2026-09-20-interaction-system.md). Unrelated release gates are unchanged.
 
@@ -106,9 +106,9 @@
 
 ### R08. Recorded bookmark-use filter (after core discovery)
 
-- [ ] Use existing optional `dateLastUsed` metadata; label it Bookmark last opened, distinct from website visits.
-- [ ] Offer a small set of age ranges and a separate Not recorded option; never classify missing dates as old.
-- [ ] Combine safely with title/domain search and preserve selected/hidden counts.
+- [x] Use existing optional `dateLastUsed` metadata; label it Bookmark last opened, distinct from website visits. (Rows combine it with the site's last visit as "recorded use"; details still show both separately.)
+- [x] Offer a small set of age ranges and a separate Not recorded option; never classify missing dates as old.
+- [x] Combine safely with title/domain search and preserve selected/hidden counts.
 
 **Acceptance:** no extra history permission is required for bookmark-use metadata; boundary dates use documented local-date semantics; the filter never automatically selects or deletes items. Ship after R06 if it stays simple; document evidence and decision if usability research changes its priority.
 
@@ -116,8 +116,8 @@
 
 ### R09. Permissions and honest inventory coverage
 
-- [ ] Add labeled Enable visit dates while history access is off and explain the benefit at the point of request.
-- [ ] Explain why cookie/site access is needed and that processing remains local. Keep history optional and separate.
+- [x] Add labeled Enable visit dates while history access is off and explain the benefit at the point of request.
+- [x] Explain why cookie/site access is needed and that processing remains local. Keep history optional and separate.
 - [ ] Make cookie-driven discovery and storage-only omissions visible in first-use/empty states; an empty list must not claim no stored data exists.
 - [ ] Exercise grant, decline, revoke-while-open, delayed enrichment, and read failures.
 
@@ -146,8 +146,8 @@
 
 ### R12. Help, privacy, support, and backup guidance
 
-- [ ] Add unobtrusive Help / Privacy / Report issue / version / release-note access using real maintained destinations.
-- [ ] Document required and optional permissions, local processing, retained marker data, inventory limits, sign-out/unsynced-work consequences, and browser bookmark-export guidance.
+- [x] Add unobtrusive Help / Privacy / Report issue / version / release-note access using real maintained destinations. (Footer implemented; URLs are placeholders in `extension/links.ts` until the owner fills them.)
+- [x] Document required and optional permissions, local processing, retained marker data, inventory limits, sign-out/unsynced-work consequences, and browser bookmark-export guidance. (`docs/privacy.md`, `docs/store-listing.md`.)
 - [ ] Verify destination links and instructions before shipping. If no privacy destination exists, prepare a repository document and publication-ready URL; do not invent a deployed page.
 
 **Acceptance:** help is reachable from the app and repository; copy matches shipped behavior; backup guidance does not promise recovery of cookies/site storage. A custom exporter remains conditional below.
@@ -162,9 +162,9 @@
 
 ### R14. Modest visual and brand polish
 
-- [ ] Improve bookmark title/domain association at wide widths without losing full URLs in details.
+- [x] Improve bookmark title/domain association at wide widths without losing full URLs in details.
 - [ ] Remove repeated explanations and adjust detail/result hierarchy within the existing palette/type system.
-- [ ] Polish the existing icon for actual toolbar/store sizes; retain brand recognition and avoid a naming project.
+- [x] Polish the existing icon for actual toolbar/store sizes; retain brand recognition and avoid a naming project. (Redrawn in the accent blue with 16/32/48/128 renders.)
 - [ ] Inspect representative populated/empty/error/review states at desktop and narrow widths in one batched pass. Run the design detector once after UI changes; fix real findings, then verify once.
 
 **Acceptance:** task visibility and readability improve, no layout overflow or reduced-motion regressions, no added remote assets/dependencies. Separate icon assets from layout commits. Update `DESIGN.md` to describe final behavior, not proposed behavior.
@@ -182,9 +182,9 @@
 
 ### R16. Store description, screenshots, and disclosure preparation
 
-- [ ] Draft concise positioning around reviewing abandoned bookmarks/sites and selected leftover data.
-- [ ] Replace outdated storage-category claims; accurately distinguish supported scope from complete trace removal.
-- [ ] Produce three authentic screenshots with realistic synthetic data: find candidates → inspect shared effects → review deletion. Match final UI and icon.
+- [x] Draft concise positioning around reviewing abandoned bookmarks/sites and selected leftover data.
+- [x] Replace outdated storage-category claims; accurately distinguish supported scope from complete trace removal.
+- [x] Produce three authentic screenshots with realistic synthetic data: find candidates → inspect shared effects → review deletion. Match final UI and icon. (`scripts/store-assets.mjs` → `images/store/`.)
 - [ ] Reconcile manifest, README, privacy explanation, store declarations, version, and release notes with the package. Refresh public counts only if citing them; never present the 103-user snapshot as current indefinitely.
 - [ ] Prepare the package and a concrete listing-change preview for review. Publish/update only when explicitly authorized.
 
