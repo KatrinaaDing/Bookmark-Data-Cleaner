@@ -16,8 +16,9 @@ The extension requests cookie and website access, and history access, only when 
 
 ## What the extension stores
 
-- While a cleanup runs, a minimal job record (job ID, progress and per-item outcomes such as "completed" or "failed") is kept in the browser's session storage so the app can show results if you close and reopen it. It is cleared when the browser closes. It does not contain cookie values.
-- No settings, histories, bookmarks or cookies are copied anywhere else.
+- While a cleanup runs, a minimal job record (job ID, progress and per-item outcomes such as "completed", "failed" or "kept") is kept in the browser's session storage so the app can show results if you close and reopen it. It is cleared when the browser closes.
+- The record contains site domains and bookmark titles for the items you confirmed. It never contains cookie values, full cleanup plans or anything from sites you did not select.
+- No settings, preferences, bookmarks, cookies or history are copied anywhere else.
 
 ## What the extension never does
 
@@ -25,10 +26,11 @@ The extension requests cookie and website access, and history access, only when 
 - It never sends, syncs, sells or shares any data with the developer or anyone else.
 - It never deletes anything without showing you the exact list first and asking you to confirm.
 - It does not run in incognito windows.
+- It does not collect personal information, authentication details, financial or health information, location, or personal communications.
 
 ## Deletion is permanent
 
-Cookies, site storage and bookmarks that you confirm for deletion are removed by the browser and cannot be restored by the extension. Deleting a site's cookies may sign you out of that site. Export your bookmarks from your browser's bookmark manager first if you want a backup.
+Cookies, site storage and bookmarks that you confirm for deletion are removed by the browser and cannot be restored by the extension. Clearing a site's cookies may sign you out of that site, and clearing saved site data may discard offline or unsynced work there. Export your bookmarks from your browser's bookmark manager first if you want a backup.
 
 ## Changes and contact
 
