@@ -4,6 +4,8 @@ The current goal is **public adoption first, portfolio value second**, confirmed
 
 ## Start here
 
+- [First-run usability and release packaging — 8 October 2026](history/2026-10-08-first-run-usability.md): row signals and unused filter, overview counts, access gate, icon, store assets, privacy policy and listing text; remaining pre-upload steps.
+
 - [Bookmark review feedback — 26 September 2026](history/2026-09-26-bookmark-review-feedback.md): visible visit dates, compact linked summaries, reorganized review and opt-in affected-bookmark deletion with unchanged website-data scope.
 
 - [Product UX session handover — 26 September 2026](../handovers/2026-09-26-product-ux.md): current state, user priority, safety boundaries, verification and next-session starting point.

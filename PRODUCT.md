@@ -12,4 +12,4 @@ See docs/improvements/history/2026-09-06-rebranding-plan.md for scope and docs/a
 
 UI preferences: reduce visible text, retain the original blue/white identity, use familiar labeled icons, animate folder transitions, and show details in a wide card sliding from the right. Avoid nested scrolling. Keep commits focused on one intent.
 
-Current iteration: continue refining product usefulness and UX/UI. Passing automated checks does not end product refinement or imply release readiness.
+Current iteration: release preparation. The 8 October 2026 pass fixed every weakness from the whole-product evaluation; remaining work is filling public links, Chrome verification and manual release checks (see docs/store-listing.md).

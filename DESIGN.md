@@ -1,6 +1,6 @@
 # Main app design
 
-Mode: operate. Preserve the original product name, blue/white identity, native controls and three-page structure. The [shared UI contract](docs/ui-contract.md) defines the component and lifecycle standards behind this implementation.
+Mode: operate. Preserve the original product name, blue/white identity, native controls and three-page structure. The icon is a white bookmark with sweep marks on the accent blue, drawn in `extension/icons/icon.svg` and rendered to PNG by `scripts/render-icons.mjs`. The [shared UI contract](docs/ui-contract.md) defines the component and lifecycle standards behind this implementation.
 
 ## Visual foundation
 
@@ -10,17 +10,23 @@ Use 15px row titles, 14px supporting controls, 13px metadata, 24px details headi
 
 Detail section headings use blue at medium weight; detail bookmark titles use medium-weight neutral text. In the bookmark list and search results, individual bookmark titles use regular weight (400), while folder titles use bold (700). Subheadings, dates, folder paths and URLs are quieter. Reserve semibold for page/detail titles rather than every line of content.
 
+## Overview and footer
+
+The overview states the outcome ("Clean up sites you no longer use.") and one sentence on how. Each card carries a live count: bookmarks saved, and sites with cookies or the access still needed. A footer shows the version and, when `extension/links.ts` is filled, Privacy and Report an issue links.
+
 ## Workspaces
 
 Both workspaces use short descriptions and optional info popovers. Help icons are small, neutral and focusable; their light popovers open on hover or focus without button styling. Refresh is first on the left, then search and applicable filters. The cleanup action group remains right-aligned with or without selection; narrow windows stack it on a consistent second row. `Clean up selected…` sits beside the count, including zero, and remains disabled without a selection. Details use a primary broom button labelled `Clean up`, with the accessible name `Clean up this bookmark…` or `Clean up this site…`; both enter review.
 
 List-header checkboxes say Select all or Select all results. They select all eligible matching results, including rows below the viewport. Unchecking affects current results only; Clear selection clears all. Totals disclose selections outside the current results.
 
-Bookmark search matches title, full URL and folder path case-insensitively. Results are flat bookmark rows with folder captions; clearing search restores the existing tree and expansion state. Search does not rebuild the entire tree for each keystroke. Managed entries remain protected. Empty-folder selection retains the normal tree semantics.
+Bookmark rows show the domain beside the title, then detected cookies (only when at least one) and the latest recorded use: the later of bookmark last opened and site last visited, or a dash labelled No recorded use. The date column hides on narrow windows. Bookmark search matches title, full URL and folder path case-insensitively. A recorded-use filter (Unused for 6 months / 1 year / 2 years, No recorded use) uses the same flat results, sorted longest-unused first; missing dates never count as old, and the filter is disabled while dates load. Filtered results show matching versus total counts, Reset filters, and a hint when history access is off. Results are flat bookmark rows with folder captions; clearing search or filters restores the existing tree and expansion state. Search does not rebuild the entire tree for each keystroke. Managed entries remain protected. Empty-folder selection retains the normal tree semantics.
 
 Folder and site rows remain clickable independently of their padded checkbox targets. Closed folders are inert and hidden from assistive technology. The site timeline retains date groups and a separate unknown-history group. A native All sites / Bookmarked / Not bookmarked filter combines with search and date ordering. Result counts report matching versus detected sites; Reset filters clears search and bookmark status without clearing selection or changing sort order.
 
-Row titles open details and never acquire link underlines on hover. Site rows place a cookie icon/count at the right, with a descriptive accessible name and tooltip. An unavailable count shows a dash rather than zero.
+Row titles open details and never acquire link underlines on hover. Site rows place a cookie icon/count at the right, with a descriptive accessible name and tooltip. An unavailable count shows a dash rather than zero. Undated site rows carry no date text; their group heading already says No matching history.
+
+Before site access is granted, Site data shows a tinted gate explaining what the browser prompt asks for, why it is needed and that nothing leaves the browser, with Allow site discovery inside it. The optional Enable visit dates control carries the same explanation as a tooltip.
 
 ## Details and bookmark forms
 
@@ -44,7 +50,7 @@ Both review steps carry the initiating bookmark title and folder path, site doma
 
 Eligible additional bookmarks for identical URLs start checked in one checklist. Managed duplicates remain unavailable. Explicit deselections survive Back/Next and refreshes, and carry a local website-data warning only when data cleanup is selected. If all copies are selected, review explicitly says none will remain. Other affected bookmarks offer unchecked, explicit deletion choices when bookmark removal is enabled. These choices never expand the website-data scope. Site-data-only cleanup does not gain bookmark deletion.
 
-Every scope change invalidates confirmation immediately and prepares a fresh immutable snapshot. Failed preparation has visible retry/back/cancel recovery and cannot authorize an earlier plan. Back clears completed loading feedback while retaining decisions. Step arrival focuses the heading, never Confirm cleanup; final confirmation uses exactly the current reviewed plan. Dependent bookmarks remain when any of their selected data cleanup targets fails; shared bookmarks wait for every dependency before deletion.
+Every scope change invalidates confirmation immediately and prepares a fresh immutable snapshot. Failed preparation has visible retry/back/cancel recovery and cannot authorize an earlier plan. Back clears completed loading feedback while retaining decisions. Step arrival focuses the heading, never Confirm cleanup; focused headings draw no ring; final confirmation uses exactly the current reviewed plan. Dependent bookmarks remain when any of their selected data cleanup targets fails; shared bookmarks wait for every dependency before deletion.
 
 ## Feedback and motion
 

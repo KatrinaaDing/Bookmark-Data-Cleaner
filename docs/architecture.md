@@ -4,13 +4,13 @@ A small TypeScript extension compiled to native ES modules. No runtime packages,
 
 | Layer | Responsibility |
 |---|---|
-| `app.ts`, `job-monitor.ts` | Hash routes; cleanup-job polling, progress and result toasts |
+| `app.ts`, `job-monitor.ts`, `links.ts` | Hash routes and footer; cleanup-job polling, progress and result toasts; public link targets |
 | `pages/` | Workspace journeys; `workspace.ts` holds the shared load lifecycle, details inspection, history access and cleanup-job blocking |
-| `components/` | Native controls, tree/timeline, details (`site-details` layout, `saved-bookmark-actions` edit/copy/delete), cleanup dialog (`cleanup-dialog` steps, `cleanup-review` sections), feedback and results. `events.ts` types the document events views use to stay decoupled |
+| `components/` | Native controls, tree/timeline (`bookmark-signals` derives per-row last use and cookie counts and the recorded-use filter), details (`site-details` layout, `saved-bookmark-actions` edit/copy/delete), cleanup dialog (`cleanup-dialog` steps, `cleanup-review` sections), feedback and results. `events.ts` types the document events views use to stay decoupled |
 | `core/` | Plain-record inventory, impact, selection, cleanup categories (`cleanup-options`), review decisions, fixed cleanup plans, sequencing and jobs |
 | `browser/` | Permissions, meaningful Chrome read/delete operations and the typed worker message contract (`messages.ts`) |
 | `helpers/` | Pure utilities: `url` (web-origin parsing), `cookies` (scope and identity), `collections`, `format`, `errors` |
-| `background.ts` | Single-tab launcher and cleanup coordinator |
+| `background.ts` | Single-tab launcher (toolbar click) and cleanup coordinator |
 
 Dependencies point downward: pages → components → core/browser → helpers. `core/` and `helpers/` never touch the DOM, so they are unit-tested directly.
 

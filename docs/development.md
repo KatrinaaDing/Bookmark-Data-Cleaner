@@ -49,7 +49,7 @@ Each script creates and removes a fresh temporary profile. Never point these scr
 - `bookmark-management-smoke`: ID-preserving edit/move, cross-route refresh, isolated direct cleanup, default-selected duplicates, persistent deselection and actual retention/deletion, sticky desktop details, native narrow modal, resize/focus and unavailable-cookie copy. Audit captures go to `dist/audit/`.
 - `ui-refinement-smoke`: sliding details, the three detail sections, editor disclosure, dismissal/focus, stale requests, reduced motion and narrow modal behavior. Captures go to `dist/refinement/`.
 - `ui-contract-smoke`: shared edit/copy lifecycle, save/discard/stay navigation, refreshed DOM ownership, double-submit exclusion, failed-write drafts, reconciliation-only retry after successful create, modal toast visibility/order and reduced-motion forms. Synthetic captures go to `dist/contract/`.
-- `bookmark-search-smoke`: title/URL/folder search, no results, hidden selections, filtered select/unselect, clear-all and stable cleanup placement.
+- `bookmark-search-smoke`: title/URL/folder search, no results, hidden selections, filtered select/unselect, clear-all, stable cleanup placement, the recorded-use filter (missing dates never old; No recorded use; reset) and inline domains.
 - `cleanup-ux-smoke`: A/B selection with C inspection in both workspaces, cancellation, hidden selections, cached-tree inspection restoration, entry context, retained bookmark effects, keyboard disclosures, native narrow modal, duplicate decisions, actual deletion reconciliation, and failed/unverified result wording. Synthetic before/after captures go to `dist/cleanup-ux/`; `--capture-before` is for audit capture against the baseline build.
 - `affected-cleanup-smoke`: explicit related-bookmark deletion, unchanged reviewed origins/cookies, actual deletion and unrelated-cookie retention, Back/Next decisions, managed protection and failed-rebuild gating. It also checks busy tree/search rows, the details overlay, closing details during cleanup, data-only bookmark restoration, and progress/completion toasts. Long-title desktop/narrow, overlay and toast captures go to `dist/affected-cleanup/`.
 - `site-discovery-smoke`: All/Bookmarked/Not bookmarked filters, combined search, hidden-selection review scope, reset/focus, navigation retention and narrow layouts.
@@ -57,6 +57,10 @@ Each script creates and removes a fresh temporary profile. Never point these scr
 - `ui-smoke`: dashboard/routes, folders, indeterminate and duplicate selection, metadata, validation, bookmark-only and site-cookie cleanup, timeline, narrow layouts and offline reload. Screenshots go to ignored `dist/screenshots/`.
 
 Cleanup/storage/UI tests copy the package into their temporary profile and grant optional permissions **in that test copy only** to seed fixtures without browser prompts. The permission test uses the real manifest. These are controlled integration tests, not complete browser compatibility coverage.
+
+## Icons and store assets
+
+`CHROME_BIN=… node scripts/render-icons.mjs` renders `extension/icons/icon.svg` to the 16/32/48/128 PNGs the manifest lists. `CHROME_BIN=… node scripts/store-assets.mjs` seeds a disposable profile with synthetic bookmarks, cookies and history and writes the 1280×800 store screenshots and promo tiles to `images/store/`. Rerun both after icon or UI changes.
 
 ## Inventory diagnostics
 
@@ -78,4 +82,4 @@ Incognito is disabled. Enterprise policies, other operating systems, the minimum
 
 ## Package
 
-Run all checks above, then zip the **contents** of `dist/extension/` with `manifest.json` at archive root. Load the extracted package once before submitting it. The public name/icon still need a branding decision; no store upload is part of this implementation.
+Run all checks above, then zip the **contents** of `dist/extension/` with `manifest.json` at archive root. Load the extracted package once before submitting it. Fill the footer links in `extension/links.ts` first; [store-listing.md](store-listing.md) has the submission checklist and listing text.

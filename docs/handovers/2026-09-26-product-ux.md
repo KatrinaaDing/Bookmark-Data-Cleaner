@@ -2,6 +2,8 @@
 
 ## Resume here
 
+> **Superseded on 8 October 2026.** The user decided to ship. See [the release-packaging record](../improvements/history/2026-10-08-first-run-usability.md) for what changed and [store-listing.md](../store-listing.md) for what is left before upload. The notes below describe the earlier refinement state.
+
 **Follow-up:** the user has now reviewed the screenshots. The [bookmark review feedback pass](../improvements/history/2026-09-26-bookmark-review-feedback.md) implements six requested improvements, including always-visible history and explicit opt-in deletion of affected bookmarks without expanding website-data scope. It supersedes the layout and verification notes below. These follow-up changes are in the working tree, not committed.
 
 A later progress-feedback follow-up adds persistent job toasts and in-context busy states for the affected bookmark rows and open details panel. The same follow-up record describes the resulting job and UI contract. These changes also remain uncommitted.
