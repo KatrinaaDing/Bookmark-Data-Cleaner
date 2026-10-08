@@ -1,7 +1,32 @@
-# Stage 1 — development branch
+# Release notes
 
-Implemented in order: strict TypeScript migration, `extension/` source structure, shared cleanup architecture, native HTML/custom CSS interface.
+## 3.0.0 — October 2026
 
-Added overview cards, preserved collapsible bookmark folders, a cookie-driven site timeline, metadata inspection, optional access prompts, loading states and reviewed cleanup with category-level results. Removed Bootstrap and obsolete AppCache, WebSQL and plugin-data choices. Added service-worker job status, exact partition-aware cookie deletion and regression/browser checks.
+A rebuilt app with a review step before every deletion.
 
-Public name and icon remain unchanged pending a branding decision. Rich toolbar quick cleanup remains Stage 2. This build is not published; see the manual release checks in [development](development.md).
+**New**
+
+- Overview page with live bookmark and cookie-site counts.
+- Bookmark rows show the domain, detected cookies and the last time the bookmark was opened or its site visited. A filter lists bookmarks unused for 6 months, 1 year or 2 years, or with no recorded use.
+- Site data page lists every site that stored cookies, with search, last-visit ordering and an All / Bookmarked / Not bookmarked filter.
+- Two-step cleanup: choose data types (cookies and sign-in data, saved site data, cached resources, background workers) and optional bookmark deletion, then review the exact sites, cookie scope and affected bookmarks before confirming.
+- Results report what completed, failed or was kept. Bookmarks are kept when their site-data cleanup fails.
+- Edit, copy, move and delete individual bookmarks from the details panel.
+- Keyboard, screen-reader and reduced-motion support throughout; a narrow-window layout.
+
+**Changed**
+
+- History access is now optional and only adds last-visit dates; cookie and website access are requested on first use of Site data.
+- Cookies are removed by exact identity (domain, name, path, store and partition), never by URL/name matching that could remove neighbouring cookies.
+- The toolbar icon opens the app directly instead of a popup.
+- New icon.
+
+**Removed**
+
+- Legacy AppCache, WebSQL and plugin-data options, and the Bootstrap stylesheet. The extension now has no runtime dependencies.
+
+Deletion remains permanent; export your bookmarks first if you want a backup. See the [privacy policy](privacy.md) for exactly what the extension reads and stores.
+
+## 2.2
+
+Previous published version: delete browsing data when deleting a bookmark.
