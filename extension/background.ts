@@ -52,3 +52,6 @@ chrome.runtime.onMessage.addListener(
     return true;
   },
 );
+chrome.action.onClicked.addListener(() => {
+  void openManager();
+});

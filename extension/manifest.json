@@ -9,8 +9,7 @@
     "storage"
   ],
   "action": {
-    "default_icon": "icon.png",
-    "default_popup": "popup.html"
+    "default_icon": "icon.png"
   },
   "minimum_chrome_version": "130",
   "optional_permissions": [
