@@ -16,7 +16,8 @@ export function siteTimeline(
     const year = site.lastVisit
       ? String(new Date(site.lastVisit).getFullYear())
       : "No matching history";
-    const date = site.lastVisit ? dateText(site.lastVisit) : "Date unavailable";
+    // Undated sites already sit under the "No matching history" heading.
+    const date = site.lastVisit ? dateText(site.lastVisit) : "";
     if (year !== previousYear) {
       list.append(el("h2", "timeline-year", year));
       previousYear = year;
