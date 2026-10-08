@@ -49,6 +49,7 @@ export function historyAccessAction(onGranted: () => Promise<void>) {
     granted: "Visit dates enabled.", declined: "History access declined. Cleanup still works.",
     onGranted,
   });
+  element.title = "Optional. Asks for browsing-history access to show when each site was last visited.";
   return {
     element,
     sync() {

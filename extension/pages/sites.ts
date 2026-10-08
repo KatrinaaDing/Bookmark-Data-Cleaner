@@ -92,6 +92,17 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     onGranted: () => loader.load(true, false),
   });
   access.hidden = true;
+  // First-run gate: say what the browser prompt will ask for and why before showing it.
+  const gate = el("section", "access-gate");
+  gate.setAttribute("aria-label", "Site discovery access");
+  const gateList = el("ul", "fine access-gate-points");
+  for (const point of [
+    "Your browser will ask to read cookies and site data on all websites.",
+    "That access is how this page lists sites with leftover cookies and clears only what you confirm.",
+    "Nothing leaves your browser. There is no tracking, and you can revoke access any time in your browser's extension settings.",
+  ]) gateList.append(el("li", "", point));
+  gate.append(status("Discovery needs cookie and website access."), gateList, access);
+  gate.hidden = true;
   const history = historyAccessAction(() => loader.load(true, false));
 
   const filtersActive = () => !!search.value.trim() || bookmarkFilter.value !== "all";
@@ -233,13 +244,13 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
       if (!(await hasSiteAccess())) {
         if (!isCurrent()) return;
         access.hidden = false;
-        feedback.replaceChildren(
-          status("Discovery needs cookie and website access. Browsing data stays in your browser."),
-        );
+        gate.hidden = false;
+        feedback.replaceChildren();
         render();
         return;
       }
       access.hidden = true;
+      gate.hidden = true;
       const bookmarksPromise = readBookmarks();
       datesLoading = true;
       // Show cookie-based sites first; visit dates follow from history.
@@ -269,7 +280,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
           : "Could not discover site data. Check access and try Refresh again.");
     },
   });
-  layout.mount(workspaceToolbar([loader.refreshButton, search, order, bookmarkFilter, history.element], actions.elements), access, feedback);
+  layout.mount(workspaceToolbar([loader.refreshButton, search, order, bookmarkFilter, history.element], actions.elements), gate, feedback);
   search.addEventListener("input", render);
   order.addEventListener("change", render);
   bookmarkFilter.addEventListener("change", render);

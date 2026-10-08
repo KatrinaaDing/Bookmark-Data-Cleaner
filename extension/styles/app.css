@@ -233,6 +233,24 @@ main {
 .app-links a:hover {
   color: var(--accent);
 }
+.access-gate {
+  margin: 0 0 1.2rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--tint);
+}
+.access-gate .status {
+  padding: 0 0 0.4rem;
+  font-weight: 500;
+}
+.access-gate-points {
+  margin: 0 0 0.9rem;
+  padding-left: 1.2rem;
+}
+.access-gate-points li {
+  margin: 0.25rem 0;
+}
 .toolbar {
   display: flex;
   flex-wrap: wrap;
