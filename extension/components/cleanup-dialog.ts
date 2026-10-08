@@ -129,8 +129,6 @@ export function cleanupDialog(
         const bookmarks = new Set(prepared.sites.flatMap(site => site.bookmarks.map(bookmark => bookmark.id))).size;
         const folders = new Set((prepared.folders ?? []).map(folder => folder.id)).size;
         counts.get("cookies")!.textContent = granted ? plural(cookies, "detected cookie") : "Access needed";
-        for (const key of ["savedData", "cache", "workers"] as const)
-          counts.get(key)!.textContent = "If present";
         if (allowBookmarks)
           counts.get("bookmarks")!.textContent = `${plural(bookmarks, "bookmark")}${folders ? ` · ${plural(folders, "folder")} if empty` : ""}`;
         previewNotice.textContent = "Website data can be shared with other pages. Next checks the targets and saved copies.";
@@ -154,13 +152,17 @@ export function cleanupDialog(
       if (key === "cookies") cookieInput = choice.input;
       choiceInputs.push(choice.input);
       const wrapper = el("div", "cleanup-choice");
-      const count = el("span", "cleanup-count", "Checking…");
-      count.setAttribute("aria-live", "polite");
-      count.id = `cleanup-count-${key}`;
-      choice.input.setAttribute("aria-describedby", count.id);
-      counts.set(key, count);
       const row = el("div", "cleanup-choice-row");
-      row.append(choice.label, count);
+      row.append(choice.label);
+      // Only cookies and bookmarks can be counted; the browser reports nothing for the rest.
+      if (key === "cookies" || key === "bookmarks") {
+        const count = el("span", "cleanup-count", "Checking…");
+        count.setAttribute("aria-live", "polite");
+        count.id = `cleanup-count-${key}`;
+        choice.input.setAttribute("aria-describedby", count.id);
+        counts.set(key, count);
+        row.append(count);
+      }
       wrapper.append(row, el("p", "fine", description));
       body.append(wrapper);
     }

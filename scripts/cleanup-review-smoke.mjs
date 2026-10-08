@@ -22,7 +22,7 @@ try {
   const review = `Array.from(document.querySelectorAll('.cleanup-dialog button')).find(button => button.textContent === 'Next')`;
   const category = (label) => `Array.from(document.querySelectorAll('.cleanup-dialog label')).find(label => label.textContent === ${JSON.stringify(label)}).querySelector('input')`;
   assert.equal(await run(`Array.from(document.querySelectorAll('.cleanup-choice input')).every(input=>input.checked)`), true, "All available categories start selected");
-  assert.equal(await run(`document.querySelectorAll('.cleanup-count').length`), 5);
+  assert.equal(await run(`document.querySelectorAll('.cleanup-count').length`), 2);
   assert.equal(await run(`document.querySelector('.cleanup-count').textContent`), '0 detected cookies');
   assert.equal(await run(`Array.from(document.querySelectorAll('.cleanup-count')).at(-1).textContent`), '1 bookmark');
   await run(`document.querySelectorAll('.cleanup-choice input').forEach(input=>{if(input.checked)input.click()}); window.prepared=[]`);
@@ -97,7 +97,7 @@ try {
     window.openPreview();
   })()`);
   await pause(100);
-  assert.deepEqual(await run(`Array.from(document.querySelectorAll('.cleanup-count')).map(node=>node.textContent)`), ['1 detected cookie','If present','If present','If present','1 bookmark · 1 folder if empty']);
+  assert.deepEqual(await run(`Array.from(document.querySelectorAll('.cleanup-count')).map(node=>node.textContent)`), ['1 detected cookie','1 bookmark · 1 folder if empty']);
   for (const [name,width,height] of [['choices-desktop',1360,900],['choices-narrow',390,844]]) {
     await browser.cmd('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false},page.sessionId);
     assert.equal(await run(`document.querySelector('.cleanup-dialog').scrollWidth<=document.querySelector('.cleanup-dialog').clientWidth`),true);
