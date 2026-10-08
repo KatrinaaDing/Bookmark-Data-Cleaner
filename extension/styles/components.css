@@ -104,3 +104,6 @@ button.negative:hover:not(:disabled) { border-color: var(--danger); background: 
   /* Collapsed folders are clipped to zero height on screen, but printing still paginates their rows as blank pages. */
   .folder-children:not(.is-expanded) { display: none; }
 }
+
+/* Headings receive focus so screen readers announce a new step; a ring there reads as an input. */
+h1[tabindex="-1"]:focus-visible, h2[tabindex="-1"]:focus-visible { outline: none; }
