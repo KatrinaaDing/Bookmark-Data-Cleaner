@@ -361,14 +361,42 @@ button.danger:hover:not(:disabled) {
 .bookmark-row .affected-title {
   font-weight: 400;
 }
+.row-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.6rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
 .row-host {
-  margin-left: auto;
   color: var(--muted);
   font-size: var(--text-meta);
+  overflow-wrap: anywhere;
+}
+.row-signals {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 28%;
+}
+.row-cookies {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.row-activity {
+  min-width: 7.5em;
+  text-align: right;
+}
+.filter-hint {
+  flex-basis: 100%;
+  margin: 0;
 }
 .folder-toggle {
   font-weight: 700;
@@ -596,11 +624,11 @@ button.danger:hover:not(:disabled) {
     grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
   }
-  .row-host {
-    display: none;
-  }
 }
 @media (max-width: 720px) {
+  .row-activity {
+    display: none;
+  }
   main {
     padding-top: 1.8rem;
   }

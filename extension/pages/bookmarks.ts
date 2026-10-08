@@ -1,11 +1,12 @@
-import { workspaceToolbar, selectionControl, selectionActions, searchInput } from "../components/workspace-controls.js";
+import { workspaceToolbar, selectionControl, selectionActions, searchInput, filterSelect } from "../components/workspace-controls.js";
 import { bookmarkSummary } from "../components/bookmark-summary.js";
+import { bookmarkSignals, matchesUseFilter, USE_FILTER_OPTIONS, type BookmarkSignals } from "../components/bookmark-signals.js";
 import { toast } from "../components/feedback.js";
 import { requestLeave } from "../components/form-session.js";
 import { detailsDrawer } from "../components/details-drawer.js";
 import { emit } from "../components/events.js";
 import { readBookmarks } from "../browser/bookmarks.js";
-import { readHistory } from "../browser/history.js";
+import { hasHistoryAccess, readHistory } from "../browser/history.js";
 import { hasSiteAccess, readCookies } from "../browser/site-data.js";
 import { sitesFromBookmarks } from "../core/inventory.js";
 import { analyzeImpact, withBookmarkRemovals } from "../core/impact.js";
@@ -20,7 +21,7 @@ import type {
   SiteRecord,
 } from "../core/types.js";
 import { plural } from "../helpers/format.js";
-import { bookmarkTree, setBookmarkRowBusy, type TreeView } from "../components/bookmark-tree.js";
+import { bookmarkRowLabel, bookmarkRowSignals, bookmarkTree, setBookmarkRowBusy, type TreeView } from "../components/bookmark-tree.js";
 import { cleanupDialog, type PreparedCleanup } from "../components/cleanup-dialog.js";
 import { button, checkbox, clickableRow, el, status } from "../components/dom.js";
 import { siteDetails, type DetailsSnapshot } from "../components/site-details.js";
@@ -49,10 +50,11 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     title: "Bookmark cleanup",
     description: "Select bookmarks to review their site data.",
     infoLabel: "About bookmark cleanup",
-    info: "Search saved titles, URLs or folder paths. Select bookmarks to review their website data and choose whether to delete the bookmarks too.",
+    info: "Search saved titles, URLs or folder paths, or filter by recorded use: the date a bookmark was last opened or its site last visited. Select bookmarks to review their website data and choose whether to delete the bookmarks too.",
   });
   const { list, feedback } = layout;
   const search = searchInput("Find a bookmark");
+  const useFilter = filterSelect("Filter bookmarks by recorded use", USE_FILTER_OPTIONS);
   const selection = new Selection();
   const expanded = new Set<string>();
   const cleanupJob = new CleanupJobState();
@@ -62,9 +64,11 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   let treeView: TreeView | undefined;
   /** Contextual site records for details; enriched once cookies and history load. */
   let detailSites: SiteRecord[] = [];
+  let siteByBookmark = new Map<string, SiteRecord>();
   let cachedCookies: CookieRef[] | undefined;
   let cachedHistory: chrome.history.HistoryItem[] = [];
   let detailsLoading = false;
+  let historyEnabled = false;
   const drawer = detailsDrawer();
   const inspection = new Inspection({
     drawer,
@@ -78,10 +82,19 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     return sitesFromBookmarks(items, cookies, cachedHistory);
   }
 
+  /** Replace contextual sites and the per-bookmark index that rows and details read. */
+  function setDetailSites(sites: SiteRecord[]) {
+    detailSites = sites;
+    siteByBookmark = new Map(sites.flatMap((site) => site.bookmarks.map((bookmark) => [bookmark.id, site] as const)));
+  }
+
   function siteFor(id: string): SiteRecord | undefined {
-    return detailSites.find((site) =>
-      site.bookmarks.some((bookmark) => bookmark.id === id),
-    );
+    return siteByBookmark.get(id);
+  }
+
+  function signalsFor(id: string): BookmarkSignals {
+    const bookmark = records.find((item) => item.id === id);
+    return bookmark ? bookmarkSignals(bookmark, siteFor(id), detailsLoading) : { loading: detailsLoading };
   }
 
   function detailsFor(id: string): HTMLElement {
@@ -113,17 +126,47 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   }
 
   const query = () => search.value.trim();
+  const useFilterActive = () => useFilter.value !== "all";
+  const filtersActive = () => !!query() || useFilterActive();
   function matches() {
     const text = query().toLowerCase();
-    return records.filter(bookmark => `${bookmark.title} ${bookmark.url} ${bookmark.path}`.toLowerCase().includes(text));
+    const now = Date.now();
+    const found = records
+      .map((bookmark) => ({ bookmark, signals: signalsFor(bookmark.id) }))
+      .filter(({ bookmark, signals }) =>
+        `${bookmark.title} ${bookmark.url} ${bookmark.path}`.toLowerCase().includes(text) &&
+        matchesUseFilter(useFilter.value, signals, now));
+    // Age filters list the longest-unused bookmarks first.
+    if (useFilterActive() && useFilter.value !== "never")
+      found.sort((a, b) => (a.signals.lastActivity ?? 0) - (b.signals.lastActivity ?? 0));
+    return found.map(({ bookmark }) => bookmark);
   }
   const all = selectionControl(selection,
-    () => query() ? new Set(matches().filter(bookmark => !bookmark.unmodifiable).map(bookmark => bookmark.id)) : treeView?.ids() ?? new Set(),
-    () => !!query(), () => { treeView?.update(); renderTree(false); }, () => cleanupJob.blocked);
+    () => filtersActive() ? new Set(matches().filter(bookmark => !bookmark.unmodifiable).map(bookmark => bookmark.id)) : treeView?.ids() ?? new Set(),
+    filtersActive, () => { treeView?.update(); renderTree(false); }, () => cleanupJob.blocked);
+
+  function resetFilters() {
+    search.value = "";
+    useFilter.value = "all";
+    renderTree(false);
+    search.focus();
+  }
+
+  function resultSummary(shown: number): HTMLElement {
+    const resultInfo = el("div", "list-results");
+    const resultCount = el("span", "fine result-count", `${shown} of ${records.length} bookmarks`);
+    resultCount.setAttribute("role", "status");
+    resultInfo.append(resultCount, button("Reset filters", resetFilters, "quiet reset-filters"));
+    if (useFilterActive() && !historyEnabled && !detailsLoading)
+      resultInfo.append(el("p", "fine filter-hint", "Visit dates are off, so only the date a bookmark was last opened counts. Enable visit dates for a fuller picture."));
+    return resultInfo;
+  }
 
   function searchResults(): HTMLElement {
     const results = el("div", "search-results");
-    for (const bookmark of matches()) {
+    const found = matches();
+    results.append(resultSummary(found.length));
+    for (const bookmark of found) {
       const row = el("div", "bookmark-row");
       const check = checkbox("", value => { if (cleanupJob.blocked) return; selection.set(bookmark.id, value); changed(); });
       check.input.setAttribute("aria-label", `Select ${bookmark.title || "untitled"}`);
@@ -131,15 +174,21 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       const title = button("", () => { void inspection.open(bookmark.id, title); }, "row-title");
       title.append(bookmarkSummary(bookmark)); title.dataset.focusKey = `bookmark:${bookmark.id}`;
       row.dataset.bookmarkId = bookmark.id;
-      row.append(check.label, title); clickableRow(row, title); results.append(row);
+      row.append(check.label, bookmarkRowLabel(title, bookmark.url), bookmarkRowSignals(signalsFor(bookmark.id)));
+      clickableRow(row, title); results.append(row);
     }
-    if (!results.childElementCount) results.append(status("No bookmarks match this search. Try a title, URL or folder name."));
+    if (!found.length)
+      results.append(status(useFilterActive() && !query()
+        ? (useFilter.value === "never" ? `Every bookmark has a recorded use.` : "No bookmarks have gone unused that long.")
+        : "No bookmarks match this search. Try a title, URL or folder name."));
     return results;
   }
 
   function renderTree(rebuild = true) {
-    if (rebuild || !treeView) treeView = bookmarkTree(tree, selection, expanded, (id, trigger) => { void inspection.open(id, trigger); }, changed);
-    if (query()) list.replaceChildren(all.element, searchResults());
+    if (rebuild || !treeView) treeView = bookmarkTree(tree, selection, expanded, (id, trigger) => { void inspection.open(id, trigger); }, changed, signalsFor);
+    useFilter.disabled = detailsLoading;
+    useFilter.title = detailsLoading ? "Visit dates are still loading" : "";
+    if (filtersActive()) list.replaceChildren(all.element, searchResults());
     else {
       list.replaceChildren(all.element, treeView.element);
       if (!records.length) list.append(status("No bookmarks yet. Saved bookmarks will appear here."));
@@ -154,7 +203,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     mutation: BookmarkMutation,
   ): Promise<DetailsSnapshot | undefined> {
     applyBookmarks(await readBookmarks());
-    detailSites = inventory(records);
+    setDetailSites(inventory(records));
     renderTree();
     emit("bookmarks-changed", "bookmarks");
     const snapshotId = mutation.created ? id : inspection.id;
@@ -250,23 +299,27 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
       applyBookmarks(result);
       cachedCookies = undefined;
       cachedHistory = [];
-      detailSites = inventory(records);
+      setDetailSites(inventory(records));
       detailsLoading = true;
       renderTree();
       loader.loaded = true;
       feedback.replaceChildren();
       inspection.update();
 
-      // Dates and cookie counts enrich details after the list is usable.
-      const [visits, cookies] = await Promise.all([
+      // Dates and cookie counts enrich rows and details after the list is usable.
+      const [visits, cookies, history] = await Promise.all([
         readHistory(),
         freshCookieSnapshot(),
+        hasHistoryAccess().catch(() => false),
       ]);
       if (!isCurrent()) return;
       cachedHistory = visits.history;
       cachedCookies = cookies;
-      detailSites = inventory(records);
+      historyEnabled = history;
+      setDetailSites(inventory(records));
       detailsLoading = false;
+      treeView?.refreshSignals();
+      renderTree(false);
       inspection.update();
       if (visits.warning) feedback.replaceChildren(status(visits.warning));
       if (announce) toast("Bookmarks refreshed.");
@@ -279,8 +332,9 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
           : "Could not load bookmarks. Try Refresh again.");
     },
   });
-  layout.mount(workspaceToolbar([loader.refreshButton, search, history.element], actions.elements), feedback);
+  layout.mount(workspaceToolbar([loader.refreshButton, search, useFilter, history.element], actions.elements), feedback);
   search.addEventListener("input", () => renderTree(false));
+  useFilter.addEventListener("change", () => renderTree(false));
 
   function syncCleanupPresentation() {
     const ids = cleanupJob.busyBookmarkIds();

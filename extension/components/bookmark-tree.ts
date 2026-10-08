@@ -1,5 +1,6 @@
 import { Selection } from "../core/state.js";
 import { clickableRow, button, checkbox, el, spinner } from "./dom.js";
+import { renderSignals, type BookmarkSignals } from "./bookmark-signals.js";
 import type { FolderRef } from "../core/types.js";
 export interface TreeView {
   element: HTMLElement;
@@ -7,6 +8,26 @@ export interface TreeView {
   update: () => void;
   ids: () => Set<string>;
   setCleanupBusy: (ids: ReadonlySet<string>, blocked: boolean) => void;
+  /** Re-read signals for every bookmark row, e.g. once visit dates and cookies load. */
+  refreshSignals: () => void;
+}
+/** Title with its domain beside it, so the two read as one entry at any width. */
+export function bookmarkRowLabel(title: HTMLButtonElement, url: string): HTMLElement {
+  const label = el("span", "row-label");
+  const host = el("span", "row-host");
+  try {
+    host.textContent = new URL(url).hostname;
+    host.title = "Bookmark domain";
+  } catch {
+    host.textContent = "Bookmark";
+  }
+  label.append(title, host);
+  return label;
+}
+export function bookmarkRowSignals(signals: BookmarkSignals): HTMLElement {
+  const meta = el("span", "row-signals");
+  renderSignals(meta, signals);
+  return meta;
 }
 export function setBookmarkRowBusy(row: HTMLElement, busy: boolean): void {
   row.classList.toggle("is-cleaning", busy);
@@ -27,9 +48,11 @@ export function bookmarkTree(
   expanded: Set<string>,
   inspect: (id: string, trigger: HTMLElement) => void,
   changed: () => void,
+  signals: (id: string) => BookmarkSignals,
 ): TreeView {
   const root = el("div", "bookmark-tree");
   const bookmarkRows = new Map<string, HTMLElement>();
+  const signalCells = new Map<string, HTMLElement>();
   let cleanupBlocked = false;
   const checks: {
     input: HTMLInputElement;
@@ -99,16 +122,10 @@ export function bookmarkTree(
         "row-title",
       );
       title.dataset.focusKey = `bookmark:${node.id}`;
-      row.append(title);
+      const meta = bookmarkRowSignals(signals(node.id));
+      signalCells.set(node.id, meta);
+      row.append(bookmarkRowLabel(title, node.url), meta);
       clickableRow(row, title);
-      const host = el("span", "row-host");
-      try {
-        host.textContent = new URL(node.url).hostname;
-        host.title = "Bookmark domain";
-      } catch {
-        host.textContent = "Bookmark";
-      }
-      row.append(host);
     } else {
       const children = el("div", "folder-children");
       children.id = `folder-${node.id}`;
@@ -153,6 +170,9 @@ export function bookmarkTree(
       cleanupBlocked = blocked;
       for (const check of checks) check.input.disabled = check.baseDisabled || blocked;
       for (const [id, row] of bookmarkRows) setBookmarkRowBusy(row, ids.has(id));
+    },
+    refreshSignals: () => {
+      for (const [id, cell] of signalCells) renderSignals(cell, signals(id));
     },
     folders: () =>
       checks
