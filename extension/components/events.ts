@@ -8,6 +8,8 @@ export interface AppEvents {
   "workspace-route": undefined;
   /** The cleanup dialog opened. */
   "cleanup-review-opened": undefined;
+  /** A bookmark was deleted through the extension; the detail is its ID. */
+  "bookmark-deleted": string;
 }
 
 export function emit<K extends keyof AppEvents>(

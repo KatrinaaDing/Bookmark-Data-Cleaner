@@ -4,7 +4,7 @@ import { bookmarkSignals, matchesUseFilter, USE_FILTER_OPTIONS, type BookmarkSig
 import { toast } from "../components/feedback.js";
 import { requestLeave } from "../components/form-session.js";
 import { detailsDrawer } from "../components/details-drawer.js";
-import { emit } from "../components/events.js";
+import { emit, on } from "../components/events.js";
 import { readBookmarks } from "../browser/bookmarks.js";
 import { hasHistoryAccess, readHistory } from "../browser/history.js";
 import { hasSiteAccess, readCookies } from "../browser/site-data.js";
@@ -71,6 +71,8 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   let historyEnabled = false;
   /** Hosts whose data a finished job cleaned; rows show Cleaned until a manual refresh. */
   const cleanedHosts = new Set<string>();
+  /** Bookmarks deleted through the extension this session, kept at their old place until a manual refresh. */
+  const ghosts = new Map<string, chrome.bookmarks.BookmarkTreeNode>();
   let recordedJobId: string | undefined;
   const drawer = detailsDrawer();
   const inspection = new Inspection({
@@ -104,12 +106,39 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     return signals;
   }
 
-  /** Remember which hosts a finished job cleaned so their rows can say so. */
+  /** Snapshot a bookmark that is about to disappear from the browser's tree. */
+  function rememberGhost(id: string) {
+    const record = records.find((item) => item.id === id);
+    if (!record || record.parentId === undefined) return;
+    ghosts.set(id, { id, title: record.title, url: record.url, parentId: record.parentId, index: record.index ?? 0, syncing: false });
+  }
+  on("bookmark-deleted", rememberGhost);
+
+  /** Re-insert remembered deletions where they used to sit; drop any that no longer fit. */
+  function placeGhosts(tree: chrome.bookmarks.BookmarkTreeNode[], fresh: BookmarkRef[]) {
+    const live = new Set(fresh.map((bookmark) => bookmark.id));
+    const folders = new Map<string, chrome.bookmarks.BookmarkTreeNode>();
+    const index = (nodes: chrome.bookmarks.BookmarkTreeNode[]) => {
+      for (const node of nodes) if (!node.url) { folders.set(node.id, node); index(node.children ?? []); }
+    };
+    index(tree);
+    for (const [id, ghost] of ghosts) {
+      const parent = ghost.parentId !== undefined ? folders.get(ghost.parentId) : undefined;
+      if (live.has(id) || !parent) { ghosts.delete(id); continue; }
+      const children = parent.children ?? (parent.children = []);
+      children.splice(Math.min(ghost.index ?? children.length, children.length), 0, ghost);
+    }
+  }
+
+  /** Remember which hosts a finished job cleaned and which bookmarks it deleted, so rows can say so. */
   function recordCleaned(job: Job) {
     if (job.status === "running" || job.id === recordedJobId) return;
     recordedJobId = job.id;
-    for (const outcome of job.outcomes)
-      if (outcome.kind === "data" && outcome.status === "completed") cleanedHosts.add(outcome.target);
+    for (const outcome of job.outcomes) {
+      if (outcome.status !== "completed") continue;
+      if (outcome.kind === "data") cleanedHosts.add(outcome.target);
+      if (outcome.kind === "bookmark") rememberGhost(outcome.target);
+    }
   }
 
   function detailsFor(id: string): HTMLElement {
@@ -134,6 +163,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
 
   /** Replace bookmark data and keep selections that still exist. */
   function applyBookmarks(result: Awaited<ReturnType<typeof readBookmarks>>) {
+    placeGhosts(result.tree, result.bookmarks);
     records = result.bookmarks;
     folders = result.folders;
     tree = result.tree;
@@ -200,7 +230,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   }
 
   function renderTree(rebuild = true) {
-    if (rebuild || !treeView) treeView = bookmarkTree(tree, selection, expanded, (id, trigger) => { void inspection.open(id, trigger); }, changed, signalsFor);
+    if (rebuild || !treeView) treeView = bookmarkTree(tree, selection, expanded, (id, trigger) => { void inspection.open(id, trigger); }, changed, signalsFor, new Set(ghosts.keys()));
     useFilter.disabled = detailsLoading;
     useFilter.title = detailsLoading ? "Visit dates are still loading" : "";
     if (filtersActive()) list.replaceChildren(all.element, searchResults());
@@ -310,7 +340,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     beforeLoad: history.sync,
     run: async ({ isCurrent, announce }) => {
       // A manual refresh starts from the actual inventory again.
-      if (announce) cleanedHosts.clear();
+      if (announce) { cleanedHosts.clear(); ghosts.clear(); }
       const result = await readBookmarks();
       if (!isCurrent()) return;
       applyBookmarks(result);

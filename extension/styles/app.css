@@ -424,6 +424,26 @@ button.danger:hover:not(:disabled) {
   color: var(--success);
   font-weight: 500;
 }
+.bookmark-row.is-deleted,
+.bookmark-row.is-deleted:hover {
+  background: transparent;
+  cursor: default;
+}
+.bookmark-row.is-deleted .row-title {
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: #9ba8b8;
+}
+.bookmark-row.is-deleted .row-host {
+  opacity: 0.7;
+}
+.row-deleted {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-weight: 500;
+  white-space: nowrap;
+}
 .row-cookies {
   display: inline-flex;
   align-items: center;

@@ -12,7 +12,7 @@ export interface TreeView {
   refreshSignals: () => void;
 }
 /** Title with its domain beside it, so the two read as one entry at any width. */
-export function bookmarkRowLabel(title: HTMLButtonElement, url: string): HTMLElement {
+export function bookmarkRowLabel(title: HTMLElement, url: string): HTMLElement {
   const label = el("span", "row-label");
   const host = el("span", "row-host");
   try {
@@ -49,6 +49,8 @@ export function bookmarkTree(
   inspect: (id: string, trigger: HTMLElement) => void,
   changed: () => void,
   signals: (id: string) => BookmarkSignals,
+  /** Bookmarks deleted this session, re-inserted at their old place; shown struck through, never counted. */
+  ghostIds: ReadonlySet<string> = new Set(),
 ): TreeView {
   const root = el("div", "bookmark-tree");
   const bookmarkRows = new Map<string, HTMLElement>();
@@ -66,7 +68,7 @@ export function bookmarkTree(
     inherited = false,
   ): string[] {
     if (inherited || node.unmodifiable) return [];
-    if (node.url) return [node.id];
+    if (node.url) return ghostIds.has(node.id) ? [] : [node.id];
     const children = (node.children ?? []).flatMap((child) => eligible(child));
     return children.length
       ? children
@@ -94,6 +96,10 @@ export function bookmarkTree(
   ) {
     if (node.id === "0") {
       for (const child of node.children ?? []) render(child, parent, 0);
+      return;
+    }
+    if (node.url && ghostIds.has(node.id)) {
+      parent.append(ghostRow(node));
       return;
     }
     const protectedNode = protectedParent || !!node.unmodifiable;
@@ -159,6 +165,17 @@ export function bookmarkTree(
         content.append(el("p", "fine empty-folder", "This folder is empty."));
     }
     parent.append(item);
+  }
+  function ghostRow(node: chrome.bookmarks.BookmarkTreeNode): HTMLElement {
+    const row = el("div", "bookmark-row is-deleted");
+    const { label, input } = checkbox("", () => {});
+    input.disabled = true;
+    input.setAttribute("aria-label", `${node.title || "Untitled"} was deleted`);
+    const title = el("span", "row-title", node.title || "Untitled");
+    const mark = el("span", "row-deleted", "Deleted");
+    mark.title = "Deleted this session. Refresh to drop it from the list.";
+    row.append(label, bookmarkRowLabel(title, node.url ?? ""), mark);
+    return row;
   }
   for (const node of nodes) render(node, root, 0);
   update();

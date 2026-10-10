@@ -81,6 +81,13 @@ try {
   await pause(300);
   for (let i = 0; i < 50 && !(await run(`!!document.querySelector('.toast-operation')`)); i++) await pause(100);
   assert.equal(await run(`!!document.querySelector('.toast-operation')`), true, "A finished cleanup shows its results toast");
+  // The deleted bookmark stays in its folder as a struck-through, uncounted row until a manual refresh or reload.
+  for (let i = 0; i < 50 && !(await run(`!!document.querySelector('.bookmark-row.is-deleted')`)); i++) await pause(100);
+  assert.equal(await run(`document.querySelector('.bookmark-row.is-deleted .row-title')?.textContent`), "More design notes", "Deleted bookmark remains listed as a ghost");
+  assert.equal(await run(`document.querySelector('.bookmark-row.is-deleted .row-deleted')?.textContent`), "Deleted");
+  assert.equal(await run(`document.querySelector('.bookmark-row.is-deleted input').disabled`), true);
+  assert.equal(await run(`document.querySelector('.bookmark-row.is-deleted').parentElement.closest('.folder').querySelector('.folder-toggle').textContent`), "A quieter browser", "Ghost sits in its old folder");
+  assert.equal(await run(`document.querySelector('input[aria-label="Select A quieter browser"]').closest('.folder-row').querySelector('.count').textContent`), "2", "Folder counts exclude ghosts");
   await run(`document.querySelector('.toast-operation button[aria-label="Dismiss results"]').click()`);
   await pause(300);
   await browser.cmd("Page.reload", {}, page.sessionId);
@@ -213,6 +220,7 @@ try {
   await run(`document.querySelector('section:not([hidden]) button[aria-label="Refresh"]').click()`);
   for (let i = 0; i < 50 && (await run(`!!document.querySelector('.site-row.is-cleaned')`)); i++) await pause(100);
   assert.equal(await run(`Array.from(document.querySelectorAll('.site-row .row-title')).some(b=>b.textContent==='old.test')`), false, "Manual refresh drops the cleaned site");
+  assert.equal(await run(`document.querySelector('.bookmark-row.is-deleted')===null`), true, "The earlier reload dropped the deleted-bookmark ghost");
   await run(`location.hash='home'`);
   // The ordinary package must run without network fetches; this profile has synthetic data only.
   await browser.cmd("Network.enable", {}, page.sessionId);
@@ -228,7 +236,7 @@ try {
     2,
   );
   console.log(
-    "UI smoke: routes, tree selection, metadata, bookmark-only and site-cookie cleanup, timeline, cleaned-site rows, responsive focus/overflow, remembered result dismissal and offline reload passed.",
+    "UI smoke: routes, tree selection, metadata, bookmark-only and site-cookie cleanup, timeline, cleaned-site and deleted-bookmark rows, responsive focus/overflow, remembered result dismissal and offline reload passed.",
   );
 } finally {
   await browser.close();

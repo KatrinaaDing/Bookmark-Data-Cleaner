@@ -45,6 +45,7 @@ export function savedBookmarkActions(context: SavedBookmarkContext): SavedBookma
     trigger.disabled = true;
     try {
       await removeBookmark(saved.id);
+      emit("bookmark-deleted", saved.id);
       toast("Bookmark deleted.");
       await context.onSettled({ id: saved.id, created: false });
     } catch (error) {
