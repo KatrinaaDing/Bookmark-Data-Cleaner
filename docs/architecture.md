@@ -37,7 +37,7 @@ Required: bookmarks, browsingData and storage. Cookie/site access and history ar
 
 Bookmark outcomes optionally include a readable label (title, or URL for untitled bookmarks) and an explicit `retained` flag only when deletion was skipped after required data cleanup failed. Existing outcome statuses and execution order are unchanged; old results without the flag remain uncertain in the UI. These labels are part of the local session result record.
 
-Minimal job status/results live in `storage.session`; full plans and cookie values are not persisted. A restarted worker changes a saved running job to **unverified** and never resumes destructive work automatically. Browser-session storage does not survive a full browser restart. An API timeout/interruption cannot prove which internal browser work completed.
+Minimal job status/results live in `storage.session`; full plans and cookie values are not persisted. Dismissing the results marks the stored job `dismissed`, so reloading the app does not show them again. A restarted worker changes a saved running job to **unverified** and never resumes destructive work automatically. Browser-session storage does not survive a full browser restart. An API timeout/interruption cannot prove which internal browser work completed.
 
 All assets are packaged locally. Metadata inspection performs no target-page requests. Explicitly opening a known URL visits the site and can create browsing data. Bookmark sync follows the user's browser configuration.
 

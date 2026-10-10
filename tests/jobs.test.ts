@@ -93,3 +93,22 @@ test("running job persists initiating and reviewed bookmark IDs without changing
     await new Promise(resolve => setTimeout(resolve, 0));
   assert.deepEqual(removed, ["copy"], "Display-only initiating IDs never become deletion targets");
 });
+
+test("dismissing a finished job is remembered across reads", async () => {
+  let saved: Job = { id: "done", status: "finished", completed: 1, total: 1, outcomes: [] };
+  const operations = {
+    removeData: async () => {},
+    removeBookmark: async () => {},
+    removeFolder: async () => {},
+  };
+  const coordinator = new JobCoordinator(
+    { read: async () => saved, write: async (job) => { saved = structuredClone(job); } },
+    operations,
+  );
+  await coordinator.dismiss("other");
+  assert.equal(saved.dismissed, undefined, "Only the current job can be dismissed");
+  await coordinator.dismiss("done");
+  assert.equal(saved.dismissed, true);
+  const reloaded = new JobCoordinator({ read: async () => saved, write: async () => {} }, operations);
+  assert.equal((await reloaded.get())?.dismissed, true);
+});

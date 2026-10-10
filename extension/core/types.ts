@@ -73,6 +73,8 @@ export interface Job {
   outcomes: Outcome[];
   /** Presentation targets, including initiating bookmarks kept during data-only cleanup. */
   busyBookmarkIds?: string[];
+  /** The user closed the results; reloads must not show them again. */
+  dismissed?: boolean;
 }
 export const noCleanup: CleanupOptions = {
   cookies: false,

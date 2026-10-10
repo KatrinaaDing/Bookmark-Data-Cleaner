@@ -88,11 +88,20 @@ export class JobMonitor {
       this.progressToast.handle.dismiss();
       this.progressToast = undefined;
     }
+    if (job.dismissed) {
+      this.resultToast?.handle.dismiss();
+      this.resultToast = undefined;
+      return;
+    }
     if (this.resultToast?.jobId !== job.id) {
       const incomplete = job.status === "unverified" || job.outcomes.some(outcome => outcome.status !== "completed");
       this.resultToast?.handle.dismiss();
       let handle: ToastHandle;
-      const report = operationStatus(job, () => handle.dismiss());
+      const report = operationStatus(job, () => {
+        handle.dismiss();
+        // Persist the dismissal so a reload does not show the same results again.
+        void sendToWorker({ type: "dismiss-job", id: job.id }).catch(() => {});
+      });
       handle = toast(report, incomplete ? "error" : "success", { persistent: true, className: "toast-operation" });
       this.resultToast = { jobId: job.id, handle };
     }

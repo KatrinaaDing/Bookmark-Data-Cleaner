@@ -4,11 +4,13 @@ import type { CleanupPlan, Job } from "../core/types.js";
 export type WorkerRequest =
   | { type: "open-manager" }
   | { type: "get-job" }
+  | { type: "dismiss-job"; id: string }
   | { type: "start-cleanup"; plan: CleanupPlan; initiatingBookmarkIds?: string[] };
 
 export interface WorkerResults {
   "open-manager": void;
   "get-job": Job | undefined;
+  "dismiss-job": void;
   "start-cleanup": Job;
 }
 

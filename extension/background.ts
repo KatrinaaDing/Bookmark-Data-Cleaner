@@ -36,6 +36,8 @@ function handle(message: WorkerRequest): Promise<unknown> | undefined {
       return openManager();
     case "get-job":
       return jobs.get();
+    case "dismiss-job":
+      return jobs.dismiss(message.id);
     case "start-cleanup":
       return message.plan ? jobs.start(message.plan, message.initiatingBookmarkIds) : undefined;
   }

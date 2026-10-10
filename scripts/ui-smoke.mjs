@@ -79,6 +79,13 @@ try {
     `Array.from(document.querySelectorAll('dialog.cleanup-dialog button')).find(b=>b.textContent==='Confirm cleanup').click()`,
   );
   await pause(300);
+  for (let i = 0; i < 50 && !(await run(`!!document.querySelector('.toast-operation')`)); i++) await pause(100);
+  assert.equal(await run(`!!document.querySelector('.toast-operation')`), true, "A finished cleanup shows its results toast");
+  await run(`document.querySelector('.toast-operation button[aria-label="Dismiss results"]').click()`);
+  await pause(300);
+  await browser.cmd("Page.reload", {}, page.sessionId);
+  await pause(600);
+  assert.equal(await run(`document.querySelector('.toast-operation')===null`), true, "Dismissed results do not return after a reload");
   assert.equal(
     await run(
       `chrome.bookmarks.get(${JSON.stringify(fixtures.a)}).then(()=>true)`,
@@ -205,13 +212,13 @@ try {
     page.sessionId,
   );
   await browser.cmd("Page.reload", {}, page.sessionId);
-  await pause(150);
+  await pause(500);
   assert.equal(
     await run(`document.querySelectorAll('.feature-card').length`),
     2,
   );
   console.log(
-    "UI smoke: routes, tree selection, metadata, bookmark-only and site-cookie cleanup, timeline, responsive focus/overflow and offline reload passed.",
+    "UI smoke: routes, tree selection, metadata, bookmark-only and site-cookie cleanup, timeline, responsive focus/overflow, remembered result dismissal and offline reload passed.",
   );
 } finally {
   await browser.close();

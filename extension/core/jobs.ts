@@ -34,6 +34,13 @@ export class JobCoordinator {
     await this.ready;
     return this.current;
   }
+  /** Remember that the user closed a finished job's results. */
+  async dismiss(id: string): Promise<void> {
+    await this.ready;
+    if (!this.current || this.current.id !== id || this.current.status === "running") return;
+    this.current.dismissed = true;
+    await this.storage.write(this.current);
+  }
   async start(input: CleanupPlan, initiatingBookmarkIds: string[] = []): Promise<Job> {
     await this.ready;
     if (this.current?.status === "running")
