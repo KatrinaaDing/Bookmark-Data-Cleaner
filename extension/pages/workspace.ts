@@ -118,7 +118,15 @@ export class WorkspaceLoader {
     const isCurrent = () => current === this.generation;
     const { list, feedback, subject } = this.options;
     this.setBusy(true);
-    feedback.replaceChildren(status(this.loaded ? `Refreshing ${subject}…` : `Loading ${subject}…`, true));
+    const note = status(this.loaded ? `Refreshing ${subject}…` : `Loading ${subject}…`, true);
+    if (this.loaded) {
+      // The spinning Refresh button is the visible state; a visible line above the list would shift it.
+      note.classList.add("sr-only");
+      feedback.replaceChildren(note);
+    } else {
+      feedback.replaceChildren();
+      list.replaceChildren(note);
+    }
     list.setAttribute("aria-busy", "true");
     this.options.beforeLoad?.();
     try {
