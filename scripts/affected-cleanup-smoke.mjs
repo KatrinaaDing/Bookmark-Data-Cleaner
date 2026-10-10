@@ -135,6 +135,8 @@ try {
   assert.equal(await run(`document.querySelector('.drawer-cleanup-overlay').hidden && !document.querySelector('.drawer-content').inert`),true,'Details return to normal after data-only cleanup');
   assert.equal(await run(`document.querySelector('.detail-cleanup').disabled`),false);
   await waitFor(`!!document.querySelector('.toast-operation')`);
+  await waitFor(`document.querySelector('[data-focus-key="bookmark:${dataOnlyId}"]').closest('.bookmark-row').querySelector('.row-cleaned')?.textContent==='Cleaned'`);
+  assert.equal(await run(`document.querySelector('[data-focus-key="bookmark:${dataOnlyId}"]').closest('.bookmark-row').querySelector('.row-cookies')===null`),true,'Cleaned bookmark rows show Cleaned instead of a cookie count');
   await run(`document.querySelector('.detail-cleanup').click()`);
   await waitFor(`!!document.querySelector('.cleanup-dialog')`);
   assert.equal(await run(`document.querySelector('.toast-operation')===null`),true,'Opening another review clears the previous result toast');

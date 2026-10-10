@@ -69,6 +69,9 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
   let cachedHistory: chrome.history.HistoryItem[] = [];
   let detailsLoading = false;
   let historyEnabled = false;
+  /** Hosts whose data a finished job cleaned; rows show Cleaned until a manual refresh. */
+  const cleanedHosts = new Set<string>();
+  let recordedJobId: string | undefined;
   const drawer = detailsDrawer();
   const inspection = new Inspection({
     drawer,
@@ -94,7 +97,19 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
 
   function signalsFor(id: string): BookmarkSignals {
     const bookmark = records.find((item) => item.id === id);
-    return bookmark ? bookmarkSignals(bookmark, siteFor(id), detailsLoading) : { loading: detailsLoading };
+    if (!bookmark) return { loading: detailsLoading };
+    const site = siteFor(id);
+    const signals = bookmarkSignals(bookmark, site, detailsLoading);
+    if (site && cleanedHosts.has(site.host) && !site.cookies.length) signals.cleaned = true;
+    return signals;
+  }
+
+  /** Remember which hosts a finished job cleaned so their rows can say so. */
+  function recordCleaned(job: Job) {
+    if (job.status === "running" || job.id === recordedJobId) return;
+    recordedJobId = job.id;
+    for (const outcome of job.outcomes)
+      if (outcome.kind === "data" && outcome.status === "completed") cleanedHosts.add(outcome.target);
   }
 
   function detailsFor(id: string): HTMLElement {
@@ -294,6 +309,8 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     changed,
     beforeLoad: history.sync,
     run: async ({ isCurrent, announce }) => {
+      // A manual refresh starts from the actual inventory again.
+      if (announce) cleanedHosts.clear();
       const result = await readBookmarks();
       if (!isCurrent()) return;
       applyBookmarks(result);
@@ -354,6 +371,7 @@ export function bookmarksPage(onStarted: (job: Job) => void): WorkspacePage {
     load: () => loader.load(),
     refresh: () => loader.refresh(),
     setCleanupJob: (job, unavailable = false) => {
+      if (job) recordCleaned(job);
       if (cleanupJob.set(job, unavailable)) syncCleanupPresentation();
     },
     invalidate: () => loader.invalidate(),

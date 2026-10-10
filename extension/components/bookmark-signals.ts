@@ -11,6 +11,8 @@ export interface BookmarkSignals {
   cookies?: number;
   /** Visit dates and cookies are still loading. */
   loading: boolean;
+  /** Its site's data was cleaned this session and no cookies remain. */
+  cleaned?: boolean;
 }
 
 export const NO_RECORDED_USE = "No recorded use";
@@ -50,7 +52,11 @@ export function matchesUseFilter(filter: UseFilter, signals: BookmarkSignals, no
 /** Date and cookie badge for a bookmark row; rebuilt in place when signals change. */
 export function renderSignals(target: HTMLElement, signals: BookmarkSignals): void {
   target.replaceChildren();
-  if (signals.cookies) {
+  if (signals.cleaned) {
+    const mark = el("span", "row-cleaned", "Cleaned");
+    mark.title = "Website data cleaned this session; the bookmark is kept.";
+    target.append(mark);
+  } else if (signals.cookies) {
     const cookies = el("span", "row-cookies");
     const label = `Detected cookies: ${signals.cookies}`;
     cookies.setAttribute("role", "img");

@@ -420,6 +420,10 @@ button.danger:hover:not(:disabled) {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+.row-cleaned {
+  color: var(--success);
+  font-weight: 500;
+}
 .row-cookies {
   display: inline-flex;
   align-items: center;
