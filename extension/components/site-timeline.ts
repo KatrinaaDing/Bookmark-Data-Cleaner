@@ -8,6 +8,8 @@ export function siteTimeline(
   selection: Selection,
   inspect: (site: SiteRecord, trigger: HTMLElement) => void,
   changed: () => void,
+  /** Sites cleaned this session that a fresh scan no longer finds; shown struck through, not selectable. */
+  cleanedIds: ReadonlySet<string> = new Set(),
 ): HTMLElement {
   const list = el("div", "timeline");
   let previousYear = "",
@@ -23,7 +25,9 @@ export function siteTimeline(
       previousYear = year;
       previousDate = "";
     }
+    const cleaned = cleanedIds.has(site.id);
     const row = el("div", "site-row");
+    row.classList.toggle("is-cleaned", cleaned);
     row.append(el("span", "timeline-date", date === previousDate ? "" : date));
     previousDate = date;
     const { label, input } = checkbox("", (checked) => {
@@ -31,12 +35,21 @@ export function siteTimeline(
       changed();
     });
     input.checked = selection.ids.has(site.id);
-    input.setAttribute("aria-label", `Select ${site.host}`);
+    input.disabled = cleaned;
+    input.setAttribute("aria-label", cleaned ? `${site.host} was cleaned` : `Select ${site.host}`);
     const main = el("div", "site-label");
     const title = button(site.host, () => inspect(site, title), "row-title");
     title.dataset.focusKey = `site:${site.id}`;
     main.append(title);
     if (site.bookmarks.length) main.append(el("span", "muted", "Bookmarked"));
+    if (cleaned) {
+      const mark = el("span", "site-cleaned", "Cleaned");
+      mark.title = "Cleaned this session; no cookies remain. Refresh to drop it from the list.";
+      row.append(label, main, mark);
+      clickableRow(row, title);
+      list.append(row);
+      continue;
+    }
     const cookies = el("span", "site-cookie-count");
     const cookieLabel = site.cookiesAvailable === false
       ? "Cookies not checked"

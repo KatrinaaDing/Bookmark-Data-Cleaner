@@ -203,6 +203,16 @@ try {
     ),
     true,
   );
+  // The cleaned site stays visible, struck through and unselectable, until a manual refresh.
+  for (let i = 0; i < 50 && !(await run(`!!document.querySelector('.site-row.is-cleaned')`)); i++) await pause(100);
+  assert.equal(await run(`document.querySelector('.site-row.is-cleaned .row-title')?.textContent`), "old.test", "Cleaned site remains listed after the automatic refresh");
+  assert.equal(await run(`document.querySelector('.site-row.is-cleaned .site-cleaned')?.textContent`), "Cleaned");
+  assert.equal(await run(`document.querySelector('.site-row.is-cleaned input').disabled`), true);
+  assert.equal(await run(`document.querySelector('.site-row.is-cleaned input').checked`), false, "A cleaned site leaves the selection");
+  assert.match(await run(`document.querySelector('section:not([hidden]) .selection-count').textContent`), /^0 selected/);
+  await run(`document.querySelector('section:not([hidden]) button[aria-label="Refresh"]').click()`);
+  for (let i = 0; i < 50 && (await run(`!!document.querySelector('.site-row.is-cleaned')`)); i++) await pause(100);
+  assert.equal(await run(`Array.from(document.querySelectorAll('.site-row .row-title')).some(b=>b.textContent==='old.test')`), false, "Manual refresh drops the cleaned site");
   await run(`location.hash='home'`);
   // The ordinary package must run without network fetches; this profile has synthetic data only.
   await browser.cmd("Network.enable", {}, page.sessionId);
@@ -218,7 +228,7 @@ try {
     2,
   );
   console.log(
-    "UI smoke: routes, tree selection, metadata, bookmark-only and site-cookie cleanup, timeline, responsive focus/overflow, remembered result dismissal and offline reload passed.",
+    "UI smoke: routes, tree selection, metadata, bookmark-only and site-cookie cleanup, timeline, cleaned-site rows, responsive focus/overflow, remembered result dismissal and offline reload passed.",
   );
 } finally {
   await browser.close();

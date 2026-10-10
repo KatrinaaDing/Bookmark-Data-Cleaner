@@ -62,6 +62,9 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
   let allBookmarks: BookmarkRef[] = [];
   let folders: BookmarkFolder[] = [];
   let datesLoading = false;
+  /** Sites cleaned this session, kept visible until a manual refresh so the outcome shows where the user acted. */
+  const cleaned = new Map<string, SiteRecord>();
+  let recordedJobId: string | undefined;
   const cleanupJob = new CleanupJobState();
   const selection = new Selection();
   const drawer = detailsDrawer();
@@ -163,19 +166,32 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
       all.element,
       resultSummary(filtered.length),
       filtered.length
-        ? siteTimeline(filtered, selection, (site, trigger) => void inspection.open(site.id, trigger), changed)
+        ? siteTimeline(filtered, selection, (site, trigger) => void inspection.open(site.id, trigger), changed, new Set(cleaned.keys()))
         : status(emptyMessage()),
     );
     all.update();
     drawer.syncInspection();
   }
 
+  /** Remember which sites a finished job cleaned, before the list refreshes without them. */
+  function recordCleaned(job: Job) {
+    if (job.status === "running" || job.id === recordedJobId) return;
+    recordedJobId = job.id;
+    for (const outcome of job.outcomes) {
+      if (outcome.kind !== "data" || outcome.status !== "completed") continue;
+      const site = sites.find((item) => item.id === outcome.target);
+      if (site) cleaned.set(site.id, { ...site, cookies: [] });
+    }
+  }
+
   /** Replace inventory and bookmark data and keep selections that still exist. */
   function applyInventory(scanned: SiteRecord[], bookmarks: Awaited<ReturnType<typeof readBookmarks>>) {
-    sites = scanned;
+    for (const id of cleaned.keys()) if (scanned.some((site) => site.id === id)) cleaned.delete(id);
+    sites = [...scanned, ...cleaned.values()];
     allBookmarks = bookmarks.bookmarks;
     folders = bookmarks.folders;
-    selection.retain(new Set(sites.map((site) => site.id)));
+    // Cleaned sites are shown but cannot be selected again.
+    selection.retain(new Set(scanned.map((site) => site.id)));
   }
 
   async function reconcileMutation(id: string | undefined): Promise<DetailsSnapshot | undefined> {
@@ -220,7 +236,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     cleanupDialog((options) => prepareSites(ids, options), false, onStarted, { label: `This site: ${site.host}` });
   }
 
-  const all = selectionControl(selection, () => new Set(visible().map(site => site.id)), filtersActive, render, () => cleanupJob.blocked);
+  const all = selectionControl(selection, () => new Set(visible().filter(site => !cleaned.has(site.id)).map(site => site.id)), filtersActive, render, () => cleanupJob.blocked);
   const actions = selectionActions({
     selection,
     selectAll: all,
@@ -241,6 +257,8 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     changed,
     beforeLoad: history.sync,
     run: async ({ isCurrent, announce }) => {
+      // A manual refresh starts from the actual inventory again.
+      if (announce) cleaned.clear();
       if (!(await hasSiteAccess())) {
         if (!isCurrent()) return;
         access.hidden = false;
@@ -291,6 +309,7 @@ export function sitesPage(onStarted: (job: Job) => void): WorkspacePage {
     load: () => loader.load(),
     refresh: () => loader.refresh(),
     setCleanupJob: (job, unavailable = false) => {
+      if (job) recordCleaned(job);
       const wasBlocked = cleanupJob.blocked;
       cleanupJob.set(job, unavailable);
       if (cleanupJob.blocked === wasBlocked) return;

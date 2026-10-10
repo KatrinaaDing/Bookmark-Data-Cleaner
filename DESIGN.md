@@ -24,7 +24,7 @@ Bookmark rows show the domain beside the title, then detected cookies (only when
 
 Folder and site rows remain clickable independently of their padded checkbox targets. Closed folders are inert and hidden from assistive technology. The site timeline retains date groups and a separate unknown-history group. A native All sites / Bookmarked / Not bookmarked filter combines with search and date ordering. Result counts report matching versus detected sites; Reset filters clears search and bookmark status without clearing selection or changing sort order.
 
-Row titles open details and never acquire link underlines on hover. Site rows place a cookie icon/count at the right, with a descriptive accessible name and tooltip. An unavailable count shows a dash rather than zero. Undated site rows carry no date text; their group heading already says No matching history.
+Row titles open details and never acquire link underlines on hover. Site rows place a cookie icon/count at the right, with a descriptive accessible name and tooltip. An unavailable count shows a dash rather than zero. Undated site rows carry no date text; their group heading already says No matching history. After a cleanup finishes, sites that the fresh scan no longer finds stay listed for the session: struck-through muted title, disabled checkbox and a green Cleaned mark in place of the cookie count. Refresh drops them.
 
 Before site access is granted, Site data shows a tinted gate explaining what the browser prompt asks for, why it is needed and that nothing leaves the browser, with Allow site discovery inside it. The optional Enable visit dates control carries the same explanation as a tooltip.
 
