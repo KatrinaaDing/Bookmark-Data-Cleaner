@@ -396,18 +396,38 @@ button.danger:hover:not(:disabled) {
 .bookmark-row .affected-title {
   font-weight: 400;
 }
+/* Title and domain never wrap independently: inline on a wide list, stacked on a narrow one.
+   The domain shares the title button's horizontal padding so both lines start at the same x. */
+.workspace-list {
+  container-type: inline-size;
+}
 .row-label {
   display: flex;
-  flex-wrap: wrap;
   align-items: baseline;
-  gap: 0 0.6rem;
   flex: 1 1 auto;
   min-width: 0;
 }
 .row-host {
+  padding: 0 0.5rem;
   color: var(--muted);
   font-size: var(--text-meta);
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 45%;
+}
+@container (max-width: 900px) {
+  .row-label {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .row-host {
+    margin-top: -0.25rem;
+    padding-bottom: 0.3rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    max-width: none;
+  }
 }
 .row-signals {
   display: inline-flex;
