@@ -70,8 +70,8 @@ export function renderSignals(target: HTMLElement, signals: BookmarkSignals): vo
     activity.textContent = dateText(signals.lastActivity);
     activity.title = "Last opened or visited";
   } else if (!signals.loading) {
-    activity.textContent = "—";
-    activity.title = NO_RECORDED_USE;
+    // Most rows have no date; an empty cell is quieter than a column of dashes.
+    activity.setAttribute("role", "img");
     activity.setAttribute("aria-label", NO_RECORDED_USE);
   }
   target.append(activity);

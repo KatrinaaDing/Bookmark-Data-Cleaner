@@ -464,10 +464,20 @@ button.danger:hover:not(:disabled) {
   font-weight: 500;
   white-space: nowrap;
 }
+/* Cookie counts are the signal that justifies a cleanup, so they read as a quiet pill. */
 .row-cookies {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
+  padding: 0.1rem 0.55rem 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--tint);
+  color: var(--accent-hover);
+  font-weight: 500;
+}
+.row-cookies .icon {
+  width: 15px;
+  height: 15px;
 }
 .row-activity {
   min-width: 7.5em;
