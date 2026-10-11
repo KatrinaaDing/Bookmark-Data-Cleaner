@@ -82,4 +82,4 @@ Incognito is disabled. Enterprise policies, other operating systems, the minimum
 
 ## Package
 
-Run all checks above, then zip the **contents** of `dist/extension/` with `manifest.json` at archive root. Load the extracted package once before submitting it. Fill the footer links in `extension/links.ts` first; [store-listing.md](store-listing.md) has the submission checklist and listing text.
+Run all checks above, then zip the **contents** of `dist/extension/` with `manifest.json` at archive root. Load the extracted package once before submitting it. The footer links in `extension/links.ts` point at `master`; merge first. [store-listing.md](store-listing.md) has the submission checklist and listing text.

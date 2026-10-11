@@ -1,11 +1,11 @@
 # Chrome Web Store listing — version 3.0.0
 
-Everything below is ready to paste into the developer dashboard. Fill in the two URLs in `extension/links.ts` and the privacy policy URL before submitting.
+Everything below is ready to paste into the developer dashboard. The footer links in `extension/links.ts` point at the repository's `master` branch, so merge before submitting.
 
 ## Checklist before upload
 
-- [ ] Publish [docs/privacy.md](privacy.md) somewhere public (GitHub Pages or the repository file view works) and put that URL in the dashboard's **Privacy policy** field.
-- [ ] Fill `LINKS.privacy` and `LINKS.issues` in `extension/links.ts`, rebuild and confirm the footer shows both links.
+- [ ] Merge to `master` so <https://github.com/KatrinaaDing/Bookmark-Data-Cleaner/blob/master/docs/privacy.md> resolves; put that URL in the dashboard's **Privacy policy** field.
+- [ ] Rebuild and confirm the footer shows Privacy and Report an issue.
 - [ ] `npm run typecheck && npm test && npm run build`, then `CHROME_BIN=… npm run test:browser` on the browser you have, and load `dist/extension/` once in a clean profile.
 - [ ] Zip the **contents** of `dist/extension/` so `manifest.json` sits at the archive root.
 - [ ] Regenerate assets after any UI change: `CHROME_BIN=… node scripts/store-assets.mjs` writes `images/store/`.

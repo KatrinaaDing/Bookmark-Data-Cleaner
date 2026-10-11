@@ -43,4 +43,4 @@ Source lives in `extension/`: TypeScript, native HTML and custom CSS. Developmen
 
 ## Release
 
-Fill the privacy and issue-tracker URLs in `extension/links.ts`, run the checks above, then zip the contents of `dist/extension/` with `manifest.json` at the archive root. [docs/store-listing.md](docs/store-listing.md) has the full checklist and listing text.
+Merge to `master` (the footer's privacy link points there), run the checks above, then zip the contents of `dist/extension/` with `manifest.json` at the archive root. [docs/store-listing.md](docs/store-listing.md) has the full checklist and listing text.
